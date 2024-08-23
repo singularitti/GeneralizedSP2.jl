@@ -15,7 +15,7 @@ function determine_branches(μ, nlayers)
 end
 
 function backward_pass(branches)
-    y′ = 1  # y′₀ = 1, accumulator
+    y′ = 1.0  # y′₀ = 1, accumulator
     y = 1 / 2  # yₙ(μₙ) = 1 / 2
     for branchᵢ₊₁ in Iterators.reverse(branches)  # Starts from the nth layer
         if branchᵢ₊₁  # μᵢ < μ
