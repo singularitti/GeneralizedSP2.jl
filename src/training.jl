@@ -29,16 +29,19 @@ function determine_branches(μ, nlayers)
     return branches
 end
 
-function eval_sp2(b::Vector{Bool}, x)
-    y = x
-    for bᵢ in b
-        if bᵢ
-            y = y^2
-        else
-            y = 2y - y^2
+function forward_pass(branches, x)
+    if zero(x) <= x <= oneunit(x)
+        y = x
+        for bᵢ in branches
+            if bᵢ
+                y = y^2
+            else
+                y = 2y - y^2
+            end
         end
+        return y
     end
-    return y
+    throw(ArgumentError("x must be in the interval (0, 1)!"))
 end
 
 const layer_width = 4
