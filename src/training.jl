@@ -5,6 +5,15 @@ using JLSO: JLSO
 
 ### Vanilla SP2, targeting specific chemical potential
 
+function determine_branches(μ, nlayers)
+    branches = Bool[]
+    for _ in 1:nlayers
+        μᵢ, _ = backward_pass(branches)  # Solve yᵢ(1 / 2) backwards, we get μᵢ by definition
+        push!(branches, μᵢ < μ)
+    end
+    return branches
+end
+
 function backward_pass(branches)
     y′ = 1  # y′₀ = 1, accumulator
     y = 1 / 2  # yₙ(μₙ) = 1 / 2
@@ -18,15 +27,6 @@ function backward_pass(branches)
         end
     end
     return y, 4y′  # μₙ = y₀(1 / 2), β = 4y′ₙ
-end
-
-function determine_branches(μ, nlayers)
-    branches = Bool[]
-    for _ in 1:nlayers
-        μᵢ, _ = backward_pass(branches)  # Solve yᵢ(1 / 2) backwards, we get μᵢ by definition
-        push!(branches, μᵢ < μ)
-    end
-    return branches
 end
 
 function forward_pass(branches, x)
