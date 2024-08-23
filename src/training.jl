@@ -5,11 +5,11 @@ using JLSO: JLSO
 
 ### Vanilla SP2, targeting specific chemical potential
 
-function calc_μ_sp2(b)
+function calc_μ_sp2(branches)
     y′ = 1  # y′₀ = 1, accumulator
     y = 1 / 2  # yₙ(μₙ) = 1 / 2
-    for bᵢ₊₁ in Iterators.reverse(b)  # Starts from the nth layer
-        if bᵢ₊₁  # μᵢ < μ
+    for branchᵢ₊₁ in Iterators.reverse(branches)  # Starts from the nth layer
+        if branchᵢ₊₁  # μᵢ < μ
             y = √y  # yᵢ(μₙ) = √yᵢ₊₁(μₙ), you must do this first to get yᵢ before the next line
             y′ *= 2y  # y′ᵢ₊₁ *= 2yᵢ, accumulate backwards
         else
@@ -21,12 +21,12 @@ function calc_μ_sp2(b)
 end
 
 function build_sp2(μ, nlayers)
-    b = Bool[]
-    for i in 1:nlayers
-        μᵢ, _ = calc_μ_sp2(b)  # Solve yᵢ(1 / 2) backwards, we get μᵢ by definition
-        push!(b, μᵢ < μ)
+    branches = Bool[]
+    for _ in 1:nlayers
+        μᵢ, _ = calc_μ_sp2(branches)  # Solve yᵢ(1 / 2) backwards, we get μᵢ by definition
+        push!(branches, μᵢ < μ)
     end
-    return b
+    return branches
 end
 
 function eval_sp2(b::Vector{Bool}, x)
