@@ -46,19 +46,19 @@ function forward_pass(branches, x)
     throw(ArgumentError("x must be in the interval (0, 1)!"))
 end
 
-function params_from_sp2(μ, nlayers)
+function init_params(μ, nlayers)
     θ = zeros(LAYER_WIDTH, nlayers)
-    b = determine_branches(μ, nlayers)
+    branches = determine_branches(μ, nlayers)
 
-    for i in 1:nlayers
-        if b[i]
-            θ[:, i] = [1.0, 0.0, 0.0, 0.0] # x' = x^2
+    for (i, branch) in zip(1:nlayers, branches)
+        if branch  # μᵢ < μ
+            θ[:, i] = [1.0, 0.0, 0.0, 0.0] # x' = x^2, increase μᵢ
         else
-            θ[:, i] = [-1.0, 2.0, 0.0, 0.0] # x' = 2x - x^2
+            θ[:, i] = [-1.0, 2.0, 0.0, 0.0] # x' = 2x - x^2, decrease μᵢ
         end
     end
 
-    return reshape(θ, :)
+    return vec(θ)
 end
 
 ### Generalized model
@@ -225,7 +225,7 @@ function generate_model(;
     weight = sample_weights(x)
 
     # Initialize model with SP2
-    θ_sp2 = params_from_sp2(μ, nlayers)
+    θ_sp2 = init_params(μ, nlayers)
 
     # show_trace = true
     @time fit_fermi = curve_fit(
