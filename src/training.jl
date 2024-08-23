@@ -3,6 +3,8 @@ using Printf
 using LsqFit: curve_fit, coef
 using JLSO: JLSO
 
+export determine_branches, backward_pass, forward_pass, init_params
+
 ### Vanilla SP2, targeting specific chemical potential
 
 const LAYER_WIDTH = 4
