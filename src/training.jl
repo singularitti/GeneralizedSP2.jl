@@ -23,10 +23,10 @@ function backward_pass(branches)
     y = 1 / 2  # yₙ(μₙ) = 1 / 2
     for branchᵢ₊₁ in Iterators.reverse(branches)  # Starts from the nth layer
         if branchᵢ₊₁  # μᵢ < μ
-            y = √y  # yᵢ(μₙ) = √yᵢ₊₁(μₙ), you must do this first to get yᵢ before the next line
+            y = sqrt(y)  # yᵢ(μₙ) = √yᵢ₊₁(μₙ), you must do this first to get yᵢ before the next line
             y′ *= 2y  # y′ᵢ₊₁ *= 2yᵢ, accumulate backwards
         else
-            y = 1 - √(1 - y)  # yᵢ(μₙ) = 1 - √(1 - yᵢ₊₁(μₙ)), you must do this first to get yᵢ before the next line
+            y = 1 - sqrt(1 - y)  # yᵢ(μₙ) = 1 - √(1 - yᵢ₊₁(μₙ)), you must do this first to get yᵢ before the next line
             y′ *= 2 - 2y  # y′ᵢ₊₁ *= -2yᵢ + 2, accumulate backwards
         end
     end
