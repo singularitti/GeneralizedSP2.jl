@@ -5,25 +5,25 @@ using JLSO: JLSO
 
 ### Vanilla SP2, targeting specific chemical potential
 
-function calc_μ_sp2(b::Vector{Bool})
-    y′ = 1
+function calc_μ_sp2(b)
+    y′ = 1  # y′₀ = 1, accumulator
     y = 1 / 2  # yₙ(μₙ) = 1 / 2
-    for bᵢ₊₁ in Iterators.reverse(b)
-        if bᵢ₊₁
-            y = sqrt(y)  # yᵢ = sqrt(yᵢ₊₁)
-            y′ *= 2y  # y′ᵢ₊₁ = 2yᵢ × y′ᵢ
+    for bᵢ₊₁ in Iterators.reverse(b)  # Starts from the nth layer
+        if bᵢ₊₁  # μᵢ < μ
+            y = √y  # yᵢ(μₙ) = √yᵢ₊₁(μₙ), you must do this first to get yᵢ before the next line
+            y′ *= 2y  # y′ᵢ₊₁ *= 2yᵢ, accumulate backwards
         else
-            y = 1 - sqrt(1 - y)
-            y′ *= 2 - 2y
+            y = 1 - √(1 - y)  # yᵢ(μₙ) = 1 - √(1 - yᵢ₊₁(μₙ)), you must do this first to get yᵢ before the next line
+            y′ *= 2 - 2y  # y′ᵢ₊₁ *= -2yᵢ + 2, accumulate backwards
         end
     end
-    return (y, 4y′)  # μₙ = y₀(1 / 2)
+    return y, 4y′  # μₙ = y₀(1 / 2), β = 4y′ₙ
 end
 
 function build_sp2(μ, nlayers)
     b = Bool[]
     for i in 1:nlayers
-        μᵢ, _ = calc_μ_sp2(b)
+        μᵢ, _ = calc_μ_sp2(b)  # Solve yᵢ(1 / 2) backwards, we get μᵢ by definition
         push!(b, μᵢ < μ)
     end
     return b
