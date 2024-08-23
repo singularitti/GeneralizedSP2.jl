@@ -42,7 +42,7 @@ function heaviside_matrix!(res, temp1, temp2, x, θ)
     npts = length(x)
     n = size(x, 2)
     typ = eltype(x)
-    θ = reshape(θ, layer_width, :)
+    θ = reshape(θ, LAYER_WIDTH, :)
     nlayers = size(θ, 2)
 
     fill!(res, 0.0)

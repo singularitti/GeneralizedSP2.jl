@@ -5,6 +5,8 @@ using JLSO: JLSO
 
 ### Vanilla SP2, targeting specific chemical potential
 
+const LAYER_WIDTH = 4
+
 function determine_branches(μ, nlayers)
     branches = Bool[]
     for _ in 1:nlayers
@@ -44,10 +46,8 @@ function forward_pass(branches, x)
     throw(ArgumentError("x must be in the interval (0, 1)!"))
 end
 
-const layer_width = 4
-
 function params_from_sp2(μ, nlayers)
-    θ = zeros(layer_width, nlayers)
+    θ = zeros(LAYER_WIDTH, nlayers)
     b = determine_branches(μ, nlayers)
 
     for i in 1:nlayers
@@ -71,7 +71,7 @@ entropy_transf_2(Y) = 4log(2) * (1 - 2Y)
 
 function model_inplace(res, x, θ, f)
     npts = length(x)
-    θ = reshape(θ, layer_width, :)
+    θ = reshape(θ, LAYER_WIDTH, :)
     nlayers = size(θ, 2)
 
     fill!(res, zero(eltype(res)))
@@ -102,10 +102,10 @@ model_entropy(x, θ) = model(x, θ, entropy_transf_1)
 
 function jacobian_inplace(J::Array{Float64,2}, x, θ, df_dY)
     npts = length(x)
-    θ = reshape(θ, layer_width, :)
+    θ = reshape(θ, LAYER_WIDTH, :)
     nlayers = size(θ, 2)
 
-    J = reshape(J, npts, layer_width, nlayers)
+    J = reshape(J, npts, LAYER_WIDTH, nlayers)
     y = zeros(eltype(x), nlayers + 1)
 
     for j in 1:npts
