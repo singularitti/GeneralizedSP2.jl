@@ -1,6 +1,6 @@
 name = "GeneralizedSP2"
 uuid = "5310a9d4-a676-4946-a68d-8e46a0f50a7f"
-authors = ["singularitti <singularitti@outlook.com> and contributors"]
+authors = ["Kipton Barros <kbarros@gmail.com>", "singularitti <singularitti@outlook.com>"]
 version = "1.0.0-DEV"
 
 [compat]
