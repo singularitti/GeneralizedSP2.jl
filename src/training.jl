@@ -5,7 +5,7 @@ using JLSO: JLSO
 
 ### Vanilla SP2, targeting specific chemical potential
 
-function calc_μ_sp2(branches)
+function backward_pass(branches)
     y′ = 1  # y′₀ = 1, accumulator
     y = 1 / 2  # yₙ(μₙ) = 1 / 2
     for branchᵢ₊₁ in Iterators.reverse(branches)  # Starts from the nth layer
@@ -20,10 +20,10 @@ function calc_μ_sp2(branches)
     return y, 4y′  # μₙ = y₀(1 / 2), β = 4y′ₙ
 end
 
-function build_sp2(μ, nlayers)
+function determine_branches(μ, nlayers)
     branches = Bool[]
     for _ in 1:nlayers
-        μᵢ, _ = calc_μ_sp2(branches)  # Solve yᵢ(1 / 2) backwards, we get μᵢ by definition
+        μᵢ, _ = backward_pass(branches)  # Solve yᵢ(1 / 2) backwards, we get μᵢ by definition
         push!(branches, μᵢ < μ)
     end
     return branches
@@ -45,7 +45,7 @@ const layer_width = 4
 
 function params_from_sp2(μ, nlayers)
     θ = zeros(layer_width, nlayers)
-    b = build_sp2(μ, nlayers)
+    b = determine_branches(μ, nlayers)
 
     for i in 1:nlayers
         if b[i]
