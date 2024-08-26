@@ -6,8 +6,6 @@ export determine_branches, backward_pass, forward_pass, init_params
 
 ### Vanilla SP2, targeting specific chemical potential
 
-const LAYER_WIDTH = 4
-
 function determine_branches(μ, nlayers)
     branches = Bool[]
     for _ in 1:nlayers
