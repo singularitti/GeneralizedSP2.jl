@@ -19,19 +19,19 @@ function matrix_function(f, A)
 end
 
 function heaviside_matrix(x, θ::AbstractMatrix)
-    if size(θ, 1) != 4
-        throw(ArgumentError("input coefficients matrix must have 4 rows!"))
+    if size(θ, 1) != LAYER_WIDTH
+        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
     y = x
     Y = zero(x)
     for θᵢ in eachcol(θ)
         Y += θᵢ[4] * y
-        y = θᵢ[1] * y^2 + θᵢ[2] * y + θᵢ[3] * I
+        y = θᵢ[1] * y^2 + θᵢ[2] * y + θᵢ[3]
     end
     Y += y
     return Y
 end
-heaviside_matrix(x, θ::AbstractVector) = heaviside_matrix(x, reshape(θ, 4, :))
+heaviside_matrix(x, θ::AbstractVector) = heaviside_matrix(x, reshape(θ, LAYER_WIDTH, :))
 
 function fermi_matrix(x, θ)
     Y = heaviside_matrix(x, θ)
