@@ -141,19 +141,19 @@ end
 
 ### Model training routines
 
-fermi_fn(x, β, μ) = 1 / (1 + exp(β * (x - μ)))
+fermi_dirac(x, β, μ) = 1 / (1 + exp(β * (x - μ)))
 
-function energy_fn(x, β, μ)
-    a = β * (x - μ)
-    if a > 0
-        -β^-1 * log(1 + exp(-a))
+function energyof(x, β, μ)
+    η = β * (x - μ)
+    if η > 0
+        return -inv(β) * log(1 + exp(-η))
     else
-        # avoid overflow for very negative a
-        -β^-1 * (log(1 + exp(a)) - a)
+        # Avoid overflow for very negative η
+        return -inv(β) * (log(1 + exp(η)) - η)
     end
 end
 
-entropy_fn(x, β, μ) = -β * (energy_fn(x, β, μ) - fermi_fn(x, β, μ) * (x - μ))
+entropyof(x, β, μ) = β * (fermi_dirac(x, β, μ) * (x - μ) - energyof(x, β, μ))
 
 function read_or_generate_models(filename, overwrite=false)
     need_calculations = overwrite || !isfile(filename)

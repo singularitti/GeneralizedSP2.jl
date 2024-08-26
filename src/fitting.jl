@@ -80,7 +80,7 @@ function generate_model(;
         model_inplace_fermi,
         jacobian_inplace_fermi,
         x,
-        fermi_fn.(x, β, μ),
+        fermi_dirac.(x, β, μ),
         θ_sp2;
         maxIter=max_iter,
         inplace=true,
@@ -89,7 +89,7 @@ function generate_model(;
         model_inplace_entropy,
         jacobian_inplace_entropy,
         x,
-        entropy_fn.(x, β, μ),
+        entropyof.(x, β, μ),
         θ_sp2;
         maxIter=max_iter,
         inplace=true,
