@@ -1,8 +1,9 @@
 using LinearAlgebra
 using Printf
-using JLSO: JLSO
+# using JLSO: JLSO
 
-export determine_branches, backward_pass, forward_pass, init_params
+export determine_branches,
+    backward_pass, forward_pass, init_params, fermi_dirac, energyof, entropyof
 
 ### Vanilla SP2, targeting specific chemical potential
 
@@ -59,23 +60,6 @@ function init_params(μ, nlayers)
 
     return vec(θ)
 end
-
-### Generalized model
-
-# Postprocessing for final model output, and derivative
-fermi_transf_1(Y) = 1 - Y
-fermi_transf_2(Y) = -1.0
-entropy_transf_1(Y) = 4log(2) * (Y - Y^2)
-entropy_transf_2(Y) = 4log(2) * (1 - 2Y)
-
-function model(x, θ, f)
-    res = Vector{eltype(x)}(undef, length(x))
-    model_inplace(res, x, θ, f)
-    return res
-end
-
-model_fermi(x, θ) = model(x, θ, fermi_transf_1)
-model_entropy(x, θ) = model(x, θ, entropy_transf_1)
 
 #= 
 function test_jacobian(x, θ, f, df_dY, idx)
@@ -168,9 +152,9 @@ function read_or_generate_models(filename, overwrite=false)
         end
         all_models = reshape(all_models, :)
 
-        JLSO.save(filename, :models => all_models)
+        # JLSO.save(filename, :models => all_models)
     else
-        all_models = JLSO.load(filename)[:models]
+        # all_models = JLSO.load(filename)[:models]
     end
 
     return all_models

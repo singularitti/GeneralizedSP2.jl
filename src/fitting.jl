@@ -1,27 +1,46 @@
 using LsqFit: curve_fit, coef
 
-function model_inplace(res, x, θ, f)
-    npts = length(x)
-    θ = reshape(θ, LAYER_WIDTH, :)
-    nlayers = size(θ, 2)
+export generate_model, model!, model
 
-    fill!(res, zero(eltype(res)))
+### Generalized model
 
-    for j in 1:npts
-        y = x[j]
-        Y = zero(eltype(res))
-        for i in 1:nlayers
-            Y += θ[4, i] * y
-            y = θ[1, i] * y^2 + θ[2, i] * y + θ[3, i]
+# Postprocessing for final model output, and derivative
+fermi_transf_1(Y) = 1 - Y
+fermi_transf_2(Y) = -1.0
+entropy_transf_1(Y) = 4log(2) * (Y - Y^2)
+entropy_transf_2(Y) = 4log(2) * (1 - 2Y)
+
+model_fermi(x, θ) = model(x, θ, fermi_transf_1)
+model_entropy(x, θ) = model(x, θ, entropy_transf_1)
+
+function model!(f, result, 𝐱, 𝝷::AbstractMatrix)
+    if size(𝝷, 1) != LAYER_WIDTH
+        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
+    end
+    map!(result, 𝐱) do x
+        y = x
+        Y = zero(eltype(result))
+        for θᵢ in eachcol(𝝷)
+            Y += θᵢ[4] * y
+            y = θᵢ[1] * y^2 + θᵢ[2] * y + θᵢ[3]
         end
         Y += y
-        res[j] = f(Y)
+        f(Y)
     end
+    return result
+end
+model!(f, result, 𝐱, 𝛉::AbstractVector) = model!(f, result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
+
+function model(f, 𝐱, 𝛉)
+    T = typeof(f(first(𝛉) * first(𝐱)))
+    result = similar(𝐱, T)
+    model!(f, result, 𝐱, 𝛉)
+    return result
 end
 
-model_inplace_fermi(res, x, θ) = model_inplace(res, x, θ, fermi_transf_1)
+model_inplace_fermi(res, x, θ) = model!(res, x, θ, fermi_transf_1)
 
-model_inplace_entropy(res, x, θ) = model_inplace(res, x, θ, entropy_transf_1)
+model_inplace_entropy(res, x, θ) = model!(res, x, θ, entropy_transf_1)
 
 function jacobian_inplace(J::Array{Float64,2}, x, θ, df_dY)
     npts = length(x)
