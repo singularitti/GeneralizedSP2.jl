@@ -73,27 +73,26 @@ function generate_model(;
     weight = sample_weights(x)
 
     # Initialize model with SP2
-    θ_sp2 = init_params(μ, nlayers)
+    θ = init_params(μ, nlayers)
 
-    # show_trace = true
-    @time fit_fermi = curve_fit(
+    fit_fermi = curve_fit(
         model_inplace_fermi,
         jacobian_inplace_fermi,
-        x,
-        fermi_dirac.(x, β, μ),
-        θ_sp2;
+        x,  # xdata
+        fermi_dirac.(x, β, μ),  # ydata
+        θ;  # p0
         maxIter=max_iter,
         inplace=true,
     )
-    @time fit_entropy = curve_fit(
+    fit_entropy = curve_fit(
         model_inplace_entropy,
         jacobian_inplace_entropy,
         x,
         entropyof.(x, β, μ),
-        θ_sp2;
+        θ;
         maxIter=max_iter,
         inplace=true,
     )
 
-    return (; θ_sp2, θ_fermi=coef(fit_fermi), θ_entropy=coef(fit_entropy), x)
+    return (; θ, θ_fermi=coef(fit_fermi), θ_entropy=coef(fit_entropy), x)
 end
