@@ -5,13 +5,17 @@ export generate_model, model!, model
 ### Generalized model
 
 # Postprocessing for final model output, and derivative
-fermi_transf_1(Y) = 1 - Y
-fermi_transf_2(Y) = -1.0
-entropy_transf_1(Y) = 4log(2) * (Y - Y^2)
-entropy_transf_2(Y) = 4log(2) * (1 - 2Y)
+transform_fermi_dirac(Y) = 1 - Y
 
-model_fermi(x, θ) = model(x, θ, fermi_transf_1)
-model_entropy(x, θ) = model(x, θ, entropy_transf_1)
+transform_fermi_dirac_derivative(Y) = -1.0
+
+transform_entropy(Y) = 4log(2) * (Y - Y^2)
+
+transform_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)
+
+model_fermi(x, θ) = model(x, θ, transform_fermi_dirac)
+
+model_entropy(x, θ) = model(x, θ, transform_entropy)
 
 function model!(f, result, 𝐱, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
@@ -38,19 +42,19 @@ function model(f, 𝐱, 𝛉)
     return result
 end
 
-model_inplace_fermi(res, x, θ) = model!(res, x, θ, fermi_transf_1)
+fermi_dirac_model!(result, 𝐱, 𝛉) = model!(transform_fermi_dirac, result, 𝐱, 𝛉)
 
-model_inplace_entropy(res, x, θ) = model!(res, x, θ, entropy_transf_1)
+entropy_model!(result, 𝐱, 𝛉) = model!(transform_entropy, result, 𝐱, 𝛉)
 
-function jacobian_inplace(J::Array{Float64,2}, x, θ, df_dY)
-    npts = length(x)
+function jacobian!(J::AbstractMatrix, x, θ, df_dY)
+    npoints = length(x)
     θ = reshape(θ, LAYER_WIDTH, :)
     nlayers = size(θ, 2)
 
-    J = reshape(J, npts, LAYER_WIDTH, nlayers)
+    J = reshape(J, npoints, LAYER_WIDTH, nlayers)
     y = zeros(eltype(x), nlayers + 1)
 
-    for j in 1:npts
+    for j in 1:npoints
 
         # forward calculation
         y[1] = x[j]
@@ -76,36 +80,36 @@ function jacobian_inplace(J::Array{Float64,2}, x, θ, df_dY)
     end
 end
 
-jacobian_inplace_fermi(J, x, θ) = jacobian_inplace(J, x, θ, fermi_transf_2)
+fermi_dirac_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_fermi_dirac_derivative)
 
-jacobian_inplace_entropy(J, x, θ) = jacobian_inplace(J, x, θ, entropy_transf_2)
+entropy_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_entropy_derivative)
 
 function generate_model(;
-    β, μ, max_iter, npts_scale=1.0, nlayers=round(Int64, 4.75log(β) - 6.6)
+    β, μ, max_iter, npoints_scale=1.0, nlayers=round(Int64, 4.75log(β) - 6.6)
 )
 
     # Sample points more densely near x=μ
-    npts = npts_scale * 80log(β)
+    npoints = npoints_scale * 80log(β)
     w = sqrt(β)
-    sample_density(x) = (npts / 2) + (npts / 2) * (w / 2) * sech(w * (x - μ))^2
+    sample_density(x) = (npoints / 2) + (npoints / 2) * (w / 2) * sech(w * (x - μ))^2
     x = sample_by_density(μ, 0, 1, sample_density)
-    weight = sample_weights(x)
+    weights = sample_weights(x)
 
     # Initialize model with SP2
     θ = init_params(μ, nlayers)
 
-    fit_fermi = curve_fit(
-        model_inplace_fermi,
-        jacobian_inplace_fermi,
+    fitted_fermi = curve_fit(
+        fermi_dirac_model!,
+        fermi_dirac_jacobian!,
         x,  # xdata
         fermi_dirac.(x, β, μ),  # ydata
         θ;  # p0
         maxIter=max_iter,
         inplace=true,
     )
-    fit_entropy = curve_fit(
-        model_inplace_entropy,
-        jacobian_inplace_entropy,
+    fitted_entropy = curve_fit(
+        entropy_model!,
+        entropy_jacobian!,
         x,
         entropyof.(x, β, μ),
         θ;
@@ -113,5 +117,5 @@ function generate_model(;
         inplace=true,
     )
 
-    return (; θ, θ_fermi=coef(fit_fermi), θ_entropy=coef(fit_entropy), x)
+    return θ, coef(fitted_fermi), coef(fitted_entropy), x
 end
