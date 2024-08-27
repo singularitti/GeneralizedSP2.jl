@@ -17,13 +17,13 @@ model_fermi(x, θ) = model(transform_fermi_dirac, x, θ)
 
 model_entropy(x, θ) = model(transform_entropy, x, θ)
 
-function model!(f, result, 𝐱, 𝝷::AbstractMatrix)
+function model!(f, result, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
     map!(result, 𝐱) do x
-        y = x
-        Y = zero(eltype(result))
+        y = x  # `x` and `y` are 2 numbers
+        Y = zero(eltype(result))  # Accumulator of the summation
         for θᵢ in eachcol(𝝷)
             Y += θᵢ[4] * y
             y = θᵢ[1] * y^2 + θᵢ[2] * y + θᵢ[3]
@@ -33,7 +33,8 @@ function model!(f, result, 𝐱, 𝝷::AbstractMatrix)
     end
     return result
 end
-model!(f, result, 𝐱, 𝛉::AbstractVector) = model!(f, result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
+model!(f, result, 𝐱::AbstractVector, 𝛉::AbstractVector) =
+    model!(f, result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
 
 function model(f, 𝐱, 𝛉)
     T = typeof(f(first(𝛉) * first(𝐱)))
