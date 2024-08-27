@@ -1,5 +1,7 @@
-using LinearAlgebra: BLAS, Diagonal, eigen, I, inv
+using LinearAlgebra: BLAS, Diagonal, eigen, inv
 using SparseArrays
+
+export heaviside_matrix, fermi_matrix, heaviside_matrix!, fermi_matrix!
 
 """
     matrix_function(f, A)
@@ -26,7 +28,7 @@ function heaviside_matrix(x, θ::AbstractMatrix)
     Y = zero(x)
     for θᵢ in eachcol(θ)
         Y += θᵢ[4] * y
-        y = θᵢ[1] * y^2 + θᵢ[2] * y + θᵢ[3]
+        y = θᵢ[1] * y .^ 2 + θᵢ[2] * y + θᵢ[3] * oneunit.(y)
     end
     Y += y
     return Y
@@ -35,7 +37,7 @@ heaviside_matrix(x, θ::AbstractVector) = heaviside_matrix(x, reshape(θ, LAYER_
 
 function fermi_matrix(x, θ)
     Y = heaviside_matrix(x, θ)
-    return I - Y
+    return oneunit.(Y) - Y
 end
 
 function heaviside_matrix!(res, temp1, temp2, x, θ)
