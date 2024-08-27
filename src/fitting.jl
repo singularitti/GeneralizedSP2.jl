@@ -1,6 +1,6 @@
 using LsqFit: curve_fit, coef
 
-export generate_model, model!, model
+export fit_model, model!, model
 
 ### Generalized model
 
@@ -84,8 +84,8 @@ fermi_dirac_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_fermi_dirac_deri
 
 entropy_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_entropy_derivative)
 
-function generate_model(;
-    β, μ, max_iter, npoints_scale=1.0, nlayers=round(Int64, 4.75log(β) - 6.6)
+function fit_model(
+    β, μ; max_iter=100, npoints_scale=1.0, nlayers=round(Int64, 4.75log(β) - 6.6)
 )
 
     # Sample points more densely near x=μ

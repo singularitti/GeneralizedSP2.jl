@@ -147,7 +147,7 @@ function read_or_generate_models(filename, overwrite=false)
 
         all_models = map(Iterators.product(βs, μs, max_iters)) do (β, μ, max_iter)
             println("Generating β=$β, μ=$μ, max_iter=$max_iter.")
-            (θ_sp2, θ_fermi, θ_entropy, x) = generate_model(; β, μ, max_iter, npts_scale=1)
+            (θ_sp2, θ_fermi, θ_entropy, x) = fit_model(; β, μ, max_iter, npts_scale=1)
             (; β, μ, max_iter, θ_sp2, θ_fermi, θ_entropy, x)
         end
         all_models = reshape(all_models, :)
