@@ -24,6 +24,7 @@ PLOT_DEFAULTS = Dict(
 
 β = 9.423
 μ = 0.568
+maxlayers = 4
 𝐱 = 0:0.01:1
 𝝷 = hcat(
     [3.4199, -0.916353, 0.638295],
@@ -48,16 +49,24 @@ plot!(
 xlims!(0, 1)
 xlabel!(raw"$x$")
 ylabel!(raw"$y$")
-title!("Data from Kipton")
+title!("Data from Kipton μ=$μ, β=$β")
 savefig("Kipton_data.pdf")
 
 plt = plot()
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
 plot!(𝐱, target_fermi_dirac(𝐱); label="Reference Fermi function", PLOT_DEFAULTS...)
-for n in 2:4
+branches = determine_branches(μ, maxlayers)
+𝐲 = forward_pass(branches, 𝐱)
+plot!(
+    𝐱,
+    oneunit.(𝐲) - 𝐲;
+    label="SP2 best Approximated with $maxlayers layers",
+    linestyle=:dash,
+    PLOT_DEFAULTS...,
+)
+for n in 2:maxlayers
     _, 𝝷, _, _ = fit_model(β, μ; nlayers=n)
     plot!(
-        plt,
         𝐱,
         iterate_fermi_dirac(𝐱, 𝝷);
         label="Approximated function with $n layers",
@@ -68,17 +77,25 @@ end
 xlims!(0, 1)
 xlabel!(raw"$x$")
 ylabel!(raw"$y$")
-title!("My fitted results")
+title!("My fitted results μ=$μ, β=$β")
 savefig("my_fits_beta=$β.pdf")
 
 β = 20
 plt = plot()
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
 plot!(𝐱, target_fermi_dirac(𝐱); label="Reference Fermi function", PLOT_DEFAULTS...)
-for n in 2:4
+branches = determine_branches(μ, maxlayers)
+𝐲 = forward_pass(branches, 𝐱)
+plot!(
+    𝐱,
+    oneunit.(𝐲) - 𝐲;
+    label="SP2 best Approximated with $maxlayers layers",
+    linestyle=:dash,
+    PLOT_DEFAULTS...,
+)
+for n in 2:maxlayers
     _, 𝝷, _, _ = fit_model(β, μ; nlayers=n)
     plot!(
-        plt,
         𝐱,
         iterate_fermi_dirac(𝐱, 𝝷);
         label="Approximated function with $n layers",
@@ -89,5 +106,5 @@ end
 xlims!(0, 1)
 xlabel!(raw"$x$")
 ylabel!(raw"$y$")
-title!("My fitted results")
+title!("My fitted results μ=$μ, β=$β")
 savefig("my_fits_beta=$β.pdf")
