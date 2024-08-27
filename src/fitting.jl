@@ -1,6 +1,6 @@
 using LsqFit: curve_fit, coef
 
-export fit_model, model!, model
+export fit_model, model!, model, model_fermi, model_entropy
 
 ### Generalized model
 
@@ -13,9 +13,9 @@ transform_entropy(Y) = 4log(2) * (Y - Y^2)
 
 transform_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)
 
-model_fermi(x, θ) = model(x, θ, transform_fermi_dirac)
+model_fermi(x, θ) = model(transform_fermi_dirac, x, θ)
 
-model_entropy(x, θ) = model(x, θ, transform_entropy)
+model_entropy(x, θ) = model(transform_entropy, x, θ)
 
 function model!(f, result, 𝐱, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
