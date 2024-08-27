@@ -1,21 +1,6 @@
 using LsqFit: curve_fit, coef
 
-export fit_model, model!, model, model_fermi, model_entropy
-
-### Generalized model
-
-# Postprocessing for final model output, and derivative
-transform_fermi_dirac(Y) = 1 - Y
-
-transform_fermi_dirac_derivative(Y) = -1.0
-
-transform_entropy(Y) = 4log(2) * (Y - Y^2)
-
-transform_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)
-
-model_fermi(x, θ) = model(transform_fermi_dirac, x, θ)
-
-model_entropy(x, θ) = model(transform_entropy, x, θ)
+export fit_model, model!, model, model_fermi, model_entropy, transform_fermi_dirac
 
 function model!(f, result, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
@@ -36,6 +21,10 @@ end
 model!(f, result, 𝐱::AbstractVector, 𝛉::AbstractVector) =
     model!(f, result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
 
+fermi_dirac_model!(result, 𝐱, 𝛉) = model!(transform_fermi_dirac, result, 𝐱, 𝛉)
+
+entropy_model!(result, 𝐱, 𝛉) = model!(transform_entropy, result, 𝐱, 𝛉)
+
 function model(f, 𝐱, 𝛉)
     T = typeof(f(first(𝛉) * first(𝐱)))
     result = similar(𝐱, T)
@@ -43,9 +32,13 @@ function model(f, 𝐱, 𝛉)
     return result
 end
 
-fermi_dirac_model!(result, 𝐱, 𝛉) = model!(transform_fermi_dirac, result, 𝐱, 𝛉)
+transform_fermi_dirac(Y) = oneunit(Y) - Y
 
-entropy_model!(result, 𝐱, 𝛉) = model!(transform_entropy, result, 𝐱, 𝛉)
+transform_entropy(Y) = 4log(2) * (Y - Y^2)
+
+model_fermi(x, θ) = model(transform_fermi_dirac, x, θ)
+
+model_entropy(x, θ) = model(transform_entropy, x, θ)
 
 function jacobian!(J::AbstractMatrix, x, θ, df_dY)
     npoints = length(x)
@@ -80,6 +73,10 @@ function jacobian!(J::AbstractMatrix, x, θ, df_dY)
         end
     end
 end
+
+transform_fermi_dirac_derivative(Y) = -one(Y)
+
+transform_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)
 
 fermi_dirac_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_fermi_dirac_derivative)
 
