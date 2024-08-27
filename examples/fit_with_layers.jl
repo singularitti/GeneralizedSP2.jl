@@ -51,7 +51,6 @@ hline!([1 / 2]; label="", seriescolor=:black, primary=false)
 plot!(𝐱, target_fermi_dirac(𝐱); label="Reference Fermi function", PLOT_DEFAULTS...)
 for n in 2:4
     _, 𝝷, _, _ = fit_model(β, μ; nlayers=n)
-    @show 𝝷
     plot!(
         plt,
         𝐱,
@@ -65,4 +64,25 @@ xlims!(0, 1)
 xlabel!(raw"$x$")
 ylabel!(raw"$y$")
 title!("My fitted results")
-savefig("my_fits.pdf")
+savefig("my_fits_beta=$β.pdf")
+
+β = 20
+plt = plot()
+hline!([1 / 2]; label="", seriescolor=:black, primary=false)
+plot!(𝐱, target_fermi_dirac(𝐱); label="Reference Fermi function", PLOT_DEFAULTS...)
+for n in 2:4
+    _, 𝝷, _, _ = fit_model(β, μ; nlayers=n)
+    plot!(
+        plt,
+        𝐱,
+        fermi_matrix(𝐱, 𝝷);
+        label="Approximated function with $n layers",
+        linestyle=:dot,
+        PLOT_DEFAULTS...,
+    )
+end
+xlims!(0, 1)
+xlabel!(raw"$x$")
+ylabel!(raw"$y$")
+title!("My fitted results")
+savefig("my_fits_beta=$β.pdf")
