@@ -1,6 +1,6 @@
 using LsqFit: curve_fit, coef
 
-export fit_model, model!, model, model_fermi, model_entropy, transform_fermi_dirac
+export fit_model, model!, model, fermi_dirac_model, entropy_model
 
 function model!(f, result, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
@@ -36,9 +36,9 @@ transform_fermi_dirac(Y) = oneunit(Y) - Y
 
 transform_entropy(Y) = 4log(2) * (Y - Y^2)
 
-model_fermi(x, θ) = model(transform_fermi_dirac, x, θ)
+fermi_dirac_model(x, θ) = model(transform_fermi_dirac, x, θ)
 
-model_entropy(x, θ) = model(transform_entropy, x, θ)
+entropy_model(x, θ) = model(transform_entropy, x, θ)
 
 function jacobian!(J::AbstractMatrix, x, θ, df_dY)
     npoints = length(x)
