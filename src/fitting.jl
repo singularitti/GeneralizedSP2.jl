@@ -32,9 +32,9 @@ function model(f, 𝐱, 𝛉)
     return result
 end
 
-transform_fermi_dirac(Y) = oneunit(Y) - Y
+transform_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number at a time
 
-transform_entropy(Y) = 4log(2) * (Y - Y^2)
+transform_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number at a time
 
 fermi_dirac_model(x, θ) = model(transform_fermi_dirac, x, θ)
 
@@ -74,9 +74,9 @@ function jacobian!(J::AbstractMatrix, x, θ, df_dY)
     end
 end
 
-transform_fermi_dirac_derivative(Y) = -one(Y)
+transform_fermi_dirac_derivative(Y) = -one(Y)  # Applies to 1 number at a time
 
-transform_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)
+transform_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
 fermi_dirac_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_fermi_dirac_derivative)
 
