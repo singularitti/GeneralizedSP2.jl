@@ -1,7 +1,7 @@
 using LinearAlgebra: BLAS, Diagonal, eigen, inv
 using SparseArrays
 
-export heaviside_matrix, fermi_matrix, heaviside_matrix!, fermi_matrix!
+export iterate_heaviside, iterate_fermi_dirac, iterate_heaviside!, iterate_fermi_dirac!
 
 """
     matrix_function(f, A)
@@ -20,7 +20,7 @@ function matrix_function(f, A)
     return F.vectors * Diagonal(f.(F.values)) * inv(F.vectors)  # `Diagonal` is faster than `diagm`
 end
 
-function heaviside_matrix(x, θ::AbstractMatrix)
+function iterate_heaviside(x, θ::AbstractMatrix)
     if size(θ, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
@@ -33,14 +33,14 @@ function heaviside_matrix(x, θ::AbstractMatrix)
     Y += y
     return Y
 end
-heaviside_matrix(x, θ::AbstractVector) = heaviside_matrix(x, reshape(θ, LAYER_WIDTH, :))
+iterate_heaviside(x, θ::AbstractVector) = iterate_heaviside(x, reshape(θ, LAYER_WIDTH, :))
 
-function fermi_matrix(x, θ)
-    Y = heaviside_matrix(x, θ)
+function iterate_fermi_dirac(x, θ)
+    Y = iterate_heaviside(x, θ)
     return oneunit.(Y) - Y
 end
 
-function heaviside_matrix!(res, temp1, temp2, x, θ)
+function iterate_heaviside!(res, temp1, temp2, x, θ)
     npts = length(x)
     n = size(x, 2)
     typ = eltype(x)
@@ -70,8 +70,8 @@ function heaviside_matrix!(res, temp1, temp2, x, θ)
     return res
 end
 
-function fermi_matrix!(res, temp1, temp2, x, θ)
-    heaviside_matrix!(res, temp1, temp2, x, θ)
+function iterate_fermi_dirac!(res, temp1, temp2, x, θ)
+    iterate_heaviside!(res, temp1, temp2, x, θ)
 
     n = size(x, 2)
     BLAS.scal!(n * n, -1.0, res, 1) # res *= -1

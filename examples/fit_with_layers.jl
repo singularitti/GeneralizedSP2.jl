@@ -39,7 +39,12 @@ target_fermi_dirac(x) = @. 1 / (1 + exp(β * (x - μ)))
 plot()
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
 plot!(𝐱, target_fermi_dirac(𝐱); label="Reference Fermi function", PLOT_DEFAULTS...)
-plot!(𝐱, fermi_matrix(𝐱, 𝝷); label="Approximated function with 4 layers", PLOT_DEFAULTS...)
+plot!(
+    𝐱,
+    iterate_fermi_dirac(𝐱, 𝝷);
+    label="Approximated function with 4 layers",
+    PLOT_DEFAULTS...,
+)
 xlims!(0, 1)
 xlabel!(raw"$x$")
 ylabel!(raw"$y$")
@@ -54,7 +59,7 @@ for n in 2:4
     plot!(
         plt,
         𝐱,
-        fermi_matrix(𝐱, 𝝷);
+        iterate_fermi_dirac(𝐱, 𝝷);
         label="Approximated function with $n layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
@@ -75,7 +80,7 @@ for n in 2:4
     plot!(
         plt,
         𝐱,
-        fermi_matrix(𝐱, 𝝷);
+        iterate_fermi_dirac(𝐱, 𝝷);
         label="Approximated function with $n layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
