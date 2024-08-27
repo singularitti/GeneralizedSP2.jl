@@ -32,13 +32,13 @@ function backward_pass(branches)
 end
 
 function forward_pass(branches, x)
-    if zero(x) <= x <= oneunit(x)
+    if zero.(x) <= x <= oneunit.(x)
         y = x
         for bᵢ in branches
             if bᵢ
-                y = y^2
+                y = y .^ 2
             else
-                y = 2y - y^2
+                y = 2y - y .^ 2
             end
         end
         return y
