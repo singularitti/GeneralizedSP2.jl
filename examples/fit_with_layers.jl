@@ -38,6 +38,10 @@ maxlayers = 4
 target_fermi_dirac(x) = @. 1 / (1 + exp(β * (x - μ)))
 
 plot()
+xlims!(0, 1)
+xlabel!(raw"$x$")
+ylabel!(raw"$y$")
+title!("Data from Kipton μ=$μ, β=$β")
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
 plot!(𝐱, target_fermi_dirac(𝐱); label="Reference Fermi function", PLOT_DEFAULTS...)
 plot!(
@@ -46,13 +50,13 @@ plot!(
     label="Approximated function with 4 layers",
     PLOT_DEFAULTS...,
 )
+savefig("Kipton_data.png")
+
+plt = plot()
 xlims!(0, 1)
 xlabel!(raw"$x$")
 ylabel!(raw"$y$")
-title!("Data from Kipton μ=$μ, β=$β")
-savefig("Kipton_data.pdf")
-
-plt = plot()
+title!("My fitted results μ=$μ, β=$β")
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
 plot!(𝐱, target_fermi_dirac(𝐱); label="Reference Fermi function", PLOT_DEFAULTS...)
 branches = determine_branches(μ, maxlayers)
@@ -73,15 +77,15 @@ for n in 2:maxlayers
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
+    savefig("my_fits_beta=$β,n=$n.png")
 end
-xlims!(0, 1)
-xlabel!(raw"$x$")
-ylabel!(raw"$y$")
-title!("My fitted results μ=$μ, β=$β")
-savefig("my_fits_beta=$β.pdf")
 
 β = 20
 plt = plot()
+xlims!(0, 1)
+xlabel!(raw"$x$")
+ylabel!(raw"$y$")
+title!("My fitted results μ=$μ, β=$β")
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
 plot!(𝐱, target_fermi_dirac(𝐱); label="Reference Fermi function", PLOT_DEFAULTS...)
 branches = determine_branches(μ, maxlayers)
@@ -102,9 +106,5 @@ for n in 2:maxlayers
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
+    savefig("my_fits_beta=$β,n=$n.png")
 end
-xlims!(0, 1)
-xlabel!(raw"$x$")
-ylabel!(raw"$y$")
-title!("My fitted results μ=$μ, β=$β")
-savefig("my_fits_beta=$β.pdf")
