@@ -31,19 +31,21 @@ function backward_pass(branches)
     return y, 4y′  # μₙ = y₀(1 / 2), β = 4y′ₙ
 end
 
-function forward_pass(branches, x)
-    if zero.(x) <= x <= oneunit.(x)
-        y = x
-        for bᵢ in branches
-            if bᵢ
-                y = y .^ 2
-            else
-                y = 2y - y .^ 2
+function forward_pass(branches, 𝐱)
+    return map(𝐱) do x
+        if zero(x) <= x <= oneunit(x)
+            y = x
+            for bᵢ in branches
+                if bᵢ
+                    y = y^2
+                else
+                    y = 2y - y^2
+                end
             end
+            return y
         end
-        return y
+        throw(ArgumentError("$x is not in the interval (0, 1)!"))
     end
-    throw(ArgumentError("x must be in the interval (0, 1)!"))
 end
 
 function init_params(μ, nlayers)
