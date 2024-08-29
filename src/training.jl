@@ -1,5 +1,4 @@
 using LinearAlgebra
-using Printf
 # using JLSO: JLSO
 
 export determine_branches,
