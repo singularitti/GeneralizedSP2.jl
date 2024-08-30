@@ -4,7 +4,7 @@ using Plots
 
 β = 400
 μ = 0.5
-(θ_sp2, θ_fermi, θ_entropy, x) = generate_model(; β, μ, max_iter=1_000_000, nlayers=16)
+θ_sp2, θ_fermi, θ_entropy, x = fit_model(β, μ; max_iter=1_000_000, nlayers=16)
 
 const LAYER_WIDTH = 4
 
@@ -17,24 +17,24 @@ maximum(abs.(θ_fermi))
 x′ = collect(0:1e-4:1)
 
 begin
-    p = plot(; xlim=[μ - 50 / β, μ + 50 / β])
-    plot!(p, x′, fermi_dirac.(x′, β, μ); label="Reference")
-    plot!(p, x′, model_fermi(x′, θ_fermi); label="Fitted Model")
-    plot!(p, x′, model_fermi(x′, θ_sp2); label="SP2 Model")
+    plt = plot(; xlim=[μ - 50 / β, μ + 50 / β])
+    plot!(plt, x′, fermi_dirac.(x′, β, μ); label="Reference")
+    plot!(plt, x′, model_fermi(x′, θ_fermi); label="Fitted Model")
+    plot!(plt, x′, model_fermi(x′, θ_sp2); label="SP2 Model")
 end
 
 begin
-    p = plot(; xlim=[μ - 50 / β, μ + 50 / β])
-    plot!(p, x′, model_fermi(x′, θ_fermi) - fermi_fn.(x′, β, μ); label="Model error")
+    plt = plot(; xlim=[μ - 50 / β, μ + 50 / β])
+    plot!(plt, x′, model_fermi(x′, θ_fermi) - fermi_dirac.(x′, β, μ); label="Model error")
 end
 
 begin
-    p = plot(; xlim=[μ - 10 / β, μ + 10 / β])
-    plot!(p, x′, entropy_fn.(x′, β, μ); label="Reference")
-    plot!(p, x′, model_entropy(x′, θ_entropy); label="Model")
+    plt = plot(; xlim=[μ - 10 / β, μ + 10 / β])
+    plot!(plt, x′, entropyof.(x′, β, μ); label="Reference")
+    plot!(plt, x′, model_entropy(x′, θ_entropy); label="Model")
 end
 
 begin
-    p = plot(; xlim=[μ - 50 / β, μ + 50 / β])
-    plot!(p, x′, model_entropy(x′, θ_entropy) - entropy_fn.(x′, β, μ); label="Model error")
+    plt = plot(; xlim=[μ - 50 / β, μ + 50 / β])
+    plot!(plt, x′, model_entropy(x′, θ_entropy) - entropyof.(x′, β, μ); label="Model error")
 end
