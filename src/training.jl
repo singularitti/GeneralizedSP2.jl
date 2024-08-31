@@ -1,8 +1,7 @@
 using LinearAlgebra
 # using JLSO: JLSO
 
-export determine_branches,
-    backward_pass, forward_pass, init_params, fermi_dirac, energyof, entropyof
+export determine_branches, backward_pass, forward_pass, init_params
 
 ### Vanilla SP2, targeting specific chemical potential
 
@@ -123,20 +122,6 @@ function sample_weights(pts)
 end
 
 ### Model training routines
-
-fermi_dirac(x, β, μ) = 1 / (1 + exp(β * (x - μ)))
-
-function energyof(x, β, μ)
-    η = β * (x - μ)
-    if η > 0
-        return -inv(β) * log(1 + exp(-η))
-    else
-        # Avoid overflow for very negative η
-        return -inv(β) * (log(1 + exp(η)) - η)
-    end
-end
-
-entropyof(x, β, μ) = β * (fermi_dirac(x, β, μ) * (x - μ) - energyof(x, β, μ))
 
 function read_or_generate_models(filename, overwrite=false)
     need_calculations = overwrite || !isfile(filename)
