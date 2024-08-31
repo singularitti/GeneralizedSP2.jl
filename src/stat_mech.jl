@@ -1,9 +1,9 @@
 export fermi_dirac, energyof, entropyof
 
-fermi_dirac(x, β, μ) = 1 / (1 + exp(β * (x - μ)))
+fermi_dirac(ε, β, μ) = 1 / (1 + exp(β * (ε - μ)))
 
-function energyof(x, β, μ)
-    η = β * (x - μ)
+function energyof(ε, β, μ)
+    η = β * (ε - μ)
     if η > 0
         return -inv(β) * log(1 + exp(-η))
     else
@@ -12,4 +12,4 @@ function energyof(x, β, μ)
     end
 end
 
-entropyof(x, β, μ) = β * (fermi_dirac(x, β, μ) * (x - μ) - energyof(x, β, μ))
+entropyof(ε, β, μ) = β * (fermi_dirac(ε, β, μ) * (ε - μ) - energyof(ε, β, μ))
