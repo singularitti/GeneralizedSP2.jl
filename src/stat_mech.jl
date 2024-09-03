@@ -1,14 +1,16 @@
 export fermi_dirac, energyof, entropyof
 
-fermi_dirac(ε, β, μ) = 1 / (1 + exp(β * (ε - μ)))
+function fermi_dirac(ε, β, μ)
+    η = exp(β * (ε - μ))
+    return inv(oneunit(η) + η)
+end
 
 function energyof(ε, β, μ)
     η = β * (ε - μ)
-    if η > 0
-        return -inv(β) * log(1 + exp(-η))
+    if η > -20oneunit(η)
+        return -inv(β) * log1p(exp(-η))  # `log1p(x)` is accurate for `x` near zero
     else
-        # Avoid overflow for very negative η
-        return -inv(β) * (log(1 + exp(η)) - η)
+        return -inv(β) * (log1p(exp(η)) - η)  # Avoid overflow for very negative `η`
     end
 end
 
