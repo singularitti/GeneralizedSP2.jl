@@ -25,7 +25,7 @@ PLOT_DEFAULTS = Dict(
 β = 9.423
 μ = 0.568
 maxlayers = 4
-𝐱 = 0:0.01:1
+𝛆 = 0:0.01:1
 𝝷 = hcat(
     [3.4199, -0.916353, 0.638295],
     [-0.877837, 4.54196, 1.50423],
@@ -35,7 +35,7 @@ maxlayers = 4
 𝐜 = [0.181909, 0.047729, -2.71051, 0.355542]'
 𝝷 = vcat(𝝷, 𝐜)
 
-target_fermi_dirac(x) = @. 1 / (1 + exp(β * (x - μ)))
+target_fermi_dirac(ε) = 1 / (1 + exp(β * (ε - μ)))
 
 plot()
 xlims!(0, 1)
@@ -43,10 +43,10 @@ xlabel!(raw"$x$")
 ylabel!(raw"$y$")
 title!("Data from Kipton μ=$μ, β=$β")
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-plot!(𝐱, target_fermi_dirac(𝐱); label="Reference Fermi function", PLOT_DEFAULTS...)
+plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
 plot!(
-    𝐱,
-    iterate_fermi_dirac(𝐱, 𝝷);
+    𝛆,
+    iterate_fermi_dirac(𝛆, 𝝷);
     label="Approximated function with 4 layers",
     PLOT_DEFAULTS...,
 )
@@ -58,7 +58,8 @@ xlabel!(raw"$x$")
 ylabel!(raw"$y$")
 title!("My fitted results μ=$μ, β=$β")
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-plot!(𝐱, target_fermi_dirac(𝐱); label="Reference Fermi function", PLOT_DEFAULTS...)
+plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
+𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, 0, 1)
 branches = determine_branches(μ, maxlayers)
 𝐲 = forward_pass(branches, 𝐱)
 plot!(
@@ -69,10 +70,10 @@ plot!(
     PLOT_DEFAULTS...,
 )
 for n in 2:maxlayers
-    _, 𝝷, _, _ = fit_model(β, μ; nlayers=n)
+    𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β; nlayers=n)
     plot!(
         𝐱,
-        iterate_fermi_dirac(𝐱, 𝝷);
+        iterate_fermi_dirac(𝐱, 𝝷FD);
         label="Approximated function with $n layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
@@ -87,7 +88,8 @@ xlabel!(raw"$x$")
 ylabel!(raw"$y$")
 title!("My fitted results μ=$μ, β=$β")
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-plot!(𝐱, target_fermi_dirac(𝐱); label="Reference Fermi function", PLOT_DEFAULTS...)
+plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
+𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, 0, 1)
 branches = determine_branches(μ, maxlayers)
 𝐲 = forward_pass(branches, 𝐱)
 plot!(
@@ -98,10 +100,10 @@ plot!(
     PLOT_DEFAULTS...,
 )
 for n in 2:maxlayers
-    _, 𝝷, _, _ = fit_model(β, μ; nlayers=n)
+    𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β; nlayers=n)
     plot!(
         𝐱,
-        iterate_fermi_dirac(𝐱, 𝝷);
+        iterate_fermi_dirac(𝐱, 𝝷FD);
         label="Approximated function with $n layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
