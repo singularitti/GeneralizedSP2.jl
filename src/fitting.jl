@@ -82,25 +82,15 @@ fermi_dirac_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_fermi_dirac_deri
 
 entropy_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_entropy_derivative)
 
-function fit_model(
-    β, μ; max_iter=100, npoints_scale=1.0, nlayers=round(Int64, 4.75log(β) - 6.6)
-)
-
-    # Sample points more densely near x=μ
-    npoints = npoints_scale * 80log(β)
-    w = sqrt(β)
-    sample_density(x) = (npoints / 2) + (npoints / 2) * (w / 2) * sech(w * (x - μ))^2
-    x = sample_by_density(μ, 0, 1, sample_density)
-    weights = sample_weights(x)
-
+function fit_model(𝐱, μ, β; max_iter=100, nlayers=round(Int64, 4.75log(β) - 6.6))
     # Initialize model with SP2
     θ = init_params(μ, nlayers)
 
     fitted_fermi = curve_fit(
         fermi_dirac_model!,
         fermi_dirac_jacobian!,
-        x,  # xdata
-        fermi_dirac.(x, μ, β),  # ydata
+        𝐱,  # xdata
+        fermi_dirac.(𝐱, μ, β),  # ydata
         θ;  # p0
         maxIter=max_iter,
         inplace=true,
@@ -108,12 +98,12 @@ function fit_model(
     fitted_entropy = curve_fit(
         entropy_model!,
         entropy_jacobian!,
-        x,
-        entropyof.(x, μ, β),
+        𝐱,
+        entropyof.(𝐱, μ, β),
         θ;
         maxIter=max_iter,
         inplace=true,
     )
 
-    return θ, coef(fitted_fermi), coef(fitted_entropy), x
+    return coef(fitted_fermi), coef(fitted_entropy)
 end
