@@ -1,4 +1,4 @@
-export sample_by_pdf
+export sample_by_pdf, bell_distribution
 
 function sample_by_pdf(pdf, start, lower_bound, upper_bound)
     points = [start]
@@ -26,4 +26,11 @@ function sample_by_pdf(pdf, start, lower_bound, upper_bound)
     push!(points, upper_bound)
 
     return points
+end
+
+# Sample points more densely near x=μ
+function bell_distribution(μ, β, npoints_scale=1.0)
+    npoints = npoints_scale * 80log(β)
+    w = sqrt(β)
+    return ε -> npoints / 2 + npoints * w / 4 * sech(w * (ε - μ))^2
 end
