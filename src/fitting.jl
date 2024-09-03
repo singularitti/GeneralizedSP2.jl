@@ -100,7 +100,7 @@ function fit_model(
         fermi_dirac_model!,
         fermi_dirac_jacobian!,
         x,  # xdata
-        fermi_dirac.(x, β, μ),  # ydata
+        fermi_dirac.(x, μ, β),  # ydata
         θ;  # p0
         maxIter=max_iter,
         inplace=true,
@@ -109,7 +109,7 @@ function fit_model(
         entropy_model!,
         entropy_jacobian!,
         x,
-        entropyof.(x, β, μ),
+        entropyof.(x, μ, β),
         θ;
         maxIter=max_iter,
         inplace=true,

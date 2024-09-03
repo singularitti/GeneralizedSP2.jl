@@ -1,12 +1,12 @@
 export fermi_dirac, energyof, entropyof
 
-function fermi_dirac(ε, β, μ)
-    η = exp(β * (ε - μ))
+function fermi_dirac(ε, μ, β)
+    η = exp((ε - μ) * β)
     return inv(oneunit(η) + η)
 end
 
-function energyof(ε, β, μ)
-    η = β * (ε - μ)
+function energyof(ε, μ, β)
+    η = (ε - μ) * β
     if η > -20oneunit(η)
         return -inv(β) * log1p(exp(-η))  # `log1p(x)` is accurate for `x` near zero
     else
@@ -14,4 +14,4 @@ function energyof(ε, β, μ)
     end
 end
 
-entropyof(ε, β, μ) = β * (fermi_dirac(ε, β, μ) * (ε - μ) - energyof(ε, β, μ))
+entropyof(ε, μ, β) = (fermi_dirac(ε, μ, β) * (ε - μ) - energyof(ε, μ, β)) * β
