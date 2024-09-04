@@ -2,16 +2,17 @@ using GeneralizedSP2
 using Plots
 
 PLOT_DEFAULTS = Dict(
-    :size => (450, 450),
+    :size => (450, 600),
     :dpi => 400,
     :framestyle => :box,
     :linewidth => 1.5,
-    :markersize => 4,
+    :markersize => 2,
     :markerstrokewidth => 0,
     :minorticks => 5,
-    :titlefontsize => 10,
-    :guidefontsize => 10,
-    :tickfontsize => 8,
+    :titlefontsize => 9,
+    :plot_titlefontsize => 9,
+    :guidefontsize => 9,
+    :tickfontsize => 7,
     :legendfontsize => 7,
     :left_margin => (0, :mm),
     :grid => nothing,
@@ -54,20 +55,30 @@ plot!(
 )
 savefig("Kipton_data.png")
 
-plt = plot()
+plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
+plot!(; subplot=1, title="My fitted results μ=$μ, β=$β")
+plot!(; subplot=2, title="Error of the approximation")
 xlims!(lower_bound, upper_bound)
 xlabel!(raw"$x$")
 ylabel!(raw"$y$")
-title!("My fitted results μ=$μ, β=$β")
-hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
+hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
+hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
 branches = determine_branches(μ, maxlayers)
 𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
 𝐲 = forward_pass(branches, 𝐱)
 plot!(
     𝐱,
     oneunit.(𝐲) - 𝐲;
-    label="SP2 best Approximated with $maxlayers layers",
+    subplot=1,
+    label="SP2 best approx with $maxlayers layers",
+    linestyle=:dash,
+    PLOT_DEFAULTS...,
+)
+plot!(
+    𝐱,
+    target_fermi_dirac.(𝐱) - oneunit.(𝐲) + 𝐲;
+    subplot=2,
+    label="SP2 best approx with $maxlayers layers",
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
@@ -76,40 +87,69 @@ for n in minlayers:maxlayers
     plot!(
         𝐱,
         iterate_fermi_dirac(𝐱, 𝝷FD);
-        label="Approximated function with $n layers",
+        subplot=1,
+        label="Best approx with $n layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
-    # savefig("my_fits_beta=$β,n=$n.png")
+    plot!(
+        𝐱,
+        target_fermi_dirac.(𝐱) - iterate_fermi_dirac(𝐱, 𝝷FD);
+        subplot=2,
+        label="$n layers",
+        linestyle=:dot,
+        PLOT_DEFAULTS...,
+    )
 end
 for n in minlayers:maxlayers
     𝐱′ = chebyshevnodes_1st(length(𝐱), (lower_bound, upper_bound))
     𝝷FD, 𝝷ₛ = fit_model(𝐱′, μ, β; nlayers=n)
+    𝐲′ = iterate_fermi_dirac(𝐱′, 𝝷FD)
     plot!(
         𝐱′,
-        iterate_fermi_dirac(𝐱′, 𝝷FD);
-        label="Approximated function with $n layers using Chebyshev nodes",
+        𝐲′;
+        subplot=1,
+        label="Best approx with $n layers using Chebyshev nodes",
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
     )
-    savefig("my_fits2_beta=$β,n=$n.png")
+    plot!(
+        𝐱′,
+        target_fermi_dirac.(𝐱′) - 𝐲′;
+        subplot=2,
+        label="$n layers using Chebyshev nodes",
+        linestyle=:dashdot,
+        PLOT_DEFAULTS...,
+    )
+    savefig("my_fits_beta=$β,n=$n.png")
 end
+plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
 
 β = 20
-plt = plot()
+plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
+plot!(; subplot=1, title="My fitted results μ=$μ, β=$β")
+plot!(; subplot=2, title="Error of the approximation")
 xlims!(lower_bound, upper_bound)
 xlabel!(raw"$x$")
 ylabel!(raw"$y$")
-title!("My fitted results μ=$μ, β=$β")
-hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
+hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
+hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
 branches = determine_branches(μ, maxlayers)
 𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
 𝐲 = forward_pass(branches, 𝐱)
 plot!(
     𝐱,
     oneunit.(𝐲) - 𝐲;
-    label="SP2 best Approximated with $maxlayers layers",
+    subplot=1,
+    label="SP2 best approx with $maxlayers layers",
+    linestyle=:dash,
+    PLOT_DEFAULTS...,
+)
+plot!(
+    𝐱,
+    target_fermi_dirac.(𝐱) - oneunit.(𝐲) + 𝐲;
+    subplot=2,
+    label="SP2 best approx with $maxlayers layers",
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
@@ -118,21 +158,40 @@ for n in minlayers:maxlayers
     plot!(
         𝐱,
         iterate_fermi_dirac(𝐱, 𝝷FD);
-        label="Approximated function with $n layers",
+        subplot=1,
+        label="Best approx with $n layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
-    # savefig("my_fits_beta=$β,n=$n.png")
+    plot!(
+        𝐱,
+        target_fermi_dirac.(𝐱) - iterate_fermi_dirac(𝐱, 𝝷FD);
+        subplot=2,
+        label="$n layers",
+        linestyle=:dot,
+        PLOT_DEFAULTS...,
+    )
 end
 for n in minlayers:maxlayers
     𝐱′ = chebyshevnodes_1st(length(𝐱), (lower_bound, upper_bound))
     𝝷FD, 𝝷ₛ = fit_model(𝐱′, μ, β; nlayers=n)
+    𝐲′ = iterate_fermi_dirac(𝐱′, 𝝷FD)
     plot!(
         𝐱′,
-        iterate_fermi_dirac(𝐱′, 𝝷FD);
-        label="Approximated function with $n layers using Chebyshev nodes",
+        𝐲′;
+        label="Best approx with $n layers using Chebyshev nodes",
+        subplot=1,
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
     )
-    savefig("my_fits2_beta=$β,n=$n.png")
+    plot!(
+        𝐱′,
+        target_fermi_dirac.(𝐱′) - 𝐲′;
+        subplot=2,
+        label="$n layers using Chebyshev nodes",
+        linestyle=:dashdot,
+        PLOT_DEFAULTS...,
+    )
+    savefig("my_fits_beta=$β,n=$n.png")
 end
+plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
