@@ -99,7 +99,7 @@ function fit_model(𝐱, μ, β; max_iter=100, nlayers=round(Int64, 4.75log(β) 
         entropy_model!,
         entropy_jacobian!,
         𝐱,
-        entropyof.(𝐱, μ, β),
+        electronic_entropy.(𝐱, μ, β),
         θ;
         maxIter=max_iter,
         inplace=true,
