@@ -63,6 +63,9 @@ xlabel!(raw"$x$")
 ylabel!(raw"$y$")
 hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
 hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
+plot!(
+    𝛆, target_fermi_dirac.(𝛆); subplot=1, label="Reference Fermi function", PLOT_DEFAULTS...
+)
 branches = determine_branches(μ, maxlayers)
 𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
 𝐲 = forward_pass(branches, 𝐱)
@@ -123,7 +126,6 @@ for n in minlayers:maxlayers
     )
     savefig("my_fits_beta=$β,n=$n.png")
 end
-plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
 
 β = 20
 plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
@@ -134,6 +136,9 @@ xlabel!(raw"$x$")
 ylabel!(raw"$y$")
 hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
 hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
+plot!(
+    𝛆, target_fermi_dirac.(𝛆); subplot=1, label="Reference Fermi function", PLOT_DEFAULTS...
+)
 branches = determine_branches(μ, maxlayers)
 𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
 𝐲 = forward_pass(branches, 𝐱)
@@ -194,4 +199,3 @@ for n in minlayers:maxlayers
     )
     savefig("my_fits_beta=$β,n=$n.png")
 end
-plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
