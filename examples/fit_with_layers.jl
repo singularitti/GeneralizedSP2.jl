@@ -59,8 +59,8 @@ ylabel!(raw"$y$")
 title!("My fitted results μ=$μ, β=$β")
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
 plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
-𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, 0, 1)
 branches = determine_branches(μ, maxlayers)
+𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (0, 1))
 𝐲 = forward_pass(branches, 𝐱)
 plot!(
     𝐱,
@@ -89,8 +89,8 @@ ylabel!(raw"$y$")
 title!("My fitted results μ=$μ, β=$β")
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
 plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
-𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, 0, 1)
 branches = determine_branches(μ, maxlayers)
+𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (0, 1))
 𝐲 = forward_pass(branches, 𝐱)
 plot!(
     𝐱,

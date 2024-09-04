@@ -1,6 +1,6 @@
 export sample_by_pdf, bell_distribution
 
-function sample_by_pdf(pdf, start, lower_bound, upper_bound)
+function sample_by_pdf(pdf, start, (lower_bound, upper_bound))
     points = [start]
 
     # Add points below `start`
