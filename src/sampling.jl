@@ -1,4 +1,4 @@
-export sample_by_pdf, bell_distribution
+export sample_by_pdf, bell_distribution, chebyshevnodes_1st
 
 function sample_by_pdf(pdf, start, (lower_bound, upper_bound))
     points = [start]
@@ -34,3 +34,7 @@ function bell_distribution(μ, β, npoints_scale=1.0)
     w = sqrt(β)
     return ε -> npoints / 2 + npoints * w / 4 * sech(w * (ε - μ))^2
 end
+
+chebyshevnodes_1st(order, (lower_bound, upper_bound)) =
+    (lower_bound + upper_bound) / 2 .+
+    (lower_bound - upper_bound) / 2 * cospi.((2 * (1:order) .- 1) / 2order)  # Transforms Chebyshev nodes from [-1, 1] to [lower_bound, upper_bound]
