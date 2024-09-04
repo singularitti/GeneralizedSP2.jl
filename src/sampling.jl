@@ -1,4 +1,4 @@
-export sample_by_pdf, bell_distribution, chebyshevnodes_1st
+export sample_by_pdf, bell_distribution, chebyshevnodes_1st, chebyshevnodes_2nd
 
 function sample_by_pdf(pdf, start, (lower_bound, upper_bound))
     points = [start]
@@ -38,3 +38,7 @@ end
 chebyshevnodes_1st(order, (lower_bound, upper_bound)) =
     (lower_bound + upper_bound) / 2 .+
     (lower_bound - upper_bound) / 2 * cospi.((2 * (1:order) .- 1) / 2order)  # Transforms Chebyshev nodes from [-1, 1] to [lower_bound, upper_bound]
+
+chebyshevnodes_2nd(order, (lower_bound, upper_bound)) =
+    (lower_bound + upper_bound) / 2 .+
+    (lower_bound - upper_bound) / 2 * cospi.((0:(order - 1)) ./ (order - 1))  # Transforms Chebyshev nodes from [-1, 1] to [lower_bound, upper_bound]
