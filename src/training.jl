@@ -24,34 +24,6 @@ test_jacobian(x, θ_sp2,   entropy_transf_1, entropy_transf_2, 22)
 
 ### Sample points
 
-function sample_by_density(x0, xlo, xhi, density)
-    pts = [x0]
-
-    # add points below
-    dx = 1 / density(x0)
-    x = x0 - dx
-    while x > xlo
-        push!(pts, x)
-        dx = 2 / density(x) - dx
-        x -= dx
-    end
-    push!(pts, xlo)
-
-    reverse!(pts)
-
-    # add points above
-    dx = 1 / density(x0)
-    x = x0 + dx
-    while x < xhi
-        push!(pts, x)
-        dx = 2 / density(x) - dx
-        x += dx
-    end
-    push!(pts, xhi)
-
-    return pts
-end
-
 function sample_weights(pts)
     @assert length(pts) ≥ 2
     weights = zeros(eltype(pts), length(pts))
