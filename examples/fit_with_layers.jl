@@ -73,7 +73,7 @@ plot!(
     𝐱,
     oneunit.(𝐲) - 𝐲;
     subplot=1,
-    label="SP2 best approx with $maxlayers layers",
+    label="SP2 best with $maxlayers iterations",
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
@@ -81,7 +81,7 @@ plot!(
     𝐱,
     target_fermi_dirac.(𝐱) - oneunit.(𝐲) + 𝐲;
     subplot=2,
-    label="SP2 best approx with $maxlayers layers",
+    label="SP2 best with $maxlayers iterations",
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
@@ -112,7 +112,7 @@ for n in minlayers:maxlayers
         𝐱′,
         𝐲′;
         subplot=1,
-        label="Best approx with $n layers using Chebyshev nodes",
+        label="Best approx with $n layers by Chebyshev nodes",
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
     )
@@ -120,7 +120,7 @@ for n in minlayers:maxlayers
         𝐱′,
         target_fermi_dirac.(𝐱′) - 𝐲′;
         subplot=2,
-        label="$n layers using Chebyshev nodes",
+        label="$n layers by Chebyshev nodes",
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
     )
@@ -146,7 +146,7 @@ plot!(
     𝐱,
     oneunit.(𝐲) - 𝐲;
     subplot=1,
-    label="SP2 best approx with $maxlayers layers",
+    label="SP2 best with $maxlayers iterations",
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
@@ -154,7 +154,7 @@ plot!(
     𝐱,
     target_fermi_dirac.(𝐱) - oneunit.(𝐲) + 𝐲;
     subplot=2,
-    label="SP2 best approx with $maxlayers layers",
+    label="SP2 best with $maxlayers iterations",
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
@@ -184,7 +184,7 @@ for n in minlayers:maxlayers
     plot!(
         𝐱′,
         𝐲′;
-        label="Best approx with $n layers using Chebyshev nodes",
+        label="Best approx with $n layers by Chebyshev nodes",
         subplot=1,
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
@@ -193,7 +193,7 @@ for n in minlayers:maxlayers
         𝐱′,
         target_fermi_dirac.(𝐱′) - 𝐲′;
         subplot=2,
-        label="$n layers using Chebyshev nodes",
+        label="$n layers by Chebyshev nodes",
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
     )
