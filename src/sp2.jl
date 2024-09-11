@@ -1,4 +1,6 @@
-export determine_branches, backward_pass, forward_pass, init_params
+using LinearAlgebra: norm
+
+export determine_branches, backward_pass, forward_pass, init_params, myrun
 
 function determine_branches(μ, nlayers)
     branches = Bool[]
