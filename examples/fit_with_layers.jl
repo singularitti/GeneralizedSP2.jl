@@ -23,6 +23,8 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
+target_fermi_dirac(ε) = 1 / (1 + exp(β * (ε - μ)))
+
 β = 9.423
 μ = 0.568
 minlayers = 4
@@ -37,8 +39,6 @@ lower_bound, upper_bound = 0, 1
 )
 𝐜 = [0.181909, 0.047729, -2.71051, 0.355542]'
 𝝷 = vcat(𝝷, 𝐜)
-
-target_fermi_dirac(ε) = 1 / (1 + exp(β * (ε - μ)))
 
 plot()
 xlims!(lower_bound, upper_bound)
