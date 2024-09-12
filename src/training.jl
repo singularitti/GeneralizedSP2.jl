@@ -24,17 +24,6 @@ test_jacobian(x, θ_sp2,   entropy_transf_1, entropy_transf_2, 22)
 
 ### Sample points
 
-function sample_weights(pts)
-    @assert length(pts) ≥ 2
-    weights = zeros(eltype(pts), length(pts))
-    # endpoints get half the normal weight
-    weights[1] = (pts[2] - pts[1]) / 2
-    weights[end] = (pts[end] - pts[end - 1]) / 2
-    # interior points collect half the weight from each of the two neighbor intervals
-    weights[2:(end - 1)] = (pts[3:end] - pts[1:(end - 2)]) ./ 2
-    return weights
-end
-
 ### Model training routines
 
 function read_or_generate_models(filename, overwrite=false)
