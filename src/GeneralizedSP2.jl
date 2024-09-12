@@ -6,7 +6,6 @@ include("stat_mech.jl")
 include("fitting.jl")
 include("sp2.jl")
 include("sampling.jl")
-include("training.jl")
 include("inference.jl")
 
 end
