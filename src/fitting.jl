@@ -1,6 +1,37 @@
 using LsqFit: curve_fit, coef
 
-export fit_model, model!, model, fermi_dirac_model, entropy_model
+export fit_model, model!, model, fermi_dirac_model, entropy_model, fit_residuals
+
+sp2model(y, 𝝷) = @. 𝝷[1] * y .^ 2 + 𝝷[2] * y + 𝝷[3]
+
+function fit_residuals(𝐱, 𝐲; max_iter=100, nlayers=4)
+    θ = ones(3)
+    𝝷 = [θ]
+    total_output = zeros(size(𝐱))
+    residual = 𝐲 - total_output
+    predicted = 𝐱
+    for _ in 1:nlayers
+        fitted_fermi = curve_fit(
+            sp2model,
+            predicted,  # xdata
+            residual,  # ydata
+            θ;  # p0
+            maxIter=max_iter,
+        )
+        θ = coef(fitted_fermi)
+        push!(𝝷, θ)
+        # Update `predicted` with the new model output based on the fitted parameters
+        predicted = sp2model(predicted, θ)
+        # Important: We add the *newly predicted* values to the total output
+        # *after* updating `predicted` with the current model predictions.
+        # If we add `predicted` before updating it, we'd be adding the old
+        # predictions (or even just the input `𝐱` in the first iteration), which
+        # would corrupt the total output with incorrect values.
+        total_output += predicted
+        residual -= predicted  # This progressively reduces the residual as the predictions improve.
+    end
+    return 𝝷, total_output
+end
 
 function model!(f, result, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
