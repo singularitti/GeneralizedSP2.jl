@@ -4,7 +4,7 @@ export fit_model, model!, model, fermi_dirac_model, entropy_model, fit_residuals
 
 sp2model(y, 𝝷) = @. 𝝷[1] * y .^ 2 + 𝝷[2] * y + 𝝷[3]
 
-function fit_residuals(𝐱, 𝐲; max_iter=100, nlayers=4)
+function fit_residuals(𝐱, 𝐲, nlayers=4; max_iter=100)
     θ = ones(3)
     𝝷 = [θ]
     total_output = zeros(size(𝐱))
@@ -28,7 +28,7 @@ function fit_residuals(𝐱, 𝐲; max_iter=100, nlayers=4)
         # predictions (or even just the input `𝐱` in the first iteration), which
         # would corrupt the total output with incorrect values.
         total_output += predicted
-        residual -= predicted  # This progressively reduces the residual as the predictions improve.
+        residual = 𝐲 - total_output  # This progressively reduces the residual as the predictions improve.
     end
     return 𝝷, total_output
 end
