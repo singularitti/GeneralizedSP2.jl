@@ -113,7 +113,7 @@ fermi_dirac_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_fermi_dirac_deri
 
 entropy_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_entropy_derivative)
 
-function fit_model(𝐱, μ, β; max_iter=100, nlayers=round(Int64, 4.75log(β) - 6.6))
+function fit_model(𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); max_iter=100)
     # Initialize model with SP2
     θ = init_params(μ, nlayers)
 

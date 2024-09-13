@@ -85,13 +85,13 @@ plot!(
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
-for n in minlayers:maxlayers
-    𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β; nlayers=n)
+for nlayers in minlayers:maxlayers
+    𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β, nlayers)
     plot!(
         𝐱,
         iterate_fermi_dirac(𝐱, 𝝷FD);
         subplot=1,
-        label="Best approx with $n layers",
+        label="Best approx with $nlayers layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
@@ -99,20 +99,20 @@ for n in minlayers:maxlayers
         𝐱,
         target_fermi_dirac.(𝐱) - iterate_fermi_dirac(𝐱, 𝝷FD);
         subplot=2,
-        label="$n layers",
+        label="$nlayers layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
 end
-for n in minlayers:maxlayers
+for nlayers in minlayers:maxlayers
     𝐱′ = chebyshevnodes_1st(length(𝐱), (lower_bound, upper_bound))
-    𝝷FD, 𝝷ₛ = fit_model(𝐱′, μ, β; nlayers=n)
+    𝝷FD, 𝝷ₛ = fit_model(𝐱′, μ, β, nlayers)
     𝐲′ = iterate_fermi_dirac(𝐱′, 𝝷FD)
     plot!(
         𝐱′,
         𝐲′;
         subplot=1,
-        label="Best approx with $n layers by Chebyshev nodes",
+        label="Best approx with $nlayers layers by Chebyshev nodes",
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
     )
@@ -120,11 +120,11 @@ for n in minlayers:maxlayers
         𝐱′,
         target_fermi_dirac.(𝐱′) - 𝐲′;
         subplot=2,
-        label="$n layers by Chebyshev nodes",
+        label="$nlayers layers by Chebyshev nodes",
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
     )
-    savefig("my_fits_beta=$β,n=$n.png")
+    savefig("my_fits_beta=$β,nlayers=$nlayers.png")
 end
 
 β = 20
@@ -158,13 +158,13 @@ plot!(
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
-for n in minlayers:maxlayers
-    𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β; nlayers=n)
+for nlayers in minlayers:maxlayers
+    𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β, nlayers)
     plot!(
         𝐱,
         iterate_fermi_dirac(𝐱, 𝝷FD);
         subplot=1,
-        label="Best approx with $n layers",
+        label="Best approx with $nlayers layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
@@ -172,19 +172,19 @@ for n in minlayers:maxlayers
         𝐱,
         target_fermi_dirac.(𝐱) - iterate_fermi_dirac(𝐱, 𝝷FD);
         subplot=2,
-        label="$n layers",
+        label="$nlayers layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
 end
-for n in minlayers:maxlayers
+for nlayers in minlayers:maxlayers
     𝐱′ = chebyshevnodes_1st(length(𝐱), (lower_bound, upper_bound))
-    𝝷FD, 𝝷ₛ = fit_model(𝐱′, μ, β; nlayers=n)
+    𝝷FD, 𝝷ₛ = fit_model(𝐱′, μ, β, nlayers)
     𝐲′ = iterate_fermi_dirac(𝐱′, 𝝷FD)
     plot!(
         𝐱′,
         𝐲′;
-        label="Best approx with $n layers by Chebyshev nodes",
+        label="Best approx with $nlayers layers by Chebyshev nodes",
         subplot=1,
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
@@ -193,9 +193,9 @@ for n in minlayers:maxlayers
         𝐱′,
         target_fermi_dirac.(𝐱′) - 𝐲′;
         subplot=2,
-        label="$n layers by Chebyshev nodes",
+        label="$nlayers layers by Chebyshev nodes",
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
     )
-    savefig("my_fits_beta=$β,n=$n.png")
+    savefig("my_fits_beta=$β,nlayers=$nlayers.png")
 end
