@@ -5,10 +5,10 @@ export fit_model, model!, model, fermi_dirac_model, entropy_model, fit_residuals
 sp2model(y, 𝝷) = @. 𝝷[1] * y .^ 2 + 𝝷[2] * y + 𝝷[3]
 
 function fit_residuals(𝐱, 𝐲, nlayers=4; max_iter=100)
-    θ = ones(3)
-    𝝷 = [θ]
-    total_output = zeros(size(𝐱))
-    residual = 𝐲 - total_output
+    θ = rand(3)
+    𝝷 = []
+    accumulated = zeros(size(𝐱))
+    residual = 𝐲 - accumulated
     predicted = 𝐱
     for _ in 1:nlayers
         fitted_fermi = curve_fit(
@@ -27,10 +27,10 @@ function fit_residuals(𝐱, 𝐲, nlayers=4; max_iter=100)
         # If we add `predicted` before updating it, we'd be adding the old
         # predictions (or even just the input `𝐱` in the first iteration), which
         # would corrupt the total output with incorrect values.
-        total_output += predicted
-        residual = 𝐲 - total_output  # This progressively reduces the residual as the predictions improve.
+        accumulated += predicted
+        residual = 𝐲 - accumulated  # This progressively reduces the residual as the predictions improve.
     end
-    return 𝝷, total_output
+    return 𝝷, accumulated
 end
 
 function model!(f, result, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
