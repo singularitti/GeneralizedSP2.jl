@@ -30,30 +30,6 @@ target_fermi_dirac(ε) = 1 / (1 + exp(β * (ε - μ)))
 minlayers = 4
 maxlayers = 4
 lower_bound, upper_bound = 0, 1
-𝛆 = 0:0.01:1
-𝝷 = hcat(
-    [3.4199, -0.916353, 0.638295],
-    [-0.877837, 4.54196, 1.50423],
-    [0.111267, 0.40718, 0.644496],
-    [-0.0703375, 2.35554, 0.981319],
-)
-𝐜 = [0.181909, 0.047729, -2.71051, 0.355542]'
-𝝷 = vcat(𝝷, 𝐜)
-
-plot()
-xlims!(lower_bound, upper_bound)
-xlabel!(raw"$x$")
-ylabel!(raw"$y$")
-title!("Data from Kipton μ=$μ, β=$β")
-hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-plot!(𝛆, target_fermi_dirac.(𝛆); label="Reference Fermi function", PLOT_DEFAULTS...)
-plot!(
-    𝛆,
-    iterate_fermi_dirac(𝛆, 𝝷);
-    label="Approximated function with 4 layers",
-    PLOT_DEFAULTS...,
-)
-savefig("Kipton_data.png")
 
 plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
 plot!(; subplot=1, title="My fitted results μ=$μ, β=$β")
@@ -63,12 +39,14 @@ xlabel!(raw"$x$")
 ylabel!(raw"$y$")
 hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
 hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
-plot!(
-    𝛆, target_fermi_dirac.(𝛆); subplot=1, label="Reference Fermi function", PLOT_DEFAULTS...
-)
+
 branches = determine_branches(μ, maxlayers)
 𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
 𝐲 = forward_pass(branches, 𝐱)
+
+plot!(
+    𝐱, target_fermi_dirac.(𝐱); subplot=1, label="Reference Fermi function", PLOT_DEFAULTS...
+)
 plot!(
     𝐱,
     oneunit.(𝐲) - 𝐲;
