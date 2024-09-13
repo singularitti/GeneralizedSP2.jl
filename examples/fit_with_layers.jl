@@ -27,10 +27,14 @@ target_fermi_dirac(ε) = 1 / (1 + exp(β * (ε - μ)))
 
 β = 9.423
 μ = 0.568
-minlayers = 4
+minlayers = 2
 maxlayers = 4
 lower_bound, upper_bound = 0, 1
 
+branches = determine_branches(μ, maxlayers)
+𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
+𝐲 = forward_pass(branches, 𝐱)
+
 plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
 plot!(; subplot=1, title="My fitted results μ=$μ, β=$β")
 plot!(; subplot=2, title="Error of the approximation")
@@ -39,19 +43,21 @@ xlabel!(raw"$x$")
 ylabel!(raw"$y$")
 hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
 hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
-
-branches = determine_branches(μ, maxlayers)
-𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
-𝐲 = forward_pass(branches, 𝐱)
-
 plot!(
-    𝐱, target_fermi_dirac.(𝐱); subplot=1, label="Reference Fermi function", PLOT_DEFAULTS...
+    𝐱,
+    target_fermi_dirac.(𝐱);
+    primary=false,
+    z_order=:back,
+    seriescolor=:maroon,
+    subplot=1,
+    label="Reference Fermi function",
+    PLOT_DEFAULTS...,
 )
 plot!(
     𝐱,
     oneunit.(𝐲) - 𝐲;
     subplot=1,
-    label="SP2 best with $maxlayers iterations",
+    label="SP2 with $maxlayers layers",
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
@@ -59,7 +65,7 @@ plot!(
     𝐱,
     target_fermi_dirac.(𝐱) - oneunit.(𝐲) + 𝐲;
     subplot=2,
-    label="SP2 best with $maxlayers iterations",
+    label="SP2 with $maxlayers layers",
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
@@ -69,7 +75,7 @@ for nlayers in minlayers:maxlayers
         𝐱,
         iterate_fermi_dirac(𝐱, 𝝷FD);
         subplot=1,
-        label="Best approx with $nlayers layers",
+        label="MLSP2 with $nlayers layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
@@ -77,7 +83,7 @@ for nlayers in minlayers:maxlayers
         𝐱,
         target_fermi_dirac.(𝐱) - iterate_fermi_dirac(𝐱, 𝝷FD);
         subplot=2,
-        label="$nlayers layers",
+        label="MLSP2 with $nlayers layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
@@ -90,7 +96,7 @@ for nlayers in minlayers:maxlayers
         𝐱′,
         𝐲′;
         subplot=1,
-        label="Best approx with $nlayers layers by Chebyshev nodes",
+        label="MLSP2 with $nlayers layers by Chebyshev nodes",
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
     )
@@ -102,10 +108,14 @@ for nlayers in minlayers:maxlayers
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
     )
-    savefig("my_fits_beta=$β,nlayers=$nlayers.png")
+    savefig("fits_beta=$β,nlayers=$nlayers.png")
 end
 
 β = 20
+branches = determine_branches(μ, maxlayers)
+𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
+𝐲 = forward_pass(branches, 𝐱)
+
 plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
 plot!(; subplot=1, title="My fitted results μ=$μ, β=$β")
 plot!(; subplot=2, title="Error of the approximation")
@@ -115,16 +125,20 @@ ylabel!(raw"$y$")
 hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
 hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
 plot!(
-    𝛆, target_fermi_dirac.(𝛆); subplot=1, label="Reference Fermi function", PLOT_DEFAULTS...
+    𝐱,
+    target_fermi_dirac.(𝐱);
+    primary=false,
+    z_order=:back,
+    seriescolor=:maroon,
+    subplot=1,
+    label="Reference Fermi function",
+    PLOT_DEFAULTS...,
 )
-branches = determine_branches(μ, maxlayers)
-𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
-𝐲 = forward_pass(branches, 𝐱)
 plot!(
     𝐱,
     oneunit.(𝐲) - 𝐲;
     subplot=1,
-    label="SP2 best with $maxlayers iterations",
+    label="SP2 with $maxlayers layers",
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
@@ -132,7 +146,7 @@ plot!(
     𝐱,
     target_fermi_dirac.(𝐱) - oneunit.(𝐲) + 𝐲;
     subplot=2,
-    label="SP2 best with $maxlayers iterations",
+    label="SP2 with $maxlayers layers",
     linestyle=:dash,
     PLOT_DEFAULTS...,
 )
@@ -142,7 +156,7 @@ for nlayers in minlayers:maxlayers
         𝐱,
         iterate_fermi_dirac(𝐱, 𝝷FD);
         subplot=1,
-        label="Best approx with $nlayers layers",
+        label="MLSP2 with $nlayers layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
@@ -150,7 +164,7 @@ for nlayers in minlayers:maxlayers
         𝐱,
         target_fermi_dirac.(𝐱) - iterate_fermi_dirac(𝐱, 𝝷FD);
         subplot=2,
-        label="$nlayers layers",
+        label="MLSP2 with $nlayers layers",
         linestyle=:dot,
         PLOT_DEFAULTS...,
     )
@@ -162,7 +176,7 @@ for nlayers in minlayers:maxlayers
     plot!(
         𝐱′,
         𝐲′;
-        label="Best approx with $nlayers layers by Chebyshev nodes",
+        label="MLSP2 with $nlayers layers by Chebyshev nodes",
         subplot=1,
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
@@ -175,5 +189,5 @@ for nlayers in minlayers:maxlayers
         linestyle=:dashdot,
         PLOT_DEFAULTS...,
     )
-    savefig("my_fits_beta=$β,nlayers=$nlayers.png")
+    savefig("fits_beta=$β,nlayers=$nlayers.png")
 end
