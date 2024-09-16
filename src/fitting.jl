@@ -2,7 +2,7 @@ using LsqFit: curve_fit, coef
 
 export fit_model, model!, model, fermi_dirac_model, entropy_model, fit_residuals
 
-sp2model(y, 𝝷) = @. 𝝷[1] * y .^ 2 + 𝝷[2] * y + 𝝷[3]
+sp2model(y, 𝝷) = 𝝷[1] * y .^ 2 + 𝝷[2] * y + 𝝷[3] * oneunit.(y)
 
 function fit_residuals(𝐱, 𝐲, nlayers=4; max_iter=100)
     θ = rand(3)
