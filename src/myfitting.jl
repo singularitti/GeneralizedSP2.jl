@@ -16,7 +16,7 @@ function residuals_with_regularization(𝛉, x, y; λ₁=2, λ₂=2)
 end
 
 # Main function for fitting residuals with regularization
-function fit_residuals(𝐱, 𝐲̂, nlayers=4; λ₁=1.0, λ₂=0.5)
+function fit_residuals(𝐱, 𝐲̂, nlayers=4; λ₁=2, λ₂=2)
     𝛉 = ones(3)  # Initial guess for parameters
     𝝷 = []
     𝐲 = zeros(size(𝐱))  # Start with no prediction
