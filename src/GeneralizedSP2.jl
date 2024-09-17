@@ -8,5 +8,6 @@ include("fitting.jl")
 include("sp2.jl")
 include("sampling.jl")
 include("inference.jl")
+include("myfitting.jl")
 
 end
