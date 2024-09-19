@@ -1,6 +1,6 @@
 using LeastSquaresOptim: LevenbergMarquardt, optimize
 
-export fit_residuals0, fit_residuals, fit0, fit
+export fit_residuals0, fit_residuals, fit0, fit, linear_combination
 
 # Define the quadratic model
 sp2model(y, 𝛉) = 𝛉[1] * y .^ 2 + 𝛉[2] * y + 𝛉[3] * oneunit.(y)
@@ -129,4 +129,10 @@ function fit(𝐱, 𝐲̂, nlayers=4; λ₁=2, λ₂=2)
         push!(predictions, 𝐲)
     end
     return 𝝷, 𝐲, predictions
+end
+
+function linear_combination(predictions, 𝐲̂)
+    P = hcat(predictions...)
+    coefficients = P \ 𝐲̂
+    return P * coefficients
 end
