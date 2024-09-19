@@ -46,7 +46,7 @@ plot!(
     𝐱,
     target_fermi_dirac.(𝐱);
     z_order=:back,
-    seriescolor=:maroon,
+    seriescolor=:goldenrod,
     label="Reference Fermi function",
     PLOT_DEFAULTS...,
 )
@@ -67,7 +67,7 @@ plot!(
     𝐱,
     target_fermi_dirac.(𝐱);
     z_order=:back,
-    seriescolor=:maroon,
+    seriescolor=:goldenrod,
     label="Reference Fermi function",
     PLOT_DEFAULTS...,
 )
@@ -88,7 +88,7 @@ plot!(
     𝐱,
     target_fermi_dirac.(𝐱);
     z_order=:back,
-    seriescolor=:maroon,
+    seriescolor=:goldenrod,
     label="Reference Fermi function",
     PLOT_DEFAULTS...,
 )
@@ -110,7 +110,7 @@ plot!(
     𝐱,
     target_fermi_dirac.(𝐱);
     z_order=:back,
-    seriescolor=:maroon,
+    seriescolor=:goldenrod,
     label="Reference Fermi function",
     PLOT_DEFAULTS...,
 )
