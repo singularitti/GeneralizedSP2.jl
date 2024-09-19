@@ -36,6 +36,7 @@ branches = determine_branches(μ, maxlayers)
 𝐲̂ = target_fermi_dirac.(𝐱)
 
 𝝷, 𝐲, predictions = fit0(𝐱, 𝐲̂, 4)
+lc = linear_combination(predictions, 𝐲̂)
 
 plt = plot()
 xlims!(lower_bound, upper_bound)
@@ -53,10 +54,12 @@ plot!(
 for (i, 𝐲) in enumerate(predictions)
     plot!(𝐱, 𝐲; label="Fitted: \$x^{$(2^(i - 1))}\$", linestyle=:dot, PLOT_DEFAULTS...)
 end
+plot!(𝐱, lc; label="Linearly combined", linestyle=:dashdot, PLOT_DEFAULTS...)
 title!("Fitting without regularization")
 savefig("fitting_no_regularization.png")
 
 𝝷, 𝐲, predictions = fit(𝐱, 𝐲̂, 4; λ₁=2.5, λ₂=2.5)
+lc = linear_combination(predictions, 𝐲̂)
 
 plt = plot()
 xlims!(lower_bound, upper_bound)
@@ -74,10 +77,12 @@ plot!(
 for (i, 𝐲) in enumerate(predictions)
     plot!(𝐱, 𝐲; label="Fitted: \$x^{$(2^(i - 1))}\$", linestyle=:dot, PLOT_DEFAULTS...)
 end
+plot!(𝐱, lc; label="Linearly combined", linestyle=:dashdot, PLOT_DEFAULTS...)
 title!("Fitting with regularization")
 savefig("fitting_regularization.png")
 
 𝝷, 𝐲, predictions, residuals = fit_residuals0(𝐱, 𝐲̂, 4)
+lc = linear_combination(predictions, 𝐲̂)
 
 plt = plot()
 xlims!(lower_bound, upper_bound)
@@ -92,14 +97,16 @@ plot!(
     label="Reference Fermi function",
     PLOT_DEFAULTS...,
 )
-plot!(𝐱, 𝐲; label="Total fitted result", linestyle=:dash, PLOT_DEFAULTS...)
 for (i, 𝚫𝐲) in enumerate(predictions)
     plot!(𝐱, 𝚫𝐲; label="Correction: \$x^{$(2^(i - 1))}\$", linestyle=:dot, PLOT_DEFAULTS...)
 end
+plot!(𝐱, 𝐲; label="Total fitted result", linestyle=:dash, PLOT_DEFAULTS...)
+plot!(𝐱, lc; label="Linearly combined", linestyle=:dashdot, PLOT_DEFAULTS...)
 title!("Fitting residuals without regularization")
 savefig("residual_fitting_no_regularization.png")
 
 𝝷, 𝐲, predictions, residuals = fit_residuals(𝐱, 𝐲̂, 4; λ₁=2.5, λ₂=2.5)
+lc = linear_combination(predictions, 𝐲̂)
 
 plt = plot()
 xlims!(lower_bound, upper_bound)
@@ -114,9 +121,10 @@ plot!(
     label="Reference Fermi function",
     PLOT_DEFAULTS...,
 )
-plot!(𝐱, 𝐲; label="Total fitted result", linestyle=:dash, PLOT_DEFAULTS...)
 for (i, 𝚫𝐲) in enumerate(predictions)
     plot!(𝐱, 𝚫𝐲; label="Correction: \$x^{$(2^(i - 1))}\$", linestyle=:dot, PLOT_DEFAULTS...)
 end
+plot!(𝐱, 𝐲; label="Total fitted result", linestyle=:dash, PLOT_DEFAULTS...)
+plot!(𝐱, lc; label="Linearly combined", linestyle=:dashdot, PLOT_DEFAULTS...)
 title!("Fitting residuals with regularization")
 savefig("residual_fitting_regularization.png")
