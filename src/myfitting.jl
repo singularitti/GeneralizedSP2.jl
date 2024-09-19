@@ -1,6 +1,6 @@
 using LeastSquaresOptim: LevenbergMarquardt, optimize
 
-export fit_residuals0, fit_residuals, sp2model
+export fit_residuals0, fit_residuals, fit0, fit, linear_combination
 
 # Define the quadratic model
 sp2model(y, 𝛉) = 𝛉[1] * y .^ 2 + 𝛉[2] * y + 𝛉[3] * oneunit.(y)
@@ -76,4 +76,63 @@ function fit_residuals0(𝐱, 𝐲̂, nlayers=4; max_iter=100)
         push!(residuals, 𝐫)
     end
     return 𝝷, 𝐲, predictions, residuals
+end
+
+function fit0(𝐱, 𝐲̂, nlayers=4; max_iter=100)
+    𝛉 = ones(3)
+    𝝷 = []
+    𝐲 = 𝐱
+    predictions = [𝐲]
+    for _ in 1:nlayers
+        fitted_fermi = curve_fit(
+            sp2model,
+            𝐲,  # xdata
+            𝐲̂,  # ydata
+            𝛉;  # p0
+            maxIter=max_iter,
+        )
+        𝛉 = coef(fitted_fermi)
+        push!(𝝷, 𝛉)
+        # Update `predicted` with the new model output based on the fitted parameters
+        𝐲 = sp2model(𝐲, 𝛉)
+        push!(predictions, 𝐲)
+    end
+    return 𝝷, 𝐲, predictions
+end
+
+# Custom loss function with regularization
+function regularization(𝛉, x, y; λ₁=2, λ₂=2)
+    # Residuals: differences between model predictions and actual values
+    residuals = sp2model(x, 𝛉) - y
+    # Regularization: penalize lower-order terms (𝛉[1] for x^2, 𝛉[2] for x)
+    regularization = λ₁ * 𝛉[1]^2 + λ₂ * 𝛉[2]^2
+    # Return combined residuals and regularization
+    return vcat(residuals, regularization)
+end
+
+function fit(𝐱, 𝐲̂, nlayers=4; λ₁=2, λ₂=2)
+    𝛉 = ones(3)  # Initial guess for parameters
+    𝝷 = []
+    𝐲 = collect(𝐱)  # Ensure that `prediction` is an array
+    predictions = [𝐲]
+    for _ in 1:nlayers
+        # Define the objective function for the current layer
+        obj_func(θ) = regularization(θ, 𝐲, 𝐲̂; λ₁, λ₂)
+        # Use LeastSquaresOptim for fitting
+        result = optimize(obj_func, 𝛉, LevenbergMarquardt())  # or Dogleg()
+        # Extract the fitted parameters
+        𝛉 = result.minimizer
+        # Store the fitted parameters
+        push!(𝝷, 𝛉)
+        # Update the predictions using the new model
+        𝐲 = sp2model(𝐲, 𝛉)
+        push!(predictions, 𝐲)
+    end
+    return 𝝷, 𝐲, predictions
+end
+
+function linear_combination(predictions, 𝐲̂)
+    P = hcat(predictions...)
+    coefficients = P \ 𝐲̂
+    return P * coefficients
 end
