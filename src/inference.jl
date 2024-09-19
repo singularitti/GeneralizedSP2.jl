@@ -20,29 +20,29 @@ function matrix_function(f, A)
     return F.vectors * Diagonal(f.(F.values)) * inv(F.vectors)  # `Diagonal` is faster than `diagm`
 end
 
-function iterate_heaviside(𝐱, θ::AbstractMatrix)
-    if size(θ, 1) != LAYER_WIDTH
-        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
-    end
-    return map(𝐱) do x
-        v = vcat(x, collect(foldlist(sp2model, x, eachcol(θ))))
-        c = vcat(last(eachrow(θ)), oneunit(eltype(θ)))
-        dot(v, c)
-    end
-end
-# function iterate_heaviside(x, θ::AbstractMatrix)
+# function iterate_heaviside(𝐱, θ::AbstractMatrix)
 #     if size(θ, 1) != LAYER_WIDTH
 #         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
 #     end
-#     y = x
-#     Y = zero(x)
-#     for θᵢ in eachcol(θ)
-#         Y += θᵢ[4] * y
-#         y = θᵢ[1] * y .^ 2 + θᵢ[2] * y + θᵢ[3] * oneunit.(y)
+#     return map(𝐱) do x
+#         v = vcat(x, collect(foldlist(sp2model, x, eachcol(θ))))
+#         c = vcat(last(eachrow(θ)), oneunit(eltype(θ)))
+#         dot(v, c)
 #     end
-#     Y += y
-#     return Y
 # end
+function iterate_heaviside(x, θ::AbstractMatrix)
+    if size(θ, 1) != LAYER_WIDTH
+        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
+    end
+    y = x
+    Y = zero(x)
+    for θᵢ in eachcol(θ)
+        Y += θᵢ[4] * y
+        y = θᵢ[1] * y .^ 2 + θᵢ[2] * y + θᵢ[3] * oneunit.(y)
+    end
+    Y += y
+    return Y
+end
 iterate_heaviside(x, θ::AbstractVector) = iterate_heaviside(x, reshape(θ, LAYER_WIDTH, :))
 
 function iterate_fermi_dirac(x, θ)
