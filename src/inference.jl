@@ -44,6 +44,19 @@ function iterate_heaviside(x, θ::AbstractMatrix)
     return Y
 end
 iterate_heaviside(x, θ::AbstractVector) = iterate_heaviside(x, reshape(θ, LAYER_WIDTH, :))
+function iterate_heaviside(X::AbstractMatrix, θ::AbstractMatrix)
+    if size(θ, 1) != LAYER_WIDTH
+        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
+    end
+    y = X
+    Y = zero(X)
+    for θᵢ in eachcol(θ)
+        Y += θᵢ[4] * y
+        y = θᵢ[1] * y^2 + θᵢ[2] * y + θᵢ[3] * oneunit(y)  # Note this is not element-wise!
+    end
+    Y += y
+    return Y
+end
 
 function iterate_fermi_dirac(x, θ)
     Y = iterate_heaviside(x, θ)
