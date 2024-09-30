@@ -62,6 +62,10 @@ function iterate_fermi_dirac(x, θ)
     Y = iterate_heaviside(x, θ)
     return oneunit.(Y) - Y
 end
+function iterate_fermi_dirac(x::AbstractMatrix, θ)
+    Y = iterate_heaviside(x, θ)
+    return oneunit(Y) - Y  # Note this is not element-wise!
+end
 
 function iterate_heaviside!(res, temp1, temp2, x, θ)
     npts = length(x)
