@@ -1,7 +1,23 @@
 using LinearAlgebra: BLAS, Diagonal, eigen, inv
 using SparseArrays
 
-export iterate_heaviside, iterate_fermi_dirac, iterate_heaviside!, iterate_fermi_dirac!
+export rescale_zero_one,
+    iterate_heaviside, iterate_fermi_dirac, iterate_heaviside!, iterate_fermi_dirac!
+
+function rescale_zero_one(x1, x2)
+    if x1 == x2
+        throw(ArgumentError("inputs cannot be the same!"))
+    end
+    min, max = extrema((x1, x2))
+    # Linear mapping function for any number between x1 and x2
+    function rescaler(x)
+        if x < min || x > max
+            throw(ArgumentError("input number $x is out of bounds: [$x1, $x2]!"))
+        end
+        return (x - min) / (max - min)
+    end
+    return rescaler
+end
 
 """
     matrix_function(f, A)
