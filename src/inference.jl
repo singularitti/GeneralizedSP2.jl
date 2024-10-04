@@ -19,24 +19,6 @@ function rescale_zero_one(x1, x2)
     return rescaler
 end
 
-"""
-    matrix_function(f, A)
-
-Compute the matrix function `f(A)` for a square matrix `A` using the eigenvalue decomposition method.
-
-The function computes `f(A)` by diagonalizing `A`, applying the scalar function `f` to the eigenvalues,
-and then reconstructing the matrix. Specifically, it performs the following steps:
-1. Compute the eigenvalue decomposition of `A` as `A = V * D * V⁻¹`, where `D` is a diagonal matrix of
-   eigenvalues and `V` is the matrix of eigenvectors.
-2. Apply the function `f` element-wise to the eigenvalues in `D`.
-3. Reconstruct the matrix as `f(A) = V * Diagonal(f(D)) * V⁻¹`.
-"""
-function matrix_function(f, A)
-    E = eigen(A)
-    Λ, V = E.values, E.vectors
-    return V * Diagonal(f.(Λ)) * inv(V)  # `Diagonal` is faster than `diagm`
-end
-
 # function iterate_heaviside(𝐱, θ::AbstractMatrix)
 #     if size(θ, 1) != LAYER_WIDTH
 #         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
