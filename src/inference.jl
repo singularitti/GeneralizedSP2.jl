@@ -32,8 +32,9 @@ and then reconstructing the matrix. Specifically, it performs the following step
 3. Reconstruct the matrix as `f(A) = V * Diagonal(f(D)) * V⁻¹`.
 """
 function matrix_function(f, A)
-    F = eigen(A)
-    return F.vectors * Diagonal(f.(F.values)) * inv(F.vectors)  # `Diagonal` is faster than `diagm`
+    E = eigen(A)
+    Λ, V = E.values, E.vectors
+    return V * Diagonal(f.(Λ)) * inv(V)  # `Diagonal` is faster than `diagm`
 end
 
 # function iterate_heaviside(𝐱, θ::AbstractMatrix)
