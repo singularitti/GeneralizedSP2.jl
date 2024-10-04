@@ -4,6 +4,12 @@ function fermi_dirac(ε, μ, β)
     η = exp((ε - μ) * β)
     return inv(oneunit(η) + η)
 end
+fermi_dirac(𝐇::AbstractMatrix, μ, β) = matrix_function(ε -> fermi_dirac(ε, μ, β), 𝐇)
+
+function fermi_dirac_prime(ε, μ, β)
+    fd = fermi_dirac(ε, μ, β)
+    return -β * fd * (oneunit(fd) - fd)
+end
 
 function electronic_energy(ε, μ, β)
     η = (ε - μ) * β
