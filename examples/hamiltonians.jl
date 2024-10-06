@@ -73,17 +73,15 @@ function compute_mu(𝐇, nocc)
     return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=true)
 end
 
+β = 4
+μ = 0.8
 H = setup_hamiltonian3(1000)
 
 emin, emax = eigvals_extrema(H)
-x = rescale_zero_one(emin, emax).(eigvals(H))
-β = 4
-μ = 0.8
+x = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
 ŷ = fermi_dirac.(x, μ, β)
 𝝷FD, 𝝷ₛ = fit_model(x, μ, β, 10)
-a = -1 / (emax - emin)
-b = emax / (emax - emin)
-Hinput = b * I + a * H
+Hinput = rescale_zero_one(emin, emax)(H)
 
 dm = iterate_fermi_dirac(Hinput, 𝝷FD)
 N = tr(dm)
