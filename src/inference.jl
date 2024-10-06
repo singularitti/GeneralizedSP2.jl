@@ -1,4 +1,4 @@
-using LinearAlgebra: BLAS, Diagonal, eigen, inv
+using LinearAlgebra: BLAS, I, Diagonal, eigen, inv
 using SparseArrays
 
 export rescale_zero_one,
@@ -9,14 +9,12 @@ function rescale_zero_one(x1, x2)
         throw(ArgumentError("inputs cannot be the same!"))
     end
     min, max = extrema((x1, x2))
-    # Linear mapping function for any number between x1 and x2
-    function rescaler(x)
-        if x < min || x > max
-            throw(ArgumentError("input number $x is out of bounds: [$x1, $x2]!"))
-        end
-        return (x - min) / (max - min)
+    rescale(x::Number) = (x - max) / (min - max)  # `x` can be out of the range [min, max]
+    function rescale(A::AbstractMatrix)
+        k, b = inv(min - max), max / (max - min)
+        return k * A + b * I  # Map `max` to 0, `min` to 1
     end
-    return rescaler
+    return rescale
 end
 
 # function iterate_heaviside(𝐱, θ::AbstractMatrix)
