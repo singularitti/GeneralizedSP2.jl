@@ -1,3 +1,5 @@
+using LinearAlgebra: Diagonal, eigen
+
 export fermi_dirac, electronic_energy, electronic_entropy
 
 function fermi_dirac(ε, μ, β)
