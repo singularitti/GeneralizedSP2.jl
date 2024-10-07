@@ -2,7 +2,6 @@ module GeneralizedSP2
 
 const LAYER_WIDTH = 4
 
-include("foldlist.jl")
 include("stat_mech.jl")
 include("models.jl")
 include("fitting.jl")
