@@ -1,5 +1,4 @@
 using GeneralizedSP2
-using GeneralizedSP2: transform_entropy
 using Plots
 
 PLOT_DEFAULTS = Dict(
