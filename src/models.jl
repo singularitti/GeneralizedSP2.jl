@@ -1,4 +1,6 @@
-export apply_model!, apply_model, fermi_dirac_model, entropy_model
+using LinearAlgebra: I
+
+export apply_model!, apply_model, fermi_dirac_model, entropy_model, rescale_zero_one
 
 function apply_model(f, T, 𝛉, 𝐱)
     result = similar(𝐱, T)
@@ -95,3 +97,16 @@ transform_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 nu
 fermi_dirac_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_fermi_dirac_derivative)
 
 entropy_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_entropy_derivative)
+
+function rescale_zero_one(x1, x2)
+    if x1 == x2
+        throw(ArgumentError("inputs cannot be the same!"))
+    end
+    min, max = extrema((x1, x2))
+    rescale(x::Number) = (x - max) / (min - max)  # `x` can be out of the range [min, max]
+    function rescale(A::AbstractMatrix)
+        k, b = inv(min - max), max / (max - min)
+        return k * A + b * I  # Map `max` to 0, `min` to 1
+    end
+    return rescale
+end
