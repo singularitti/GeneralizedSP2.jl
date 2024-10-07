@@ -42,15 +42,15 @@ end
 apply_model!(f, result, 𝛉::AbstractVector, 𝐱) =
     apply_model!(f, result, reshape(𝛉, LAYER_WIDTH, :), 𝐱)
 
-fermi_dirac_model!(result, 𝛉, 𝐱) = apply_model!(transform_fermi_dirac, result, 𝛉, 𝐱)
-
-entropy_model!(result, 𝛉, 𝐱) = apply_model!(transform_entropy, result, 𝛉, 𝐱)
-
 transform_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number at a time
 
 transform_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number at a time
 
+fermi_dirac_model!(result, 𝛉, 𝐱) = apply_model!(transform_fermi_dirac, result, 𝛉, 𝐱)
+
 fermi_dirac_model(𝛉, 𝐱) = apply_model(transform_fermi_dirac, 𝛉, 𝐱)
+
+entropy_model!(result, 𝛉, 𝐱) = apply_model!(transform_entropy, result, 𝛉, 𝐱)
 
 entropy_model(𝛉, 𝐱) = apply_model(transform_entropy, 𝛉, 𝐱)
 
