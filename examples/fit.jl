@@ -23,7 +23,7 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-function main(β, μ=0.568)
+function plot_fermi_dirac(β, μ=0.568)
     target_fermi_dirac(ε) = 1 / (1 + exp(β * (ε - μ)))
 
     minlayers = 2
@@ -111,5 +111,5 @@ function main(β, μ=0.568)
     end
 end
 
-main(9.423)
-main(20)
+plot_fermi_dirac(9.423)
+plot_fermi_dirac(20)
