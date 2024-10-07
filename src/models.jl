@@ -1,4 +1,11 @@
-export apply_model!, model, fermi_dirac_model, entropy_model
+export apply_model!, apply_model, fermi_dirac_model, entropy_model
+
+function apply_model(f, 𝐱, 𝛉)
+    T = typeof(f(first(𝛉) * first(𝐱)))
+    result = similar(𝐱, T)
+    apply_model!(f, result, 𝐱, 𝛉)
+    return result
+end
 
 function apply_model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
@@ -36,20 +43,13 @@ fermi_dirac_model!(result, 𝐱, 𝛉) = apply_model!(transform_fermi_dirac, res
 
 entropy_model!(result, 𝐱, 𝛉) = apply_model!(transform_entropy, result, 𝐱, 𝛉)
 
-function model(f, 𝐱, 𝛉)
-    T = typeof(f(first(𝛉) * first(𝐱)))
-    result = similar(𝐱, T)
-    apply_model!(f, result, 𝐱, 𝛉)
-    return result
-end
-
 transform_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number at a time
 
 transform_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number at a time
 
-fermi_dirac_model(x, θ) = model(transform_fermi_dirac, x, θ)
+fermi_dirac_model(x, θ) = apply_model(transform_fermi_dirac, x, θ)
 
-entropy_model(x, θ) = model(transform_entropy, x, θ)
+entropy_model(x, θ) = apply_model(transform_entropy, x, θ)
 
 function jacobian!(J::AbstractMatrix, x, θ, df_dY)
     npoints = length(x)
