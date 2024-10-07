@@ -105,8 +105,8 @@ function plot_fermi_dirac(β, μ=0.568)
             linestyle=:dashdot,
             PLOT_DEFAULTS...,
         )
-        savefig("fits_beta=$β,nlayers=$nlayers.png")
     end
+    return savefig("fits_beta=$β,nlayers=$maxlayers.png")
 end
 
 plot_fermi_dirac(9.423)
