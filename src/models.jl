@@ -1,10 +1,13 @@
 export apply_model!, apply_model, fermi_dirac_model, entropy_model
 
-function apply_model(f, 𝐱, 𝛉)
-    T = typeof(f(first(𝛉) * first(𝐱)))
+function apply_model(f, T, 𝐱, 𝛉)
     result = similar(𝐱, T)
     apply_model!(f, result, 𝐱, 𝛉)
     return result
+end
+function apply_model(f, 𝐱, 𝛉)
+    T = typeof(f(first(𝛉) * first(𝐱)))
+    return apply_model(f, T, 𝐱, 𝛉)
 end
 
 function apply_model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
