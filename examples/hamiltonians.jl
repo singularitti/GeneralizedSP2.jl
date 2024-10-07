@@ -80,10 +80,10 @@ H = setup_hamiltonian3(1000)
 emin, emax = eigvals_extrema(H)
 𝐱 = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
 𝐲̂ = fermi_dirac.(𝐱, μ, β)
-𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β, 10)
+𝛉 = fit_fermi_dirac(𝐱, μ, β, 10)
 H_scaled = rescale_zero_one(emin, emax)(H)
 
-dm = iterate_fermi_dirac(H_scaled, 𝝷FD)
+dm = iterate_fermi_dirac(H_scaled, 𝛉)
 N = tr(dm)
 
 @show estimate_mu(H_scaled, N)
