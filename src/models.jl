@@ -16,6 +16,19 @@ function model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractM
     end
     return result
 end
+function model!(f, result::AbstractMatrix, 𝐗::AbstractMatrix, 𝝷::AbstractMatrix)
+    if size(𝝷, 1) != LAYER_WIDTH
+        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
+    end
+    𝐘 = 𝐗
+    map!(zero, result, result)  # `result` as the accumulator
+    for 𝛉 in eachcol(𝝷)
+        result += 𝛉[4] * 𝐘
+        𝐘 = 𝛉[1] * 𝐘^2 + 𝛉[2] * 𝐘 + 𝛉[3] * oneunit(𝐘)  # Note this is not element-wise!
+    end
+    result += 𝐘
+    return f(result)
+end
 model!(f, result, 𝐱::AbstractVector, 𝛉::AbstractVector) =
     model!(f, result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
 
