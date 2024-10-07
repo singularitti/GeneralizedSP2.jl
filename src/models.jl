@@ -29,7 +29,7 @@ function apply_model!(f, result::AbstractMatrix, 𝐗::AbstractMatrix, 𝝷::Abs
     result += 𝐘
     return f(result)
 end
-apply_model!(f, result, 𝐱::AbstractVector, 𝛉::AbstractVector) =
+apply_model!(f, result, 𝐱, 𝛉::AbstractVector) =
     apply_model!(f, result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
 
 fermi_dirac_model!(result, 𝐱, 𝛉) = apply_model!(transform_fermi_dirac, result, 𝐱, 𝛉)
