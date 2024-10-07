@@ -25,8 +25,6 @@ PLOT_DEFAULTS = Dict(
 )
 
 function plot_entropy(β, μ=0.568)
-    calculate_entropy(𝐱, 𝝷ₛ) = transform_entropy.(iterate_heaviside(𝐱, 𝝷ₛ))
-
     minlayers = 2
     maxlayers = 4
     lower_bound, upper_bound = 0, 1
@@ -51,10 +49,10 @@ function plot_entropy(β, μ=0.568)
         PLOT_DEFAULTS...,
     )
     for nlayers in minlayers:maxlayers
-        _, 𝝷ₛ = fit_model(𝐱, μ, β, nlayers)
+        𝛉 = fit_entropy(𝐱, μ, β, nlayers)
         plot!(
             𝐱,
-            calculate_entropy(𝐱, 𝝷ₛ);
+            entropy_model(𝐱, 𝛉);
             subplot=1,
             label="MLSP2 with $nlayers layers",
             linestyle=:dot,
@@ -62,7 +60,7 @@ function plot_entropy(β, μ=0.568)
         )
         plot!(
             𝐱,
-            electronic_entropy.(𝐱, μ, β) - calculate_entropy(𝐱, 𝝷ₛ);
+            electronic_entropy.(𝐱, μ, β) - entropy_model(𝐱, 𝛉);
             subplot=2,
             label="MLSP2 with $nlayers layers",
             linestyle=:dot,
