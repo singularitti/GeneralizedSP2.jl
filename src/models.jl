@@ -64,34 +64,31 @@ function fermi_dirac_jacobian(x, θ)
     return jacobian(f, AutoEnzyme(), x)
 end
 
-function jacobian!(df_dY, J, x, θ)
-    npoints = length(x)
-    θ = reshape(θ, LAYER_WIDTH, :)
+function jacobian!(f′, 𝗝, 𝐱, 𝛉)
+    npoints = length(𝐱)
+    θ = reshape(𝛉, LAYER_WIDTH, :)
     nlayers = size(θ, 2)
-
-    J = reshape(J, npoints, LAYER_WIDTH, nlayers)
-    y = zeros(eltype(x), nlayers + 1)
+    𝗝 = reshape(𝗝, npoints, LAYER_WIDTH, nlayers)
+    y = zeros(eltype(𝐱), nlayers + 1)
 
     for j in 1:npoints
-
-        # forward calculation
-        y[1] = x[j]
-        Y = zero(eltype(J))
+        # Forward calculation
+        y[1] = 𝐱[j]
+        Y = zero(eltype(𝗝))
         for i in 1:nlayers
             Y += θ[4, i] * y[i]
             y[i + 1] = θ[1, i] * y[i]^2 + θ[2, i] * y[i] + θ[3, i]
         end
         Y += y[nlayers + 1]
-        α = df_dY(Y)
-
-        # backward calculation
+        α = f′(Y)
+        # Backward calculation
         z = 1 # z_{n+1}
         for i in nlayers:-1:1
             # z = z_{i+1}
-            J[j, 1, i] = α * z * y[i]^2
-            J[j, 2, i] = α * z * y[i]
-            J[j, 3, i] = α * z
-            J[j, 4, i] = α * y[i]
+            𝗝[j, 1, i] = α * z * y[i]^2
+            𝗝[j, 2, i] = α * z * y[i]
+            𝗝[j, 3, i] = α * z
+            𝗝[j, 4, i] = α * y[i]
 
             z = θ[4, i] + z * (2θ[1, i] * y[i] + θ[2, i])
         end
