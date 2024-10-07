@@ -67,10 +67,10 @@ function plot_fermi_dirac(β, μ=0.568)
         PLOT_DEFAULTS...,
     )
     for nlayers in minlayers:maxlayers
-        𝝷FD, _ = fit_model(𝐱, μ, β, nlayers)
+        𝛉 = fit_fermi_dirac(𝐱, μ, β, nlayers)
         plot!(
             𝐱,
-            iterate_fermi_dirac(𝐱, 𝝷FD);
+            fermi_dirac_model(𝐱, 𝛉);
             subplot=1,
             label="MLSP2 with $nlayers layers",
             linestyle=:dot,
@@ -78,7 +78,7 @@ function plot_fermi_dirac(β, μ=0.568)
         )
         plot!(
             𝐱,
-            fermi_dirac.(𝐱, μ, β) - iterate_fermi_dirac(𝐱, 𝝷FD);
+            fermi_dirac.(𝐱, μ, β) - fermi_dirac_model(𝐱, 𝛉);
             subplot=2,
             label="MLSP2 with $nlayers layers",
             linestyle=:dot,
@@ -87,8 +87,8 @@ function plot_fermi_dirac(β, μ=0.568)
     end
     for nlayers in minlayers:maxlayers
         𝐱′ = chebyshevnodes_1st(length(𝐱), (lower_bound, upper_bound))
-        𝝷FD, 𝝷ₛ = fit_model(𝐱′, μ, β, nlayers)
-        𝐲′ = iterate_fermi_dirac(𝐱′, 𝝷FD)
+        𝛉 = fit_fermi_dirac(𝐱′, μ, β, nlayers)
+        𝐲′ = fermi_dirac_model(𝐱′, 𝛉)
         plot!(
             𝐱′,
             𝐲′;
@@ -106,7 +106,8 @@ function plot_fermi_dirac(β, μ=0.568)
             PLOT_DEFAULTS...,
         )
     end
-    return savefig("fits_beta=$β,nlayers=$maxlayers.png")
+    savefig("fits_beta=$β,nlayers=$maxlayers.png")
+    return plt
 end
 
 plot_fermi_dirac(9.423)
