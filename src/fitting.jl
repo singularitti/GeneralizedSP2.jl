@@ -2,7 +2,7 @@ using LsqFit: curve_fit, coef
 
 export fit_model, model!, model, fermi_dirac_model, entropy_model, fit_residuals
 
-function model!(f, result, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
+function model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
