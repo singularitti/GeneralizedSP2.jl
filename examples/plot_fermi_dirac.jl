@@ -24,8 +24,6 @@ PLOT_DEFAULTS = Dict(
 )
 
 function plot_fermi_dirac(β, μ=0.568)
-    target_fermi_dirac(ε) = 1 / (1 + exp(β * (ε - μ)))
-
     minlayers = 2
     maxlayers = 4
     lower_bound, upper_bound = 0, 1
@@ -44,7 +42,7 @@ function plot_fermi_dirac(β, μ=0.568)
     hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
     plot!(
         𝐱,
-        target_fermi_dirac.(𝐱);
+        fermi_dirac.(𝐱, μ, β);
         primary=false,
         z_order=:back,
         seriescolor=:maroon,
@@ -62,14 +60,14 @@ function plot_fermi_dirac(β, μ=0.568)
     )
     plot!(
         𝐱,
-        target_fermi_dirac.(𝐱) - oneunit.(𝐲) + 𝐲;
+        fermi_dirac.(𝐱, μ, β) - oneunit.(𝐲) + 𝐲;
         subplot=2,
         label="SP2 with $maxlayers layers",
         linestyle=:dash,
         PLOT_DEFAULTS...,
     )
     for nlayers in minlayers:maxlayers
-        𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β, nlayers)
+        𝝷FD, _ = fit_model(𝐱, μ, β, nlayers)
         plot!(
             𝐱,
             iterate_fermi_dirac(𝐱, 𝝷FD);
@@ -80,7 +78,7 @@ function plot_fermi_dirac(β, μ=0.568)
         )
         plot!(
             𝐱,
-            target_fermi_dirac.(𝐱) - iterate_fermi_dirac(𝐱, 𝝷FD);
+            fermi_dirac.(𝐱, μ, β) - iterate_fermi_dirac(𝐱, 𝝷FD);
             subplot=2,
             label="MLSP2 with $nlayers layers",
             linestyle=:dot,
@@ -101,7 +99,7 @@ function plot_fermi_dirac(β, μ=0.568)
         )
         plot!(
             𝐱′,
-            target_fermi_dirac.(𝐱′) - 𝐲′;
+            fermi_dirac.(𝐱′, μ, β) - 𝐲′;
             subplot=2,
             label="$nlayers layers by Chebyshev nodes",
             linestyle=:dashdot,
