@@ -1,29 +1,33 @@
 using LsqFit: curve_fit, coef
 
-export fit_model
+export fit_fermi_dirac, fit_entropy
 
-function fit_model(𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); max_iter=100)
+function fit_fermi_dirac(𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); max_iter=100)
     # Initialize model with SP2
-    θ = init_params(μ, nlayers)
-
-    fitted_fermi = curve_fit(
+    𝛉 = init_params(μ, nlayers)
+    fitted = curve_fit(
         fermi_dirac_model!,
         fermi_dirac_jacobian!,
         𝐱,  # xdata
         fermi_dirac.(𝐱, μ, β),  # ydata
-        θ;  # p0
+        𝛉;  # p0
         maxIter=max_iter,
         inplace=true,
     )
-    fitted_entropy = curve_fit(
+    return coef(fitted)
+end
+
+function fit_entropy(𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); max_iter=100)
+    # Initialize model with SP2
+    𝛉 = init_params(μ, nlayers)
+    fitted = curve_fit(
         entropy_model!,
         entropy_jacobian!,
         𝐱,
         electronic_entropy.(𝐱, μ, β),
-        θ;
+        𝛉;
         maxIter=max_iter,
         inplace=true,
     )
-
-    return coef(fitted_fermi), coef(fitted_entropy)
+    return coef(fitted)
 end
