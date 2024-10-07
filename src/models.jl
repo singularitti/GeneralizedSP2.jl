@@ -1,6 +1,6 @@
-export model!, model, fermi_dirac_model, entropy_model
+export apply_model!, model, fermi_dirac_model, entropy_model
 
-function model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
+function apply_model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
@@ -16,7 +16,7 @@ function model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractM
     end
     return result
 end
-function model!(f, result::AbstractMatrix, 𝐗::AbstractMatrix, 𝝷::AbstractMatrix)
+function apply_model!(f, result::AbstractMatrix, 𝐗::AbstractMatrix, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
@@ -29,17 +29,17 @@ function model!(f, result::AbstractMatrix, 𝐗::AbstractMatrix, 𝝷::AbstractM
     result += 𝐘
     return f(result)
 end
-model!(f, result, 𝐱::AbstractVector, 𝛉::AbstractVector) =
-    model!(f, result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
+apply_model!(f, result, 𝐱::AbstractVector, 𝛉::AbstractVector) =
+    apply_model!(f, result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
 
-fermi_dirac_model!(result, 𝐱, 𝛉) = model!(transform_fermi_dirac, result, 𝐱, 𝛉)
+fermi_dirac_model!(result, 𝐱, 𝛉) = apply_model!(transform_fermi_dirac, result, 𝐱, 𝛉)
 
-entropy_model!(result, 𝐱, 𝛉) = model!(transform_entropy, result, 𝐱, 𝛉)
+entropy_model!(result, 𝐱, 𝛉) = apply_model!(transform_entropy, result, 𝐱, 𝛉)
 
 function model(f, 𝐱, 𝛉)
     T = typeof(f(first(𝛉) * first(𝐱)))
     result = similar(𝐱, T)
-    model!(f, result, 𝐱, 𝛉)
+    apply_model!(f, result, 𝐱, 𝛉)
     return result
 end
 
