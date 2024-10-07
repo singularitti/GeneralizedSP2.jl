@@ -1,7 +1,7 @@
 using GershgorinDiscs
 using GeneralizedSP2
 using LinearAlgebra
-using Plots
+# using Plots
 using Roots: Newton, find_zero
 
 PLOT_DEFAULTS = Dict(
@@ -78,19 +78,19 @@ end
 H = setup_hamiltonian3(1000)
 
 emin, emax = eigvals_extrema(H)
-x = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
-ŷ = fermi_dirac.(x, μ, β)
-𝝷FD, 𝝷ₛ = fit_model(x, μ, β, 10)
-Hinput = rescale_zero_one(emin, emax)(H)
+𝐱 = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
+𝐲̂ = fermi_dirac.(𝐱, μ, β)
+𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β, 10)
+H_scaled = rescale_zero_one(emin, emax)(H)
 
-dm = iterate_fermi_dirac(Hinput, 𝝷FD)
+dm = iterate_fermi_dirac(H_scaled, 𝝷FD)
 N = tr(dm)
 
-@show estimate_mu(Hinput, N)
-@show compute_mu(Hinput, N)
+@show estimate_mu(H_scaled, N)
+@show compute_mu(H_scaled, N)
 
-scatter(x, ŷ; label="target Fermi–Dirac", PLOT_DEFAULTS...)
-scatter!(diag(Hinput), diag(dm); label="MLSP2 model", PLOT_DEFAULTS...)
+scatter(𝐱, 𝐲̂; label="target Fermi–Dirac", PLOT_DEFAULTS...)
+scatter!(diag(H_scaled), diag(dm); label="MLSP2 model", PLOT_DEFAULTS...)
 xlims!((0, 1))
 ylims!((0, 1))
 xlabel!("scaled eigenvalues")
