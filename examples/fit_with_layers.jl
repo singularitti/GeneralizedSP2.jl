@@ -23,171 +23,93 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-target_fermi_dirac(ε) = 1 / (1 + exp(β * (ε - μ)))
+function main(β, μ=0.568)
+    target_fermi_dirac(ε) = 1 / (1 + exp(β * (ε - μ)))
 
-β = 9.423
-μ = 0.568
-minlayers = 2
-maxlayers = 4
-lower_bound, upper_bound = 0, 1
+    minlayers = 2
+    maxlayers = 4
+    lower_bound, upper_bound = 0, 1
 
-branches = determine_branches(μ, maxlayers)
-𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
-𝐲 = forward_pass(branches, 𝐱)
+    branches = determine_branches(μ, maxlayers)
+    𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
+    𝐲 = forward_pass(branches, 𝐱)
 
-plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
-plot!(; subplot=1, title="My fitted results μ=$μ, β=$β")
-plot!(; subplot=2, title="Error of the approximation")
-xlims!(lower_bound, upper_bound)
-xlabel!(raw"$x$")
-ylabel!(raw"$y$")
-hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
-hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
-plot!(
-    𝐱,
-    target_fermi_dirac.(𝐱);
-    primary=false,
-    z_order=:back,
-    seriescolor=:maroon,
-    subplot=1,
-    label="Reference Fermi function",
-    PLOT_DEFAULTS...,
-)
-plot!(
-    𝐱,
-    oneunit.(𝐲) - 𝐲;
-    subplot=1,
-    label="SP2 with $maxlayers layers",
-    linestyle=:dash,
-    PLOT_DEFAULTS...,
-)
-plot!(
-    𝐱,
-    target_fermi_dirac.(𝐱) - oneunit.(𝐲) + 𝐲;
-    subplot=2,
-    label="SP2 with $maxlayers layers",
-    linestyle=:dash,
-    PLOT_DEFAULTS...,
-)
-for nlayers in minlayers:maxlayers
-    𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β, nlayers)
+    plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
+    plot!(; subplot=1, title="My fitted results μ=$μ, β=$β")
+    plot!(; subplot=2, title="Error of the approximation")
+    xlims!(lower_bound, upper_bound)
+    xlabel!(raw"$x$")
+    ylabel!(raw"$y$")
+    hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
+    hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
     plot!(
         𝐱,
-        iterate_fermi_dirac(𝐱, 𝝷FD);
+        target_fermi_dirac.(𝐱);
+        primary=false,
+        z_order=:back,
+        seriescolor=:maroon,
         subplot=1,
-        label="MLSP2 with $nlayers layers",
-        linestyle=:dot,
+        label="Reference Fermi function",
         PLOT_DEFAULTS...,
     )
     plot!(
         𝐱,
-        target_fermi_dirac.(𝐱) - iterate_fermi_dirac(𝐱, 𝝷FD);
-        subplot=2,
-        label="MLSP2 with $nlayers layers",
-        linestyle=:dot,
-        PLOT_DEFAULTS...,
-    )
-end
-for nlayers in minlayers:maxlayers
-    𝐱′ = chebyshevnodes_1st(length(𝐱), (lower_bound, upper_bound))
-    𝝷FD, 𝝷ₛ = fit_model(𝐱′, μ, β, nlayers)
-    𝐲′ = iterate_fermi_dirac(𝐱′, 𝝷FD)
-    plot!(
-        𝐱′,
-        𝐲′;
+        oneunit.(𝐲) - 𝐲;
         subplot=1,
-        label="MLSP2 with $nlayers layers by Chebyshev nodes",
-        linestyle=:dashdot,
-        PLOT_DEFAULTS...,
-    )
-    plot!(
-        𝐱′,
-        target_fermi_dirac.(𝐱′) - 𝐲′;
-        subplot=2,
-        label="$nlayers layers by Chebyshev nodes",
-        linestyle=:dashdot,
-        PLOT_DEFAULTS...,
-    )
-    savefig("fits_beta=$β,nlayers=$nlayers.png")
-end
-
-β = 20
-branches = determine_branches(μ, maxlayers)
-𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
-𝐲 = forward_pass(branches, 𝐱)
-
-plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
-plot!(; subplot=1, title="My fitted results μ=$μ, β=$β")
-plot!(; subplot=2, title="Error of the approximation")
-xlims!(lower_bound, upper_bound)
-xlabel!(raw"$x$")
-ylabel!(raw"$y$")
-hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
-hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
-plot!(
-    𝐱,
-    target_fermi_dirac.(𝐱);
-    primary=false,
-    z_order=:back,
-    seriescolor=:maroon,
-    subplot=1,
-    label="Reference Fermi function",
-    PLOT_DEFAULTS...,
-)
-plot!(
-    𝐱,
-    oneunit.(𝐲) - 𝐲;
-    subplot=1,
-    label="SP2 with $maxlayers layers",
-    linestyle=:dash,
-    PLOT_DEFAULTS...,
-)
-plot!(
-    𝐱,
-    target_fermi_dirac.(𝐱) - oneunit.(𝐲) + 𝐲;
-    subplot=2,
-    label="SP2 with $maxlayers layers",
-    linestyle=:dash,
-    PLOT_DEFAULTS...,
-)
-for nlayers in minlayers:maxlayers
-    𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β, nlayers)
-    plot!(
-        𝐱,
-        iterate_fermi_dirac(𝐱, 𝝷FD);
-        subplot=1,
-        label="MLSP2 with $nlayers layers",
-        linestyle=:dot,
+        label="SP2 with $maxlayers layers",
+        linestyle=:dash,
         PLOT_DEFAULTS...,
     )
     plot!(
         𝐱,
-        target_fermi_dirac.(𝐱) - iterate_fermi_dirac(𝐱, 𝝷FD);
+        target_fermi_dirac.(𝐱) - oneunit.(𝐲) + 𝐲;
         subplot=2,
-        label="MLSP2 with $nlayers layers",
-        linestyle=:dot,
+        label="SP2 with $maxlayers layers",
+        linestyle=:dash,
         PLOT_DEFAULTS...,
     )
+    for nlayers in minlayers:maxlayers
+        𝝷FD, 𝝷ₛ = fit_model(𝐱, μ, β, nlayers)
+        plot!(
+            𝐱,
+            iterate_fermi_dirac(𝐱, 𝝷FD);
+            subplot=1,
+            label="MLSP2 with $nlayers layers",
+            linestyle=:dot,
+            PLOT_DEFAULTS...,
+        )
+        plot!(
+            𝐱,
+            target_fermi_dirac.(𝐱) - iterate_fermi_dirac(𝐱, 𝝷FD);
+            subplot=2,
+            label="MLSP2 with $nlayers layers",
+            linestyle=:dot,
+            PLOT_DEFAULTS...,
+        )
+    end
+    for nlayers in minlayers:maxlayers
+        𝐱′ = chebyshevnodes_1st(length(𝐱), (lower_bound, upper_bound))
+        𝝷FD, 𝝷ₛ = fit_model(𝐱′, μ, β, nlayers)
+        𝐲′ = iterate_fermi_dirac(𝐱′, 𝝷FD)
+        plot!(
+            𝐱′,
+            𝐲′;
+            subplot=1,
+            label="MLSP2 with $nlayers layers by Chebyshev nodes",
+            linestyle=:dashdot,
+            PLOT_DEFAULTS...,
+        )
+        plot!(
+            𝐱′,
+            target_fermi_dirac.(𝐱′) - 𝐲′;
+            subplot=2,
+            label="$nlayers layers by Chebyshev nodes",
+            linestyle=:dashdot,
+            PLOT_DEFAULTS...,
+        )
+        savefig("fits_beta=$β,nlayers=$nlayers.png")
+    end
 end
-for nlayers in minlayers:maxlayers
-    𝐱′ = chebyshevnodes_1st(length(𝐱), (lower_bound, upper_bound))
-    𝝷FD, 𝝷ₛ = fit_model(𝐱′, μ, β, nlayers)
-    𝐲′ = iterate_fermi_dirac(𝐱′, 𝝷FD)
-    plot!(
-        𝐱′,
-        𝐲′;
-        label="MLSP2 with $nlayers layers by Chebyshev nodes",
-        subplot=1,
-        linestyle=:dashdot,
-        PLOT_DEFAULTS...,
-    )
-    plot!(
-        𝐱′,
-        target_fermi_dirac.(𝐱′) - 𝐲′;
-        subplot=2,
-        label="$nlayers layers by Chebyshev nodes",
-        linestyle=:dashdot,
-        PLOT_DEFAULTS...,
-    )
-    savefig("fits_beta=$β,nlayers=$nlayers.png")
-end
+
+main(9.423)
+main(20)
