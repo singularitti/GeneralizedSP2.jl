@@ -2,17 +2,17 @@ using LinearAlgebra: I
 
 export apply_model!, apply_model, fermi_dirac_model, entropy_model, rescale_zero_one
 
-function apply_model(f, T, 𝛉, 𝐱)
+function apply_model(f, T, 𝐱, 𝛉)
     result = similar(𝐱, T)
-    apply_model!(f, result, 𝛉, 𝐱)
+    apply_model!(f, result, 𝐱, 𝛉)
     return result
 end
-function apply_model(f, 𝛉, 𝐱)
+function apply_model(f, 𝐱, 𝛉)
     T = typeof(f(first(𝛉) * first(𝐱)))
-    return apply_model(f, T, 𝛉, 𝐱)
+    return apply_model(f, T, 𝐱, 𝛉)
 end
 
-function apply_model!(f, result::AbstractVector, 𝝷::AbstractMatrix, 𝐱::AbstractVector)
+function apply_model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
@@ -28,7 +28,7 @@ function apply_model!(f, result::AbstractVector, 𝝷::AbstractMatrix, 𝐱::Abs
     end
     return result
 end
-function apply_model!(f, result::AbstractMatrix, 𝝷::AbstractMatrix, 𝐗::AbstractMatrix)
+function apply_model!(f, result::AbstractMatrix, 𝐗::AbstractMatrix, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
@@ -41,20 +41,20 @@ function apply_model!(f, result::AbstractMatrix, 𝝷::AbstractMatrix, 𝐗::Abs
     result += 𝐘
     return f(result)
 end
-apply_model!(f, result, 𝛉::AbstractVector, 𝐱) =
-    apply_model!(f, result, reshape(𝛉, LAYER_WIDTH, :), 𝐱)
+apply_model!(f, result, 𝐱, 𝛉::AbstractVector) =
+    apply_model!(f, result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
 
 transform_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number at a time
 
 transform_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number at a time
 
-fermi_dirac_model!(result, 𝛉, 𝐱) = apply_model!(transform_fermi_dirac, result, 𝛉, 𝐱)
+fermi_dirac_model!(result, 𝐱, 𝛉) = apply_model!(transform_fermi_dirac, result, 𝐱, 𝛉)
 
-fermi_dirac_model(𝛉, 𝐱) = apply_model(transform_fermi_dirac, 𝛉, 𝐱)
+fermi_dirac_model(𝐱, 𝛉) = apply_model(transform_fermi_dirac, 𝐱, 𝛉)
 
-entropy_model!(result, 𝛉, 𝐱) = apply_model!(transform_entropy, result, 𝛉, 𝐱)
+entropy_model!(result, 𝐱, 𝛉) = apply_model!(transform_entropy, result, 𝐱, 𝛉)
 
-entropy_model(𝛉, 𝐱) = apply_model(transform_entropy, 𝛉, 𝐱)
+entropy_model(𝐱, 𝛉) = apply_model(transform_entropy, 𝐱, 𝛉)
 
 function jacobian!(J::AbstractMatrix, x, θ, df_dY)
     npoints = length(x)
