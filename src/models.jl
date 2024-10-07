@@ -64,7 +64,7 @@ function fermi_dirac_jacobian(x, θ)
     return jacobian(f, AutoEnzyme(), x)
 end
 
-function jacobian!(J::AbstractMatrix, x, θ, df_dY)
+function jacobian!(df_dY, J, x, θ)
     npoints = length(x)
     θ = reshape(θ, LAYER_WIDTH, :)
     nlayers = size(θ, 2)
@@ -102,9 +102,9 @@ transform_fermi_dirac_derivative(Y) = -one(Y)  # Applies to 1 number at a time
 
 transform_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
-fermi_dirac_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_fermi_dirac_derivative)
+fermi_dirac_jacobian!(J, x, θ) = jacobian!(transform_fermi_dirac_derivative, J, x, θ)
 
-entropy_jacobian!(J, x, θ) = jacobian!(J, x, θ, transform_entropy_derivative)
+entropy_jacobian!(J, x, θ) = jacobian!(transform_entropy_derivative, J, x, θ)
 
 function rescale_zero_one(x1, x2)
     if x1 == x2
