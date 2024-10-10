@@ -3,6 +3,8 @@ using Enzyme: Reverse, Const, Duplicated, autodiff
 
 export apply_model!,
     apply_model,
+    autodiff_model!,
+    autodiff_model,
     fermi_dirac_model,
     entropy_model,
     rescale_zero_one,
@@ -64,7 +66,10 @@ entropy_model(𝐱, 𝛉) = apply_model(transform_entropy, 𝐱, 𝛉)
 
 function autodiff_model(f, 𝐱, 𝝷)
     𝗝 = Array{eltype(𝝷)}(undef, size(𝐱)..., size(𝝷)...)
+    return autodiff_model!(f, 𝗝, 𝐱, 𝝷)
+end
 
+function autodiff_model!(f, 𝗝, 𝐱, 𝝷)
     function _apply_model!(𝐲, 𝐱, 𝝷)
         apply_model!(f, 𝐲, 𝐱, 𝝷)
         return nothing
