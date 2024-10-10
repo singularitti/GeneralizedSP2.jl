@@ -85,10 +85,6 @@ function autodiff_model!(f, 𝗝, 𝐱, 𝝷)
     return 𝗝
 end
 
-transform_fermi_dirac_derivative(Y) = -one(Y)  # Applies to 1 number at a time
-
-transform_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
-
 fermi_dirac_jacobian!(J, x, θ) = jacobian!(transform_fermi_dirac_derivative, J, x, θ)
 
 entropy_jacobian!(J, x, θ) = jacobian!(transform_entropy_derivative, J, x, θ)
