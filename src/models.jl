@@ -6,7 +6,6 @@ export apply_model!,
     fermi_dirac_model,
     entropy_model,
     rescale_zero_one,
-    fermi_dirac_jacobian,
     autodiff_model
 
 function apply_model(f, T, 𝐱, 𝛉)
@@ -62,11 +61,6 @@ fermi_dirac_model(𝐱, 𝛉) = apply_model(transform_fermi_dirac, 𝐱, 𝛉)
 entropy_model!(result, 𝐱, 𝛉) = apply_model!(transform_entropy, result, 𝐱, 𝛉)
 
 entropy_model(𝐱, 𝛉) = apply_model(transform_entropy, 𝐱, 𝛉)
-
-function fermi_dirac_jacobian(x, θ)
-    f(x) = fermi_dirac_model(x, θ)
-    return jacobian(f, AutoEnzyme(), x)
-end
 
 function autodiff_model(f, 𝐱, 𝝷)
     𝗝 = Array{eltype(𝝷)}(undef, size(𝐱)..., size(𝝷)...)
