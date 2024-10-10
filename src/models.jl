@@ -64,7 +64,7 @@ function fermi_dirac_jacobian(x, θ)
     return jacobian(f, AutoEnzyme(), x)
 end
 
-function jacobian!(f′, 𝗝, 𝐱, 𝛉)
+function compute_model_gradients!(f′, 𝗝, 𝐱, 𝛉)
     npoints = length(𝐱)
     θ = reshape(𝛉, LAYER_WIDTH, :)
     nlayers = size(θ, 2)
@@ -93,6 +93,7 @@ function jacobian!(f′, 𝗝, 𝐱, 𝛉)
             z = θ[4, i] + z * (2θ[1, i] * y[i] + θ[2, i])
         end
     end
+    return 𝗝
 end
 
 transform_fermi_dirac_derivative(Y) = -one(Y)  # Applies to 1 number at a time
