@@ -1,5 +1,4 @@
 using LinearAlgebra: I
-using DifferentiationInterface
 using Enzyme: Reverse, Const, Duplicated, autodiff
 
 export apply_model!,
