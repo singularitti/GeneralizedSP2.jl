@@ -12,13 +12,13 @@ NPZ = "15e1cf62-19b3-5cfa-8e77-841668bca605"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
-Enzyme = "0.13.7"
+Enzyme = "0.13"
 GershgorinDiscs = "0.1.0"
-LinearAlgebra = "1.11.0"
-LsqFit = "0.15.0"
-NPZ = "0.4.3"
-SparseArrays = "1.11.0"
-julia = "1.6.7"
+LinearAlgebra = "1.6"
+LsqFit = "0.15"
+NPZ = "0.4"
+SparseArrays = "1.6"
+julia = "1.6"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
