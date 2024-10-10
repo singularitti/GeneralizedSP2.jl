@@ -80,38 +80,6 @@ function autodiff_model(f, 𝐱, 𝝷)
     return 𝗝
 end
 
-function compute_model_gradients!(f′, 𝗝, 𝐱, 𝛉)
-    npoints = length(𝐱)
-    θ = reshape(𝛉, LAYER_WIDTH, :)
-    nlayers = size(θ, 2)
-    𝗝 = reshape(𝗝, npoints, LAYER_WIDTH, nlayers)
-    y = zeros(eltype(𝐱), nlayers + 1)
-
-    for j in 1:npoints
-        # Forward calculation
-        y[1] = 𝐱[j]
-        Y = zero(eltype(𝗝))
-        for i in 1:nlayers
-            Y += θ[4, i] * y[i]
-            y[i + 1] = θ[1, i] * y[i]^2 + θ[2, i] * y[i] + θ[3, i]
-        end
-        Y += y[nlayers + 1]
-        α = f′(Y)
-        # Backward calculation
-        z = 1 # z_{n+1}
-        for i in nlayers:-1:1
-            # z = z_{i+1}
-            𝗝[j, 1, i] = α * z * y[i]^2
-            𝗝[j, 2, i] = α * z * y[i]
-            𝗝[j, 3, i] = α * z
-            𝗝[j, 4, i] = α * y[i]
-
-            z = θ[4, i] + z * (2θ[1, i] * y[i] + θ[2, i])
-        end
-    end
-    return 𝗝
-end
-
 transform_fermi_dirac_derivative(Y) = -one(Y)  # Applies to 1 number at a time
 
 transform_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
