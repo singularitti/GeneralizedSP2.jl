@@ -85,9 +85,9 @@ function autodiff_model!(f, 𝗝, 𝐱, 𝝷)
     return 𝗝
 end
 
-fermi_dirac_jacobian!(J, x, θ) = jacobian!(transform_fermi_dirac_derivative, J, x, θ)
+fermi_dirac_jacobian!(𝗝, 𝐱, 𝝷) = autodiff_model!(transform_fermi_dirac, 𝗝, 𝐱, 𝝷)
 
-entropy_jacobian!(J, x, θ) = jacobian!(transform_entropy_derivative, J, x, θ)
+entropy_jacobian!(𝗝, 𝐱, 𝝷) = autodiff_model!(transform_entropy, 𝗝, 𝐱, 𝝷)
 
 function rescale_zero_one(x1, x2)
     if x1 == x2
