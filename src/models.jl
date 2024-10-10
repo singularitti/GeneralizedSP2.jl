@@ -66,11 +66,11 @@ entropy_model!(result, 𝐱, 𝛉) = apply_model!(transform_entropy, result, �
 entropy_model(𝐱, 𝛉) = apply_model(transform_entropy, 𝐱, 𝛉)
 
 function autodiff_model(f, 𝐱, 𝝷)
-    𝗝 = Array{eltype(𝝷)}(undef, size(𝐱)..., size(𝝷)...)
-    return autodiff_model!(f, 𝗝, 𝐱, 𝝷)
+    𝝝̄ = Array{eltype(𝝷)}(undef, size(𝐱)..., size(𝝷)...)
+    return autodiff_model!(f, 𝝝̄, 𝐱, 𝝷)
 end
 
-function autodiff_model!(f, 𝗝, 𝐱, 𝝷)
+function autodiff_model!(f, 𝝝̄, 𝐱, 𝝷)
     function _apply_model!(𝐲, 𝐱, 𝝷)
         apply_model!(f, 𝐲, 𝐱, 𝝷)
         return nothing
@@ -79,11 +79,11 @@ function autodiff_model!(f, 𝗝, 𝐱, 𝝷)
     foreach(enumerate(𝐱)) do (i, x)
         y = zeros(size([x]))
         ȳ = ones(size(y))
-        𝝷̄ = zero(𝝷)
-        autodiff(Reverse, _apply_model!, Duplicated(y, ȳ), Const([x]), Duplicated(𝝷, 𝝷̄))
-        𝗝[i, :, :] = 𝝷̄
+        𝝝̄ = zero(𝝷)
+        autodiff(Reverse, _apply_model!, Duplicated(y, ȳ), Const([x]), Duplicated(𝝷, 𝝝̄))
+        𝝝̄[i, :, :] = 𝝝̄
     end
-    return 𝗝
+    return 𝝝̄
 end
 
 fermi_dirac_derivatives!(𝗝, 𝐱, 𝝷) = autodiff_model!(transform_fermi_dirac, 𝗝, 𝐱, 𝝷)
