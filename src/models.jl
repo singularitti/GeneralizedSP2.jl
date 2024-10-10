@@ -26,13 +26,13 @@ function apply_model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::Abs
     end
     map!(result, 𝐱) do x
         y = x  # `x` and `y` are 2 numbers
-        Y = zero(eltype(result))  # Accumulator of the summation
+        accumulator = zero(eltype(result))  # Accumulator of the summation
         for 𝛉 in eachcol(𝝷)
-            Y += 𝛉[4] * y
+            accumulator += 𝛉[4] * y
             y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3]
         end
-        Y += y
-        f(Y)
+        accumulator += y
+        f(accumulator)
     end
     return result
 end
