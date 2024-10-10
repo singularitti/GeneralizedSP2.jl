@@ -7,7 +7,7 @@ function fit_fermi_dirac(𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); 
     𝛉 = init_params(μ, nlayers)
     fitted = curve_fit(
         fermi_dirac_model!,
-        fermi_dirac_jacobian!,
+        fermi_dirac_derivatives!,
         𝐱,  # xdata
         fermi_dirac.(𝐱, μ, β),  # ydata
         𝛉;  # p0
@@ -22,7 +22,7 @@ function fit_entropy(𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); max_
     𝛉 = init_params(μ, nlayers)
     fitted = curve_fit(
         entropy_model!,
-        entropy_jacobian!,
+        entropy_derivatives!,
         𝐱,
         electronic_entropy.(𝐱, μ, β),
         𝛉;
