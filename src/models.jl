@@ -77,11 +77,11 @@ function autodiff_model!(f, 𝝝̄, 𝐱, 𝝷)
     end
 
     foreach(enumerate(𝐱)) do (i, x)
-        y = zeros(size([x]))
-        ȳ = ones(size(y))
-        𝝝̄ = zero(𝝷)
-        autodiff(Reverse, _apply_model!, Duplicated(y, ȳ), Const([x]), Duplicated(𝝷, 𝝝̄))
-        𝝝̄[i, :, :] = 𝝝̄
+        y = zeros(1)
+        ȳ = ones(1)
+        𝝷̄ = zero(𝝷)
+        autodiff(Reverse, _apply_model!, Duplicated(y, ȳ), Const([x]), Duplicated(𝝷, 𝝷̄))
+        𝝝̄[i, :, :] = 𝝷̄
     end
     return 𝝝̄
 end
