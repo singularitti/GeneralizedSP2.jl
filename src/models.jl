@@ -5,10 +5,11 @@ export apply_model!,
     apply_model,
     autodiff_model!,
     autodiff_model,
+    manualdiff_model!,
+    manualdiff_model,
     fermi_dirac_model,
     entropy_model,
-    rescale_zero_one,
-    autodiff_model
+    rescale_zero_one
 
 function apply_model(f, T, 𝐱, 𝛉)
     result = similar(𝐱, T)
@@ -82,6 +83,39 @@ function autodiff_model!(f, 𝝝̄, 𝐱, 𝝷)
         𝝷̄ = zero(𝝷)
         autodiff(Reverse, _apply_model!, Duplicated(y, ȳ), Const([x]), Duplicated(𝝷, 𝝷̄))
         𝝝̄[i, :, :] = 𝝷̄
+    end
+    return 𝝝̄
+end
+
+function manualdiff_model(f′, 𝐱, 𝝷)
+    𝝝̄ = Array{Float64}(undef, size(𝐱)..., size(𝝷)...)
+    return manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
+end
+
+function manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
+    npoints = length(𝐱)
+    nlayers = size(𝝷, 2)
+    𝐲 = zeros(eltype(𝐱), nlayers + 1)
+    for j in 1:npoints
+        # Forward calculation
+        𝐲[1] = 𝐱[j]
+        Y = zero(eltype(𝐲))
+        for i in 1:nlayers
+            Y += 𝝷[4, i] * 𝐲[i]
+            𝐲[i + 1] = 𝝷[1, i] * 𝐲[i]^2 + 𝝷[2, i] * 𝐲[i] + 𝝷[3, i]
+        end
+        Y += 𝐲[nlayers + 1]
+        α = f′(Y)
+        # Backward calculation
+        z = one(eltype(𝝷)) # zₗₐₛₜ
+        for i in nlayers:-1:1
+            # zᵢ₊₁
+            𝝝̄[j, 1, i] = α * z * 𝐲[i]^2
+            𝝝̄[j, 2, i] = α * z * 𝐲[i]
+            𝝝̄[j, 3, i] = α * z
+            𝝝̄[j, 4, i] = α * 𝐲[i]
+            z = 𝝷[4, i] + z * (2𝝷[1, i] * 𝐲[i] + 𝝷[2, i])  # zᵢ
+        end
     end
     return 𝝝̄
 end
