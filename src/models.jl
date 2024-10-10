@@ -29,7 +29,7 @@ function apply_model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::Abs
         accumulator = zero(eltype(result))  # Accumulator of the summation
         for 𝛉 in eachcol(𝝷)
             accumulator += 𝛉[4] * y
-            y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3]
+            y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3] * oneunit(y)
         end
         accumulator += y
         f(accumulator)
