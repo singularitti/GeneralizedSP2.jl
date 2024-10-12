@@ -42,7 +42,7 @@ function apply_model!(f, result::AbstractMatrix, 𝐗::AbstractMatrix, 𝝷::Abs
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
     T = typeof(f(first(𝝷) * first(𝐗)))
-    accumulator = similar(T, result)
+    accumulator = similar(result, T)
     𝐘 = 𝐗
     for 𝛉 in eachcol(𝝷)
         accumulator += 𝛉[4] * 𝐘
@@ -102,7 +102,7 @@ function manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
         Y = zero(eltype(𝐲))
         for i in 1:nlayers
             Y += 𝝷[4, i] * 𝐲[i]
-            𝐲[i + 1] = 𝝷[1, i] * 𝐲[i]^2 + 𝝷[2, i] * 𝐲[i] + 𝝷[3, i]
+            𝐲[i + 1] = 𝝷[1, i] * 𝐲[i]^2 + 𝝷[2, i] * 𝐲[i] + 𝝷[3, i] * oneunit(𝐲[i])
         end
         Y += 𝐲[nlayers + 1]
         α = f′(Y)
@@ -114,15 +114,22 @@ function manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
             𝝝̄[j, 2, i] = α * z * 𝐲[i]
             𝝝̄[j, 3, i] = α * z
             𝝝̄[j, 4, i] = α * 𝐲[i]
-            z = 𝝷[4, i] + z * (2𝝷[1, i] * 𝐲[i] + 𝝷[2, i])  # zᵢ
+            z = 𝝷[4, i] * oneunit(𝐲[i]) + z * (2𝝷[1, i] * 𝐲[i] + 𝝷[2, i] * oneunit(𝐲[i]))  # zᵢ
         end
     end
     return 𝝝̄
 end
 
-fermi_dirac_derivatives!(𝗝, 𝐱, 𝝷) = autodiff_model!(transform_fermi_dirac, 𝗝, 𝐱, 𝝷)
+transform_fermi_dirac_derivative(Y) = -one(Y)  # Applies to 1 number at a time
 
-entropy_derivatives!(𝗝, 𝐱, 𝝷) = autodiff_model!(transform_entropy, 𝗝, 𝐱, 𝝷)
+transform_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
+
+fermi_dirac_derivatives!(𝝝̄, 𝐱, 𝝷) =
+    manualdiff_model!(transform_fermi_dirac_derivative, 𝝝̄, 𝐱, 𝝷)
+# fermi_dirac_derivatives!(𝝝̄, 𝐱, 𝝷) = autodiff_model!(transform_fermi_dirac, 𝝝̄, 𝐱, 𝝷)
+
+entropy_derivatives!(𝝝̄, 𝐱, 𝝷) = manualdiff_model!(transform_entropy_derivative, 𝝝̄, 𝐱, 𝝷)
+# entropy_derivatives!(𝝝̄, 𝐱, 𝝷) = autodiff_model!(transform_entropy, 𝝝̄, 𝐱, 𝝷)
 
 function rescale_zero_one(x1, x2)
     if x1 == x2
