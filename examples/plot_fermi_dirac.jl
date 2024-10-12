@@ -23,7 +23,7 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-function plot_fermi_dirac(β, μ=0.568)
+function plot_fermi_dirac(β=9.423, μ=0.568)
     minlayers = 2
     maxlayers = 4
     lower_bound, upper_bound = 0, 1
