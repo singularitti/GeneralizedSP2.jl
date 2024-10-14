@@ -1,8 +1,10 @@
 using GershgorinDiscs
 using GeneralizedSP2
+using GeneralizedSP2: fermi_dirac_prime
 using LinearAlgebra
 # using Plots
 using Roots: Newton, find_zero
+using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
     :size => (400, 300),
@@ -48,7 +50,7 @@ end
 
 β = 4
 μ = 0.8
-H = setup_hamiltonian3(1000)
+H = diagonalhamil(1000, 100)
 
 emin, emax = eigvals_extrema(H)
 𝐱 = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
@@ -58,6 +60,9 @@ H_scaled = rescale_zero_one(emin, emax)(H)
 
 dm = fermi_dirac_model(H_scaled, 𝛉)
 N = tr(dm)
+
+dm_exact = fermi_dirac(H_scaled, μ, β)
+N_exact = tr(dm_exact)
 
 @show estimate_mu(H_scaled, N)
 @show compute_mu(H_scaled, N)
