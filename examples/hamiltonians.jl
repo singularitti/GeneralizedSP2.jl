@@ -59,7 +59,7 @@ function estimate_mu(𝐇, nocc)
     HOMO, LUMO = diagonal[nocc], diagonal[nocc + 1]
     μ₀ = (HOMO + LUMO) / 2
     g(μ) = nocc - sum(fermi_dirac.(diagonal, μ, β))
-    g′(μ) = sum(fermi_dirac_derivative.(diagonal, μ, β))
+    g′(μ) = sum(fermi_dirac_prime.(diagonal, μ, β))
     return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=true)
 end
 
@@ -69,7 +69,7 @@ function compute_mu(𝐇, nocc)
     HOMO, LUMO = evals[nocc], evals[nocc + 1]
     μ₀ = (HOMO + LUMO) / 2
     g(μ) = nocc - sum(fermi_dirac.(evals, μ, β))
-    g′(μ) = sum(fermi_dirac_derivative.(evals, μ, β))
+    g′(μ) = sum(fermi_dirac_prime.(evals, μ, β))
     return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=true)
 end
 
@@ -83,7 +83,7 @@ emin, emax = eigvals_extrema(H)
 𝛉 = fit_fermi_dirac(𝐱, μ, β, 10)
 H_scaled = rescale_zero_one(emin, emax)(H)
 
-dm = iterate_fermi_dirac(H_scaled, 𝛉)
+dm = fermi_dirac_model(H_scaled, 𝛉)
 N = tr(dm)
 
 @show estimate_mu(H_scaled, N)
