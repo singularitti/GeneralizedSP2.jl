@@ -26,8 +26,6 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-
-
 function estimate_mu(𝐇, nocc)
     nocc = floor(Int, nocc)
     diagonal = sort(diag(𝐇))
@@ -63,11 +61,3 @@ N = tr(dm)
 
 @show estimate_mu(H_scaled, N)
 @show compute_mu(H_scaled, N)
-
-scatter(𝐱, 𝐲̂; label="target Fermi–Dirac", PLOT_DEFAULTS...)
-scatter!(diag(H_scaled), diag(dm); label="MLSP2 model", PLOT_DEFAULTS...)
-xlims!((0, 1))
-ylims!((0, 1))
-xlabel!("scaled eigenvalues")
-ylabel!("Fermi–Dirac distribution")
-savefig("test.png")
