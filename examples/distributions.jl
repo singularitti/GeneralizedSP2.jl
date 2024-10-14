@@ -56,21 +56,22 @@ matsize = 1000
 dist = Cauchy(0.35, 0.2)
 # dist = Arcsine(0.2, 0.9)
 # dist = Beta(2, 2)
-dist = Exponential(1)
+# dist = BetaPrime(1, 2)
+# dist = Exponential(1)
 # dist = Laplace(0.5, 0.1)
 # dist = LogitNormal(0, 1)
 # dist = LogUniform(0.1, 0.9)
 # dist = Uniform(0, 0.8)
 # dist = MixtureModel([Normal(0.2, 0.1), Normal(0.5, 0.1), Normal(0.9, 0.1)], [0.3, 0.4, 0.3])
 # dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
-# dist = MixtureModel(
-#     [Uniform(0, 0.2), Uniform(0.2, 0.5), Uniform(0.5, 0.7), Uniform(0.7, 1)],
-#     [0.1, 0.2, 0.2, 0.5],
-# )
-# Λ = rand(EigvalsSampler(dist), matsize)
-# V = rand(EigvecsSampler(dist), matsize, matsize)
-# H = Hamiltonian(Eigen(Λ, V))
-H = diagonalhamil(matsize, 100)
+dist = MixtureModel(
+    [Uniform(0, 0.2), Uniform(0.2, 0.5), Uniform(0.5, 0.7), Uniform(0.7, 1)],
+    [0.1, 0.2, 0.2, 0.5],
+)
+Λ = rand(EigvalsSampler(dist), matsize)
+V = rand(EigvecsSampler(dist), matsize, matsize)
+H = Hamiltonian(Eigen(Λ, V))
+# H = diagonalhamil(matsize, 100)
 emin, emax = eigvals_extrema(H)
 𝐱 = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
 H_scaled = rescale_zero_one(emin, emax)(H)
@@ -79,7 +80,7 @@ dm_exact = fermi_dirac(H_scaled, μ, β)
 N_exact = tr(dm_exact)
 
 nbins = 40
-layers = 10:3:31
+layers = 20:3:50
 ys = []
 diff_norms = []
 Noccs = []
@@ -132,20 +133,20 @@ ylabel!(raw"$\mu$"; subplot=4)
 for (𝐲, nlayer) in zip(ys, layers)
     plot!(𝐱, 𝐲; subplot=5, linestyle=:dot, legend_position=:left, label="$nlayer layers")
 end
-xlims!(0, 1; subplot=5)
+# xlims!(0, 1; subplot=5)
 xlabel!("eigenvalues distribution"; subplot=5)
-ylabel!(raw"Fermi–Dirac function"; subplot=5)
+ylabel!("Fermi–Dirac function"; subplot=5)
 
 histogram!(
-    eigvals(H_scaled);
+    eigvals(H);
     subplot=6,
     nbins=nbins,
     normalize=true,
     legend_position=:top,
     label="diagonalized eigenvalues distribution",
 )
-# histogram!(Λ; subplot=5, nbins=nbins, normalize=true, label="original random eigvals")
-# plot!(truncated(dist; lower=0, upper=1); subplot=6, label="original distribution")
-xlims!(0, 1; subplot=6)
+histogram!(Λ; subplot=6, nbins=nbins, normalize=true, label="original random eigvals")
+plot!(truncated(dist; lower=0, upper=1); subplot=6, label="original distribution")
+# xlims!(0, 1; subplot=6)
 xlabel!("eigenvalues distribution"; subplot=6)
 ylabel!("density"; subplot=6)
