@@ -88,13 +88,16 @@ function autodiff_model!(f, 𝝝̄, 𝐱, 𝝷)
 end
 
 function manualdiff_model(f′, 𝐱, 𝝷)
+    𝝷 = reshape(𝝷, LAYER_WIDTH, :)
     𝝝̄ = Array{Float64}(undef, size(𝐱)..., size(𝝷)...)
     return manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
 end
 
 function manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
     npoints = length(𝐱)
+    𝝷 = reshape(𝝷, LAYER_WIDTH, :)
     nlayers = size(𝝷, 2)
+    𝝝̄ = reshape(𝝝̄, size(𝐱)..., size(𝝷)...)
     𝐲 = zeros(eltype(𝐱), nlayers + 1)
     for j in 1:npoints
         # Forward calculation
