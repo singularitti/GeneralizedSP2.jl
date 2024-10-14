@@ -1,8 +1,9 @@
 using Distributions
 using GershgorinDiscs
 using GeneralizedSP2
-using GeneralizedSP2: transform_fermi_dirac_derivative
+using GeneralizedSP2: fermi_dirac_prime, transform_fermi_dirac_derivative
 using LinearAlgebra
+using Roots: Newton, find_zero
 using Plots
 using StatsPlots
 using ToyHamiltonians
@@ -49,38 +50,33 @@ function compute_mu(𝐇, Nocc)
 end
 
 set_isapprox_rtol(1e-13)
+β = 4
+μ = 0.8
 matsize = 1000
-# dist = Cauchy(0.35, 0.2)
+dist = Cauchy(0.35, 0.2)
 # dist = Arcsine(0.2, 0.9)
 # dist = Beta(2, 2)
-# dist = Exponential(1)
+dist = Exponential(1)
 # dist = Laplace(0.5, 0.1)
 # dist = LogitNormal(0, 1)
 # dist = LogUniform(0.1, 0.9)
 # dist = Uniform(0, 0.8)
 # dist = MixtureModel([Normal(0.2, 0.1), Normal(0.5, 0.1), Normal(0.9, 0.1)], [0.3, 0.4, 0.3])
-dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
+# dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
 # dist = MixtureModel(
 #     [Uniform(0, 0.2), Uniform(0.2, 0.5), Uniform(0.5, 0.7), Uniform(0.7, 1)],
 #     [0.1, 0.2, 0.2, 0.5],
 # )
-# sampler = EigvalsSampler(dist)
-# Λ = rand(sampler, matsize)
-# V = eigvecs(hamiltonian1(matsize))
-# H = Hamiltonian(Eigen(Λ, V))
-
-H = diagonalhamil(matsize, 100)
-
-β = 4
-μ = 0.5
-emin, emax = eigvals_extrema(H)
-𝐱 = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
-𝐲̂ = fermi_dirac.(𝐱, μ, β)
-
+Λ = rand(EigvalsSampler(dist), matsize)
+V = rand(EigvecsSampler(dist), matsize, matsize)
+H = Hamiltonian(Eigen(Λ, V))
 dm_exact = fermi_dirac(H, μ, β)
 N_exact = tr(dm_exact)
 
+emin, emax = eigvals_extrema(H)
+𝐱 = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
 H_scaled = rescale_zero_one(emin, emax)(H)
+𝐲̂ = fermi_dirac.(𝐱, μ, β)
 
 nbins = 40
 layers = 10:20
@@ -90,7 +86,6 @@ diff_Nocc = []
 derivative_norms = []
 estimated_mu = []
 computed_mu = []
-plot(; layout=(2, 2), PLOT_DEFAULTS...)
 for nlayers in layers
     𝛉 = fit_fermi_dirac(𝐱, μ, β, nlayers)
     𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱, 𝛉)
@@ -103,6 +98,8 @@ for nlayers in layers
     push!(diff_Nocc, N_exact - Nocc)
     push!(derivative_norms, norm(𝝝̄))
 end
+
+plot(; layout=(2, 2), PLOT_DEFAULTS...)
 scatter!(layers, diff_norms; subplot=1, xticks=layers, label="")
 scatter!(layers, diff_Nocc; subplot=3, xticks=layers, label="")
 # scatter!(layers, derivative_norms; subplot=4, xticks=layers, label="")
