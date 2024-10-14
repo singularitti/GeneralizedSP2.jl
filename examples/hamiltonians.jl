@@ -27,10 +27,6 @@ PLOT_DEFAULTS = Dict(
 )
 
 
-function fermi_dirac_derivative(ε, μ, β)
-    fd = fermi_dirac(ε, μ, β)
-    return -β * fd * (oneunit(fd) - fd)
-end
 
 function estimate_mu(𝐇, nocc)
     nocc = floor(Int, nocc)
