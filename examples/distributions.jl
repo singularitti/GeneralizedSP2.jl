@@ -70,13 +70,13 @@ dist = Exponential(1)
 Λ = rand(EigvalsSampler(dist), matsize)
 V = rand(EigvecsSampler(dist), matsize, matsize)
 H = Hamiltonian(Eigen(Λ, V))
-dm_exact = fermi_dirac(H, μ, β)
-N_exact = tr(dm_exact)
 
 emin, emax = eigvals_extrema(H)
 𝐱 = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
 H_scaled = rescale_zero_one(emin, emax)(H)
 𝐲̂ = fermi_dirac.(𝐱, μ, β)
+dm_exact = fermi_dirac(H_scaled, μ, β)
+N_exact = tr(dm_exact)
 
 nbins = 40
 layers = 10:20
