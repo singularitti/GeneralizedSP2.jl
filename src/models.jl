@@ -9,7 +9,8 @@ export apply_model!,
     manualdiff_model,
     fermi_dirac_model,
     entropy_model,
-    rescale_zero_one
+    rescale_zero_one,
+    rescale_back
 
 function apply_model(f, T, 𝐱, 𝛉)
     result = similar(𝐱, T)
@@ -144,5 +145,12 @@ function rescale_zero_one(x1, x2)
         k, b = inv(min - max), max / (max - min)
         return k * A + b * I  # Map `max` to 0, `min` to 1
     end
+    return rescale
+end
+
+function rescale_back(x1, x2)
+    min, max = extrema((x1, x2))
+    rescale(y::Number) = y * (min - max) + max
+    rescale(A::AbstractMatrix) = (min - max) * A + max * I
     return rescale
 end
