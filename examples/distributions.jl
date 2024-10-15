@@ -130,7 +130,7 @@ xlabel!(raw"number of layers $L$"; subplot=2)
 xlabel!(raw"number of layers $L$"; subplot=3)
 xlabel!(raw"number of layers $L$"; subplot=4)
 ylabel!(raw"$| D - P |$"; subplot=1)
-ylabel!(raw"$N - N_0$"; subplot=2)
+ylabel!(raw"$N$"; subplot=2)
 ylabel!(raw"$| \dot{\theta} |$"; subplot=3)
 ylabel!(raw"$\mu$"; subplot=4)
 
