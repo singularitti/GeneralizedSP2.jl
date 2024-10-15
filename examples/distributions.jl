@@ -74,7 +74,6 @@ V = rand(EigvecsSampler(dist), matsize, matsize)
 H = Hamiltonian(Eigen(Λ, V))
 # H = diagonalhamil(matsize, 100)
 emin, emax = eigvals_extrema(H)
-# 𝐱 = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
 lower_bound, upper_bound = 0, 1
 𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
 H_scaled = rescale_zero_one(emin, emax)(H)
@@ -92,7 +91,6 @@ estimated_mu = []
 for nlayers in layers
     𝛉 = fit_fermi_dirac(𝐱, μ, β, nlayers)
     𝐲 = fermi_dirac_model(𝐱, 𝛉)
-    # 𝐲 = 𝐲 .* (emin - emax) .+ emax
     𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱, 𝛉)
     dm = fermi_dirac_model(H_scaled, 𝛉)
     Nocc = tr(dm)
