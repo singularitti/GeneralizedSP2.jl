@@ -101,10 +101,23 @@ for nlayers in layers
 end
 
 plot(; layout=(2, 3), PLOT_DEFAULTS...)
+
 scatter!(layers, diff_norms; subplot=1, xticks=layers, label="")
+xlims!(extrema(layers); subplot=1)
+xlabel!(raw"number of layers $L$"; subplot=1)
+ylabel!(raw"$| D - P |$"; subplot=1)
+
 hline!([N_exact]; subplot=2, xticks=layers, label="exact Nocc")
 scatter!(layers, Noccs; subplot=2, xticks=layers, label="Nocc")
+xlims!(extrema(layers); subplot=2)
+xlabel!(raw"number of layers $L$"; subplot=2)
+ylabel!(raw"$N$"; subplot=2)
+
 scatter!(layers, derivative_norms; subplot=3, xticks=layers, label="")
+xlims!(extrema(layers); subplot=3)
+xlabel!(raw"number of layers $L$"; subplot=3)
+ylabel!(raw"$| \dot{\theta} |$"; subplot=3)
+
 hline!([μ]; subplot=4, xticks=layers, label="original μ")
 hline!(
     [compute_mu(H_scaled, N_exact)]; subplot=4, xticks=layers, label="reversed solving μ"
@@ -118,17 +131,8 @@ scatter!(
     legend_position=:left,
     label="estimatd μ",
 )
-xlims!(extrema(layers); subplot=1)
-xlims!(extrema(layers); subplot=2)
-xlims!(extrema(layers); subplot=3)
 xlims!(extrema(layers); subplot=4)
-xlabel!(raw"number of layers $L$"; subplot=1)
-xlabel!(raw"number of layers $L$"; subplot=2)
-xlabel!(raw"number of layers $L$"; subplot=3)
 xlabel!(raw"number of layers $L$"; subplot=4)
-ylabel!(raw"$| D - P |$"; subplot=1)
-ylabel!(raw"$N$"; subplot=2)
-ylabel!(raw"$| \dot{\theta} |$"; subplot=3)
 ylabel!(raw"$\mu$"; subplot=4)
 
 plot!(
