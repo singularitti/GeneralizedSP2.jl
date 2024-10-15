@@ -131,17 +131,27 @@ ylabel!(raw"$N$"; subplot=2)
 ylabel!(raw"$| \dot{\theta} |$"; subplot=3)
 ylabel!(raw"$\mu$"; subplot=4)
 
+plot!(
+    eigvals(H),
+    fermi_dirac.(eigvals(H), μ, β);
+    subplot=5,
+    linestyle=:dot,
+    label="exact FD on eigenvalues of H",
+)
+plot!(
+    𝐱, fermi_dirac.(𝐱, μ, β); subplot=5, linestyle=:solid, label=raw"exact FD in $[0, 1]$"
+)
 for (𝐲, nlayer) in zip(ys, layers)
     plot!(
-        𝐱 .* (emin - emax) .+ emax,
+        𝐱,
         𝐲;
         subplot=5,
-        linestyle=:dot,
+        linestyle=:dash,
         legend_position=:left,
-        label="$nlayer layers",
+        label="N=$nlayer in " * raw"$[0, 1]$",
     )
 end
-xlabel!(raw"scaled back $[0, 1]$"; subplot=5)
+xlabel!(raw"eigenvalues distribution"; subplot=5)
 ylabel!("Fermi–Dirac function"; subplot=5)
 
 histogram!(
