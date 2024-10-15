@@ -155,8 +155,7 @@ histogram!(
     legend_position=:top,
     label="diagonalized eigenvalues distribution",
 )
-# histogram!(Λ; subplot=6, nbins=nbins, normalize=true, label="original random eigvals")
-# plot!(truncated(dist; lower=0, upper=1); subplot=6, label="original distribution")
-# xlims!(0, 1; subplot=6)
+histogram!(Λ; subplot=6, nbins=nbins, normalize=true, label="original random eigvals")
+plot!(dist; subplot=6, label="original distribution")
 xlabel!("eigenvalues distribution"; subplot=6)
 ylabel!("density"; subplot=6)
