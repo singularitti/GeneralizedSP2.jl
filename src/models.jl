@@ -140,17 +140,17 @@ function rescale_zero_one(x1, x2)
         throw(ArgumentError("inputs cannot be the same!"))
     end
     min, max = extrema((x1, x2))
-    rescale(x::Number) = (x - max) / (min - max)  # `x` can be out of the range [min, max]
+    rescale(x::Number) = (x - min) / (max - min)  # `x` can be out of the range [min, max]
     function rescale(A::AbstractMatrix)
-        k, b = inv(min - max), max / (max - min)
-        return k * A + b * I  # Map `max` to 0, `min` to 1
+        k, b = inv(max - min), -min / (max - min)
+        return k * A + b * I  # Map `max` to 1, `min` to 0
     end
     return rescale
 end
 
 function rescale_back(x1, x2)
     min, max = extrema((x1, x2))
-    rescale(y::Number) = y * (min - max) + max
-    rescale(A::AbstractMatrix) = (min - max) * A + max * I
+    rescale(y::Number) = y * (max - min) + min
+    rescale(A::AbstractMatrix) = (max - min) * A + min * I
     return rescale
 end
