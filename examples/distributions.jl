@@ -144,8 +144,7 @@ for (𝐲, nlayer) in zip(ys, layers)
         label="$nlayer layers",
     )
 end
-# xlims!(0, 1; subplot=5)
-xlabel!("eigenvalues distribution"; subplot=5)
+xlabel!(raw"scaled back $[0, 1]$"; subplot=5)
 ylabel!("Fermi–Dirac function"; subplot=5)
 
 histogram!(
