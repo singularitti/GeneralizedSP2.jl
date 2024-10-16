@@ -50,7 +50,8 @@ function apply_model!(f, result::AbstractMatrix, 𝐗::AbstractMatrix, 𝝷::Abs
         𝐘 = 𝛉[1] * 𝐘^2 + 𝛉[2] * 𝐘 + 𝛉[3] * oneunit(𝐘)  # Note this is not element-wise!
     end
     accumulator += 𝐘
-    return map!(f, result, accumulator)
+    copy!(result, f(accumulator))
+    return result
 end
 apply_model!(f, result, 𝐱, 𝛉::AbstractVector) =
     apply_model!(f, result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
