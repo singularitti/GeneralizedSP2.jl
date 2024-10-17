@@ -55,7 +55,7 @@ H = diagonalhamil(1000, 100)
 emin, emax = eigvals_extrema(H)
 𝐱 = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
 𝐲̂ = fermi_dirac.(𝐱, μ, β)
-𝛉 = fit_fermi_dirac(𝐱, μ, β, 10)
+𝛉, _, _ = fit_fermi_dirac(𝐱, μ, β, 10)
 H_scaled = rescale_zero_one(emin, emax)(H)
 
 dm = fermi_dirac_model(H_scaled, 𝛉)
