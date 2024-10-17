@@ -1,8 +1,10 @@
-using LsqFit: curve_fit, coef
+using LsqFit: curve_fit, coef, stderror, vcov
 
 export fit_fermi_dirac, fit_entropy
 
-function fit_fermi_dirac(𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); max_iter=100)
+function fit_fermi_dirac(
+    𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); max_iter=100, rtol=NaN
+)
     # Initialize model with SP2
     𝛉 = init_params(μ, nlayers)
     fitted = curve_fit(
@@ -14,10 +16,12 @@ function fit_fermi_dirac(𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); 
         maxIter=max_iter,
         inplace=true,
     )
-    return coef(fitted)
+    return coef(fitted), stderror(fitted; rtol=rtol), vcov(fitted)
 end
 
-function fit_entropy(𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); max_iter=100)
+function fit_entropy(
+    𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); max_iter=100, rtol=NaN
+)
     # Initialize model with SP2
     𝛉 = init_params(μ, nlayers)
     fitted = curve_fit(
@@ -29,5 +33,5 @@ function fit_entropy(𝐱, μ, β, nlayers=round(Int64, 4.75log(β) - 6.6); max_
         maxIter=max_iter,
         inplace=true,
     )
-    return coef(fitted)
+    return coef(fitted), stderror(fitted; rtol=rtol), vcov(fitted)
 end
