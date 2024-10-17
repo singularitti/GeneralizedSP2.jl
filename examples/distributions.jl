@@ -36,7 +36,7 @@ function estimate_mu(𝐇, Nocc)
     μ₀ = (HOMO + LUMO) / 2
     g(μ) = Nocc - sum(fermi_dirac.(diagonal, μ, β))
     g′(μ) = sum(fermi_dirac_prime.(diagonal, μ, β))
-    return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=true)
+    return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=false)
 end
 
 function compute_mu(𝐇, Nocc)
@@ -46,13 +46,13 @@ function compute_mu(𝐇, Nocc)
     μ₀ = (HOMO + LUMO) / 2
     g(μ) = Nocc - sum(fermi_dirac.(evals, μ, β))
     g′(μ) = sum(fermi_dirac_prime.(evals, μ, β))
-    return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=true)
+    return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=false)
 end
 
 set_isapprox_rtol(1e-13)
 β = 4
 μ = 0.8
-matsize = 1000
+matsize = 1024
 dist = Cauchy(0.35, 0.2)
 # dist = Arcsine(0.2, 0.9)
 dist = Erlang(5, 1)
@@ -83,13 +83,17 @@ N_exact = tr(dm_exact)
 nbins = 40
 layers = 20:3:50
 ys = []
+fit_errors = []
 diff_norms = []
 Noccs = []
 derivative_norms = []
 estimated_mu = []
 for nlayers in layers
-    𝛉 = fit_fermi_dirac(𝐱, μ, β, nlayers)
+    𝛉, σ, v = fit_fermi_dirac(𝐱, μ, β, nlayers)
     𝐲 = fermi_dirac_model(𝐱, 𝛉)
+    residuals = 𝐲 - fermi_dirac.(𝐱, μ, β)
+    fit_err = mean(abs2, residuals)
+    push!(fit_errors, fit_err)
     𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱, 𝛉)
     dm = fermi_dirac_model(H_scaled, 𝛉)
     Nocc = tr(dm)
