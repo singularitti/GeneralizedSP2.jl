@@ -137,7 +137,7 @@ scatter!(
 )
 xlims!(extrema(layers); subplot=4)
 xlabel!(raw"number of layers $L$"; subplot=4)
-ylabel!(raw"$\mu$"; subplot=4)
+ylabel!(raw"MSE of fitting"; subplot=4)
 
 plot!(
     eigvals(H),
