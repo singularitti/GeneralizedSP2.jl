@@ -50,7 +50,7 @@ function apply_model(𝗫::AbstractMatrix{X}, 𝝷::AbstractMatrix{T}) where {X,
     return accumulator
 end
 
-function apply_model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
+function apply_model!(result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
@@ -62,7 +62,6 @@ function apply_model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::Abs
             y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3] * oneunit(y)
         end
         accumulator += y
-        f(accumulator)
     end
     return result
 end
