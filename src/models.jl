@@ -93,8 +93,6 @@ apply_model!(result, 𝐱, 𝛉::AbstractVector) =
 
 transform_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
 
-transform_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
-
 function fermi_dirac_model(𝐱::AbstractVector, 𝝷::AbstractMatrix)
     return map(𝐱) do x
         transform_fermi_dirac(apply_model(x, 𝝷))  # This is element-wise!
@@ -116,9 +114,28 @@ function fermi_dirac_model!(result::AbstractMatrix, 𝗫::AbstractMatrix, 𝝷::
     return result
 end
 
-entropy_model!(result, 𝐱, 𝛉) = apply_model!(transform_entropy, result, 𝐱, 𝛉)
+transform_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
 
-entropy_model(𝐱, 𝛉) = apply_model(transform_entropy, 𝐱, 𝛉)
+function entropy_model(𝐱::AbstractVector, 𝝷::AbstractMatrix)
+    return map(𝐱) do x
+        transform_entropy(apply_model(x, 𝝷))  # This is element-wise!
+    end
+end
+function entropy_model(𝗫::AbstractMatrix, 𝝷::AbstractMatrix)
+    intermediate = apply_model(𝗫, 𝝷)
+    return transform_entropy(intermediate)  # Note this is not element-wise!
+end
+
+function entropy_model!(result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
+    return map!(result, 𝐱) do x
+        transform_entropy(apply_model(x, 𝝷))  # This is element-wise!
+    end
+end
+function entropy_model!(result::AbstractMatrix, 𝗫::AbstractMatrix, 𝝷::AbstractMatrix)
+    intermediate = apply_model(𝗫, 𝝷)
+    copy!(result, transform_entropy(intermediate))  # Note this is not element-wise!
+    return result
+end
 
 function autodiff_model(f, 𝐱, 𝝷)
     𝝝̄ = Array{eltype(𝝷)}(undef, size(𝐱)..., size(𝝷)...)
