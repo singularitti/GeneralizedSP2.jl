@@ -43,7 +43,7 @@ function apply_model!(f, result::AbstractMatrix, 𝐗::AbstractMatrix, 𝝷::Abs
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
     T = typeof(f(first(𝝷) * first(𝐗)))
-    accumulator = similar(result, T)
+    accumulator = zeros(T, size(𝐗))  # Remeber to make it zero matrix!
     𝐘 = 𝐗
     for 𝛉 in eachcol(𝝷)
         accumulator += 𝛉[4] * 𝐘
