@@ -10,8 +10,7 @@ export apply_model!,
     fermi_dirac_model,
     entropy_model,
     rescale_zero_one,
-    rescale_one_zero,
-    rescale_back
+    rescale_one_zero
 
 # See https://github.com/PainterQubits/Unitful.jl/blob/6bf6f99/src/utils.jl#L241-L247
 struct DimensionError{X,Y} <: Exception
@@ -230,12 +229,5 @@ function rescale_one_zero(x1, x2)
         k, b = inv(min - max), max / (max - min)
         return k * A + b * I  # Map `max` to 0, `min` to 1
     end
-    return rescale
-end
-
-function rescale_back(x1, x2)
-    min, max = extrema((x1, x2))
-    rescale(y::Number) = y * (max - min) + min
-    rescale(A::AbstractMatrix) = (max - min) * A + min * I
     return rescale
 end
