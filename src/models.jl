@@ -48,6 +48,7 @@ function apply_model(𝗫::AbstractMatrix{X}, 𝝷::AbstractMatrix{T}) where {X,
     accumulator += oneunit(T) * 𝗬
     return accumulator
 end
+apply_model(𝐱, 𝛉::AbstractVector) = apply_model(𝐱, reshape(𝛉, LAYER_WIDTH, :))
 
 function apply_model!(
     result::AbstractVector{Y}, 𝐱::AbstractVector{X}, 𝝷::AbstractMatrix{T}
