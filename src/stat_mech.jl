@@ -1,6 +1,6 @@
-using LinearAlgebra: Diagonal, eigen
+using LinearAlgebra: Diagonal, eigen, eigvals
 
-export fermi_dirac, electronic_energy, electronic_entropy
+export fermi_dirac, electronic_energy, electronic_entropy, occupations
 
 function fermi_dirac(ε, μ, β)
     η = exp((ε - μ) * β)
@@ -24,6 +24,8 @@ end
 
 electronic_entropy(ε, μ, β) =
     (fermi_dirac(ε, μ, β) * (ε - μ) - electronic_energy(ε, μ, β)) * β
+
+occupations(dm::AbstractMatrix) = eigvals(dm)
 
 """
     matrix_function(f, A)
