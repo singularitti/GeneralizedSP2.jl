@@ -91,9 +91,9 @@ end
 apply_model!(result, 𝐱, 𝛉::AbstractVector) =
     apply_model!(result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
 
-transform_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number at a time
+transform_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
 
-transform_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number at a time
+transform_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
 
 fermi_dirac_model!(result, 𝐱, 𝛉) = apply_model!(transform_fermi_dirac, result, 𝐱, 𝛉)
 
