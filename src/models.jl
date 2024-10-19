@@ -26,13 +26,13 @@ function apply_model(x, 𝝷::AbstractMatrix{T}) where {T}
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
+    accumulator = zero(x * oneunit(T))  # Accumulator of the summation
     y = x  # `x` and `y` are 2 numbers
-    accumulator = zero(typeof(x * oneunit(T)))  # Accumulator of the summation
     for 𝛉 in eachcol(𝝷)
         accumulator += 𝛉[4] * y
         y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3] * oneunit(y)
     end
-    accumulator += y
+    accumulator += oneunit(T) * y
     return accumulator
 end
 function apply_model(𝗫::AbstractMatrix{X}, 𝝷::AbstractMatrix{T}) where {X,T}
@@ -46,7 +46,7 @@ function apply_model(𝗫::AbstractMatrix{X}, 𝝷::AbstractMatrix{T}) where {X,
         accumulator += 𝛉[4] * 𝗬
         𝗬 = 𝛉[1] * 𝗬^2 + 𝛉[2] * 𝗬 + 𝛉[3] * oneunit(𝗬)  # Note this is not element-wise!
     end
-    accumulator += 𝗬
+    accumulator += oneunit(T) * 𝗬
     return accumulator
 end
 
