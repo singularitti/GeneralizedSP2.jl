@@ -10,6 +10,7 @@ export apply_model!,
     fermi_dirac_model,
     entropy_model,
     rescale_zero_one,
+    rescale_one_zero,
     rescale_back
 
 # See https://github.com/PainterQubits/Unitful.jl/blob/6bf6f99/src/utils.jl#L241-L247
@@ -215,6 +216,19 @@ function rescale_zero_one(x1, x2)
     function rescale(A::AbstractMatrix)
         k, b = inv(max - min), -min / (max - min)
         return k * A + b * I  # Map `max` to 1, `min` to 0
+    end
+    return rescale
+end
+
+function rescale_one_zero(x1, x2)
+    if x1 == x2
+        throw(ArgumentError("inputs cannot be the same!"))
+    end
+    min, max = extrema((x1, x2))
+    rescale(x::Number) = (x - max) / (min - max)  # `x` can be out of the range [min, max]
+    function rescale(A::AbstractMatrix)
+        k, b = inv(min - max), max / (max - min)
+        return k * A + b * I  # Map `max` to 0, `min` to 1
     end
     return rescale
 end

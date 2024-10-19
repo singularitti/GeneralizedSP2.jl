@@ -76,7 +76,7 @@ H = Hamiltonian(Eigen(Λ, V))
 emin, emax = eigvals_extrema(H)
 lower_bound, upper_bound = 0, 1
 𝐱 = sample_by_pdf(bell_distribution(μ, β, 10), μ, (lower_bound, upper_bound))
-H_scaled = rescale_zero_one(emin, emax)(H)
+H_scaled = rescale_one_zero(emin, emax)(H)
 dm_exact = fermi_dirac(H_scaled, μ, β)
 N_exact = tr(dm_exact)
 
