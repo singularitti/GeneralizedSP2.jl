@@ -22,6 +22,15 @@ function apply_model(f, 𝐱, 𝛉)
     return apply_model(f, T, 𝐱, 𝛉)
 end
 
+# See https://github.com/PainterQubits/Unitful.jl/blob/6bf6f99/src/utils.jl#L241-L247
+struct DimensionError{X,Y} <: Exception
+    x::X
+    y::Y
+end
+
+Base.showerror(io::IO, e::DimensionError) =
+    print(io, "DimensionError: $(e.x) and $(e.y) are not dimensionally compatible.")
+
 function apply_model(x, 𝝷::AbstractMatrix{T}) where {T}
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
