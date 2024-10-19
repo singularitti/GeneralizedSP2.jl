@@ -12,16 +12,6 @@ export apply_model!,
     rescale_zero_one,
     rescale_back
 
-function apply_model(f, T, 𝐱, 𝛉)
-    result = similar(𝐱, T)
-    apply_model!(f, result, 𝐱, 𝛉)
-    return result
-end
-function apply_model(f, 𝐱, 𝛉)
-    T = typeof(f(first(𝛉) * first(𝐱)))
-    return apply_model(f, T, 𝐱, 𝛉)
-end
-
 # See https://github.com/PainterQubits/Unitful.jl/blob/6bf6f99/src/utils.jl#L241-L247
 struct DimensionError{X,Y} <: Exception
     x::X
