@@ -91,49 +91,49 @@ end
 apply_model!(result, 𝐱, 𝛉::AbstractVector) =
     apply_model!(result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
 
-transform_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
+finalize_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
 
 function fermi_dirac_model(𝐱::AbstractVector, 𝝷::AbstractMatrix)
     return map(𝐱) do x
-        transform_fermi_dirac(apply_model(x, 𝝷))  # This is element-wise!
+        finalize_fermi_dirac(apply_model(x, 𝝷))  # This is element-wise!
     end
 end
 function fermi_dirac_model(𝗫::AbstractMatrix, 𝝷::AbstractMatrix)
     intermediate = apply_model(𝗫, 𝝷)
-    return transform_fermi_dirac(intermediate)  # Note this is not element-wise!
+    return finalize_fermi_dirac(intermediate)  # Note this is not element-wise!
 end
 
 function fermi_dirac_model!(result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
     return map!(result, 𝐱) do x
-        transform_fermi_dirac(apply_model(x, 𝝷))  # This is element-wise!
+        finalize_fermi_dirac(apply_model(x, 𝝷))  # This is element-wise!
     end
 end
 function fermi_dirac_model!(result::AbstractMatrix, 𝗫::AbstractMatrix, 𝝷::AbstractMatrix)
     intermediate = apply_model(𝗫, 𝝷)
-    copy!(result, transform_fermi_dirac(intermediate))  # Note this is not element-wise!
+    copy!(result, finalize_fermi_dirac(intermediate))  # Note this is not element-wise!
     return result
 end
 
-transform_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
+finalize_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
 
 function entropy_model(𝐱::AbstractVector, 𝝷::AbstractMatrix)
     return map(𝐱) do x
-        transform_entropy(apply_model(x, 𝝷))  # This is element-wise!
+        finalize_entropy(apply_model(x, 𝝷))  # This is element-wise!
     end
 end
 function entropy_model(𝗫::AbstractMatrix, 𝝷::AbstractMatrix)
     intermediate = apply_model(𝗫, 𝝷)
-    return transform_entropy(intermediate)  # Note this is not element-wise!
+    return finalize_entropy(intermediate)  # Note this is not element-wise!
 end
 
 function entropy_model!(result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
     return map!(result, 𝐱) do x
-        transform_entropy(apply_model(x, 𝝷))  # This is element-wise!
+        finalize_entropy(apply_model(x, 𝝷))  # This is element-wise!
     end
 end
 function entropy_model!(result::AbstractMatrix, 𝗫::AbstractMatrix, 𝝷::AbstractMatrix)
     intermediate = apply_model(𝗫, 𝝷)
-    copy!(result, transform_entropy(intermediate))  # Note this is not element-wise!
+    copy!(result, finalize_entropy(intermediate))  # Note this is not element-wise!
     return result
 end
 
