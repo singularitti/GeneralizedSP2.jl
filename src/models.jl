@@ -87,8 +87,8 @@ function apply_model!(
     result += oneunit(T) * 𝗬
     return result
 end
-apply_model!(f, result, 𝐱, 𝛉::AbstractVector) =
-    apply_model!(f, result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
+apply_model!(result, 𝐱, 𝛉::AbstractVector) =
+    apply_model!(result, 𝐱, reshape(𝛉, LAYER_WIDTH, :))
 
 transform_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number at a time
 
