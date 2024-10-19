@@ -44,3 +44,10 @@ function matrix_function(f, A)
     Λ, V = E.values, E.vectors
     return V * Diagonal(f.(Λ)) * inv(V)  # `Diagonal` is faster than `diagm`
 end
+
+function rescale_hamiltonian(H::AbstractMatrix, μ, β, εₘᵢₙ, εₘₐₓ)
+    H′ = H - (εₘₐₓ + εₘᵢₙ) * μ * I
+    η = β / (εₘₐₓ - εₘᵢₙ)
+    z = exp(η * H′)
+    return inv(z + oneunit(z))
+end

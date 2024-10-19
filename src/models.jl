@@ -155,10 +155,3 @@ function rescale_back(x1, x2)
     rescale(A::AbstractMatrix) = (max - min) * A + min * I
     return rescale
 end
-
-function rescaled_hamil(H::AbstractMatrix, μ, β, emin, emax)
-    H′ = H - (emax + emin) * μ * I
-    η = β / (emax - emin)
-    z = exp(η * H′)
-    return inv(z + oneunit(z))
-end
