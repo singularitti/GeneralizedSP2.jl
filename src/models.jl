@@ -72,6 +72,7 @@ end
 function apply_model!(
     result::AbstractMatrix{Y}, 𝗫::AbstractMatrix{X}, 𝝷::AbstractMatrix{T}
 ) where {X,Y,T}
+    checksquare(𝗫)  # See https://discourse.julialang.org/t/120556/2
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
