@@ -1,12 +1,20 @@
 using LinearAlgebra: Diagonal, eigen, eigvals
+using GershgorinDiscs: eigvals_extrema
 
-export fermi_dirac, electronic_energy, electronic_entropy, occupations
+export fermi_dirac, rescaled_fermi_dirac, electronic_energy, electronic_entropy, occupations
 
 function fermi_dirac(ε, μ, β)
     η = exp((ε - μ) * β)
     return inv(oneunit(η) + η)
 end
 fermi_dirac(𝐇::AbstractMatrix, μ, β) = matrix_function(ε -> fermi_dirac(ε, μ, β), 𝐇)
+
+function rescaled_fermi_dirac(𝐇::AbstractMatrix, μ, β, (εₘᵢₙ, εₘₐₓ)=eigvals_extrema(𝐇))
+    𝐇′ = 𝐇 - (εₘₐₓ + εₘᵢₙ) * μ * I
+    β′ = β / (εₘₐₓ - εₘᵢₙ)
+    η = exp(𝐇′ * β′)
+    return inv(oneunit(η) + η)
+end
 
 function fermi_dirac_prime(ε, μ, β)
     fd = fermi_dirac(ε, μ, β)
@@ -43,11 +51,4 @@ function matrix_function(f, A)
     E = eigen(A)
     Λ, V = E.values, E.vectors
     return V * Diagonal(f.(Λ)) * inv(V)  # `Diagonal` is faster than `diagm`
-end
-
-function rescale_hamiltonian(H::AbstractMatrix, μ, β, εₘᵢₙ, εₘₐₓ)
-    H′ = H - (εₘₐₓ + εₘᵢₙ) * μ * I
-    η = β / (εₘₐₓ - εₘᵢₙ)
-    z = exp(η * H′)
-    return inv(z + oneunit(z))
 end
