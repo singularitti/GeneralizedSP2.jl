@@ -66,18 +66,18 @@ function apply_model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::Abs
     end
     return result
 end
-function apply_model!(f, result::AbstractMatrix, 𝐗::AbstractMatrix, 𝝷::AbstractMatrix)
+function apply_model!(f, result::AbstractMatrix, 𝗫::AbstractMatrix, 𝝷::AbstractMatrix)
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
-    T = typeof(f(first(𝝷) * first(𝐗)))
-    accumulator = zeros(T, size(𝐗))  # Remeber to make it zero matrix!
-    𝐘 = 𝐗
+    T = typeof(f(first(𝝷) * first(𝗫)))
+    accumulator = zeros(T, size(𝗫))  # Remeber to make it zero matrix!
+    𝗬 = 𝗫
     for 𝛉 in eachcol(𝝷)
-        accumulator += 𝛉[4] * 𝐘
-        𝐘 = 𝛉[1] * 𝐘^2 + 𝛉[2] * 𝐘 + 𝛉[3] * oneunit(𝐘)  # Note this is not element-wise!
+        accumulator += 𝛉[4] * 𝗬
+        𝗬 = 𝛉[1] * 𝗬^2 + 𝛉[2] * 𝗬 + 𝛉[3] * oneunit(𝗬)  # Note this is not element-wise!
     end
-    accumulator += 𝐘
+    accumulator += 𝗬
     copy!(result, f(accumulator))
     return result
 end
