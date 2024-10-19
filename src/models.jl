@@ -59,9 +59,14 @@ function apply_model(𝗫::AbstractMatrix{X}, 𝝷::AbstractMatrix{T}) where {X,
     return accumulator
 end
 
-function apply_model!(result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
+function apply_model!(
+    result::AbstractVector{Y}, 𝐱::AbstractVector{X}, 𝝷::AbstractMatrix{T}
+) where {X,Y,T}
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
+    end
+    if !isa(oneunit(X) * oneunit(T), Y)
+        throw(DimensionError(oneunit(X) * oneunit(T), oneunit(Y)))
     end
     map!(result, 𝐱) do x
         y = x  # `x` and `y` are 2 numbers
@@ -70,23 +75,26 @@ function apply_model!(result::AbstractVector, 𝐱::AbstractVector, 𝝷::Abstra
             accumulator += 𝛉[4] * y
             y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3] * oneunit(y)
         end
-        accumulator += y
+        accumulator += oneunit(T) * y
     end
     return result
 end
-function apply_model!(f, result::AbstractMatrix, 𝗫::AbstractMatrix, 𝝷::AbstractMatrix)
+function apply_model!(
+    result::AbstractMatrix{Y}, 𝗫::AbstractMatrix{X}, 𝝷::AbstractMatrix{T}
+) where {X,Y,T}
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
-    T = typeof(f(first(𝝷) * first(𝗫)))
-    accumulator = zeros(T, size(𝗫))  # Remeber to make it zero matrix!
+    if !isa(oneunit(X) * oneunit(T), Y)
+        throw(DimensionError(oneunit(X) * oneunit(T), oneunit(Y)))
+    end
+    map!(zero, result, result)
     𝗬 = 𝗫
     for 𝛉 in eachcol(𝝷)
-        accumulator += 𝛉[4] * 𝗬
+        result += 𝛉[4] * 𝗬
         𝗬 = 𝛉[1] * 𝗬^2 + 𝛉[2] * 𝗬 + 𝛉[3] * oneunit(𝗬)  # Note this is not element-wise!
     end
-    accumulator += 𝗬
-    copy!(result, f(accumulator))
+    result += oneunit(T) * 𝗬
     return result
 end
 apply_model!(f, result, 𝐱, 𝛉::AbstractVector) =
