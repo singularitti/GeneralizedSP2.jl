@@ -1,4 +1,4 @@
-using LinearAlgebra: I
+using LinearAlgebra: I, checksquare
 using Enzyme: Reverse, Const, Duplicated, autodiff
 
 export apply_model!,
@@ -20,6 +20,34 @@ end
 function apply_model(f, 𝐱, 𝛉)
     T = typeof(f(first(𝛉) * first(𝐱)))
     return apply_model(f, T, 𝐱, 𝛉)
+end
+
+function apply_model(x, 𝝷::AbstractMatrix{T}) where {T}
+    if size(𝝷, 1) != LAYER_WIDTH
+        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
+    end
+    y = x  # `x` and `y` are 2 numbers
+    accumulator = zero(typeof(x * oneunit(T)))  # Accumulator of the summation
+    for 𝛉 in eachcol(𝝷)
+        accumulator += 𝛉[4] * y
+        y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3] * oneunit(y)
+    end
+    accumulator += y
+    return accumulator
+end
+function apply_model(𝗫::AbstractMatrix{X}, 𝝷::AbstractMatrix{T}) where {X,T}
+    checksquare(𝗫)  # See https://discourse.julialang.org/t/120556/2
+    if size(𝝷, 1) != LAYER_WIDTH
+        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
+    end
+    accumulator = zeros(typeof(oneunit(X) * oneunit(T)), size(𝗫))
+    𝗬 = 𝗫
+    for 𝛉 in eachcol(𝝷)
+        accumulator += 𝛉[4] * 𝗬
+        𝗬 = 𝛉[1] * 𝗬^2 + 𝛉[2] * 𝗬 + 𝛉[3] * oneunit(𝗬)  # Note this is not element-wise!
+    end
+    accumulator += 𝗬
+    return accumulator
 end
 
 function apply_model!(f, result::AbstractVector, 𝐱::AbstractVector, 𝝷::AbstractMatrix)
