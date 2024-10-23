@@ -9,7 +9,7 @@ using StatsPlots
 using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
-    :size => (1210, 700),
+    :size => (1300, 700),
     :dpi => 400,
     :framestyle => :box,
     :linewidth => 1,
@@ -53,9 +53,9 @@ set_isapprox_rtol(1e-13)
 β = 4
 μ = 0.8
 matsize = 1024
-dist = Cauchy(0.35, 0.2)
+# dist = Cauchy(0.35, 0.2)
 # dist = Arcsine(0.2, 0.9)
-dist = Erlang(5, 1)
+# dist = Erlang(5, 1)
 dist = JohnsonSU(0, 1, 0, 1)
 # dist = BetaPrime(1, 2)
 # dist = Exponential(1)
@@ -72,12 +72,12 @@ dist = JohnsonSU(0, 1, 0, 1)
 Λ = rand(EigvalsSampler(dist), matsize)
 V = rand(EigvecsSampler(dist), matsize, matsize)
 H = Hamiltonian(Eigen(Λ, V))
-# H = diagonalhamil(matsize, 100)
 emin, emax = eigvals_extrema(H)
 lower_bound, upper_bound = 0, 1
 𝐱 = sample_by_pdf(bell_distribution(μ, β, 10), μ, (lower_bound, upper_bound))
 H_scaled = rescale_one_zero(emin, emax)(H)
-dm_exact = fermi_dirac(H_scaled, μ, β)
+dm_exact = rescaled_fermi_dirac(H, μ, β)
+dm_exact ≈ fermi_dirac(H_scaled, μ, β)
 N_exact = tr(dm_exact)
 
 nbins = 40
@@ -88,6 +88,7 @@ diff_norms = []
 Noccs = []
 derivative_norms = []
 estimated_mu = []
+dms = []
 for nlayers in layers
     𝛉, σ, v = fit_fermi_dirac(𝐱, μ, β, nlayers)
     𝐲 = fermi_dirac_model(𝐱, 𝛉)
@@ -96,15 +97,16 @@ for nlayers in layers
     push!(fit_errors, fit_err)
     𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱, 𝛉)
     dm = fermi_dirac_model(H_scaled, 𝛉)
+    push!(dms, dm)
     Nocc = tr(dm)
-    push!(estimated_mu, estimate_mu(H_scaled, Nocc))
+    # push!(estimated_mu, estimate_mu(H_scaled, Nocc))
     push!(diff_norms, norm(dm_exact - dm))
     push!(Noccs, Nocc)
     push!(derivative_norms, norm(𝝝̄))
     push!(ys, 𝐲)
 end
 
-plot(; layout=(2, 3), PLOT_DEFAULTS...)
+plot(; layout=(2, 4), PLOT_DEFAULTS...)
 
 scatter!(layers, diff_norms; subplot=1, xticks=layers, label="")
 xlims!(extrema(layers); subplot=1)
@@ -122,41 +124,26 @@ xlims!(extrema(layers); subplot=3)
 xlabel!(raw"number of layers $L$"; subplot=3)
 ylabel!(raw"$| \dot{\theta} |$"; subplot=3)
 
-hline!([μ]; subplot=4, xticks=layers, label="original μ")
-hline!(
-    [compute_mu(H_scaled, N_exact)]; subplot=4, xticks=layers, label="reversed solving μ"
-)
-scatter!(
-    layers,
-    estimated_mu;
-    subplot=4,
-    markershape=:diamond,
-    xticks=layers,
-    legend_position=:left,
-    label="estimatd μ",
-)
+scatter!(layers, fit_errors; subplot=4, xticks=layers, label="")
 xlims!(extrema(layers); subplot=4)
 xlabel!(raw"number of layers $L$"; subplot=4)
 ylabel!(raw"MSE of fitting"; subplot=4)
 
 plot!(
     eigvals(H),
-    fermi_dirac.(eigvals(H), μ, β);
+    eigvals(dm_exact);
     subplot=5,
     linestyle=:dot,
     label="exact FD on eigenvalues of H",
 )
-plot!(
-    𝐱, fermi_dirac.(𝐱, μ, β); subplot=5, linestyle=:solid, label=raw"exact FD in $[0, 1]$"
-)
-for (𝐲, nlayer) in zip(ys, layers)
+for (dm, nlayer) in zip(dms, layers)
     plot!(
-        𝐱,
-        𝐲;
+        eigvals(H),
+        eigvals(dm);
         subplot=5,
         linestyle=:dash,
         legend_position=:left,
-        label="N=$nlayer in " * raw"$[0, 1]$",
+        label="N=$nlayer",
     )
 end
 xlabel!(raw"eigenvalues distribution"; subplot=5)
