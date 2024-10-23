@@ -1,8 +1,8 @@
 using GershgorinDiscs
 using GeneralizedSP2
-using GeneralizedSP2: fermi_dirac_prime
+using GeneralizedSP2: fermi_dirac_prime, rescaled_fermi_dirac
 using LinearAlgebra
-# using Plots
+using Plots
 using Roots: Newton, find_zero
 using ToyHamiltonians
 
@@ -50,19 +50,25 @@ end
 
 β = 4
 μ = 0.8
-H = diagonalhamil(1000, 100)
+H = diagonalhamil(1000, 235)
 
 emin, emax = eigvals_extrema(H)
-𝐱 = rescale_zero_one(emin, emax).(sort(eigvals(H)))  # Cannot do `sort(eigvals(Hinput))` because it is reversed!
-𝐲̂ = fermi_dirac.(𝐱, μ, β)
+lower_bound, upper_bound = 0, 1
+𝐱 = sample_by_pdf(bell_distribution(μ, β, 10), μ, (lower_bound, upper_bound))
 𝛉, _, _ = fit_fermi_dirac(𝐱, μ, β, 10)
-H_scaled = rescale_zero_one(emin, emax)(H)
+H_scaled = rescale_one_zero(emin, emax)(H)
 
 dm = fermi_dirac_model(H_scaled, 𝛉)
 N = tr(dm)
 
-dm_exact = fermi_dirac(H_scaled, μ, β)
+rescaled_fermi_dirac(H, μ, β) ≈ fermi_dirac(H_scaled, μ, β)
+dm_exact = rescaled_fermi_dirac(H, μ, β)
 N_exact = tr(dm_exact)
 
 @show estimate_mu(H_scaled, N)
 @show compute_mu(H_scaled, N)
+
+scatter(eigvals(H), eigvals(dm_exact); label="target Fermi–Dirac", PLOT_DEFAULTS...)
+scatter!(eigvals(H), eigvals(dm); label="MLSP2 model", PLOT_DEFAULTS...)
+xlabel!("eigenvalues of H")
+ylabel!("Fermi–Dirac distribution")
