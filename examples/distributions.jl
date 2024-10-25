@@ -51,16 +51,16 @@ function compute_mu(𝐇, Nocc)
 end
 
 set_isapprox_rtol(1e-13)
-β = 4
-μ = 0.8
+β = 10
+μ = 0.5
 matsize = 2048
 
-dist = Cauchy(0.35, 0.2)
-dist = Chisq(5)
+# dist = Cauchy(0.35, 0.2)
+# dist = Chisq(5)
 # dist = Erlang(100, 10)
 # dist = JohnsonSU(0, 1, 0, 1)
 # dist = BetaPrime(1, 2)
-# dist = Semicircle(50)
+dist = Semicircle(50)
 # dist = Laplace(0.5, 0.1)
 # dist = LogitNormal(-5, 7)
 # dist = LogUniform(100, 200)
@@ -72,16 +72,17 @@ dist = Chisq(5)
 Λ = rand(EigvalsSampler(dist), matsize)
 V = rand(EigvecsSampler(dist), matsize, matsize)
 H = Hamiltonian(Eigen(Λ, V))
-emin, emax = eigvals_extrema(H)
+# emin, emax = eigvals_extrema(H)
+emin, emax = minimum(eigvals(H)) - 10, maximum(eigvals(H)) + 10
 lower_bound, upper_bound = 0, 1
 𝐱 = sample_by_pdf(bell_distribution(μ, β, 10), μ, (lower_bound, upper_bound))
 H_scaled = rescale_one_zero(emin, emax)(H)
-dm_exact = rescaled_fermi_dirac(H, μ, β)
+dm_exact = rescaled_fermi_dirac(H, μ, β, (emin, emax))
 dm_exact ≈ fermi_dirac(H_scaled, μ, β)
 N_exact = tr(dm_exact)
 
 nbins = 40
-layers = 15:3:40
+layers = 10:2:30
 ys = []
 fit_errors = []
 diff_norms = []
@@ -132,7 +133,7 @@ xlims!(extrema(layers); subplot=4)
 xlabel!(raw"number of layers $L$"; subplot=4)
 ylabel!(raw"MSE of fitting"; subplot=4)
 
-hline!([μ]; subplot=5, xticks=layers, label="original μ")
+hline!([μ]; subplot=5, xticks=layers, label="preset μ")
 hline!(
     [compute_mu(H_scaled, N_exact)]; subplot=5, xticks=layers, label="reversed solving μ"
 )
@@ -176,7 +177,7 @@ for (dm, nlayer) in zip(dms, layers)
         eigvals(dm) .- occupations;
         subplot=7,
         linestyle=:dash,
-        legend_position=:top,
+        legend_position=:topleft,
         label="N=$nlayer",
     )
 end
@@ -193,6 +194,6 @@ histogram!(
     label="diagonalized",
     PLOT_DEFAULTS...,
 )
-density!(Λ; subplot=8, bandwidth=8, trim=true, label="original")
+density!(Λ; subplot=8, bandwidth=8, trim=true, label="preset")
 xlabel!("eigenvalues distribution"; subplot=8)
 ylabel!("density"; subplot=8)
