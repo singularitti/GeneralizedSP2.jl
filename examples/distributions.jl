@@ -193,17 +193,9 @@ histogram!(
     nbins=nbins,
     normalize=true,
     legend_position=:top,
-    label="diagonalized eigenvalues distribution",
+    label="diagonalized",
     PLOT_DEFAULTS...,
 )
-histogram!(
-    Λ;
-    subplot=8,
-    nbins=nbins,
-    normalize=true,
-    label="original random eigvals",
-    PLOT_DEFAULTS...,
-)
-density!(dist; subplot=8, label="original distribution")
+density!(Λ; subplot=8, bandwidth=8, trim=true, label="original")
 xlabel!("eigenvalues distribution"; subplot=8)
 ylabel!("density"; subplot=8)
