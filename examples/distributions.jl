@@ -9,7 +9,7 @@ using StatsPlots: StatsPlots
 using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
-    :size => (1400, 700),
+    :size => (1800, 700),
     :dpi => 400,
     :framestyle => :box,
     :linewidth => 1,
