@@ -138,19 +138,37 @@ xlims!(extrema(layers); subplot=4)
 xlabel!(raw"number of layers $L$"; subplot=4)
 ylabel!(raw"MSE of fitting"; subplot=4)
 
+hline!([μ]; subplot=5, xticks=layers, label="original μ")
+hline!(
+    [compute_mu(H_scaled, N_exact)]; subplot=5, xticks=layers, label="reversed solving μ"
+)
+scatter!(
+    layers,
+    estimated_mu;
+    subplot=5,
+    markershape=:circle,
+    xticks=layers,
+    legend_position=:left,
+    label="estimatd μ",
+    PLOT_DEFAULTS...,
+)
+xlims!(extrema(layers); subplot=5)
+xlabel!(raw"number of layers $L$"; subplot=5)
+ylabel!(raw"$\mu$"; subplot=5)
+
 𝛌 = eigvals(H)
-plot!(𝛌, eigvals(dm_exact); subplot=5, linestyle=:dot, label="exact FD on eigenvalues of H")
+plot!(𝛌, eigvals(dm_exact); subplot=6, linestyle=:dot, label="exact FD on eigenvalues of H")
 for (dm, nlayer) in zip(dms, layers)
     plot!(
-        𝛌, eigvals(dm); subplot=5, linestyle=:dash, legend_position=:left, label="N=$nlayer"
+        𝛌, eigvals(dm); subplot=6, linestyle=:dash, legend_position=:left, label="N=$nlayer"
     )
 end
-xlabel!(raw"eigenvalues distribution"; subplot=5)
-ylabel!("Fermi–Dirac function"; subplot=5)
+xlabel!(raw"eigenvalues distribution"; subplot=6)
+ylabel!("Fermi–Dirac function"; subplot=6)
 
 histogram!(
     𝛌;
-    subplot=6,
+    subplot=7,
     nbins=nbins,
     normalize=true,
     legend_position=:top,
@@ -159,30 +177,12 @@ histogram!(
 )
 histogram!(
     Λ;
-    subplot=6,
+    subplot=7,
     nbins=nbins,
     normalize=true,
     label="original random eigvals",
     PLOT_DEFAULTS...,
 )
-plot!(dist; subplot=6, label="original distribution")
-xlabel!("eigenvalues distribution"; subplot=6)
-ylabel!("density"; subplot=6)
-
-hline!([μ]; subplot=7, xticks=layers, label="original μ")
-hline!(
-    [compute_mu(H_scaled, N_exact)]; subplot=7, xticks=layers, label="reversed solving μ"
-)
-scatter!(
-    layers,
-    estimated_mu;
-    subplot=7,
-    markershape=:circle,
-    xticks=layers,
-    legend_position=:left,
-    label="estimatd μ",
-    PLOT_DEFAULTS...,
-)
-xlims!(extrema(layers); subplot=7)
-xlabel!(raw"number of layers $L$"; subplot=7)
-ylabel!(raw"$\mu$"; subplot=7)
+plot!(dist; subplot=7, label="original distribution")
+xlabel!("eigenvalues distribution"; subplot=7)
+ylabel!("density"; subplot=7)
