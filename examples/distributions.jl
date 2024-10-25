@@ -161,3 +161,21 @@ histogram!(Λ; subplot=6, nbins=nbins, normalize=true, label="original random ei
 plot!(dist; subplot=6, label="original distribution")
 xlabel!("eigenvalues distribution"; subplot=6)
 ylabel!("density"; subplot=6)
+
+hline!([μ]; subplot=7, xticks=layers, label="original μ")
+hline!(
+    [compute_mu(H_scaled, N_exact)]; subplot=7, xticks=layers, label="reversed solving μ"
+)
+scatter!(
+    layers,
+    estimated_mu;
+    subplot=7,
+    markershape=:circle,
+    xticks=layers,
+    legend_position=:left,
+    label="estimatd μ",
+    PLOT_DEFAULTS...,
+)
+xlims!(extrema(layers); subplot=7)
+xlabel!(raw"number of layers $L$"; subplot=7)
+ylabel!(raw"$\mu$"; subplot=7)
