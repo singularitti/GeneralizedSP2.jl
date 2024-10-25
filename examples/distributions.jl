@@ -107,12 +107,7 @@ for nlayers in layers
     push!(ys, 𝐲)
 end
 
-layout = @layout [
-    grid(1, 4){0.5h}
-    [
-        grid(1, 2) grid(1, 1){0.5w}
-    ]
-]
+layout = (2, 4)
 plot(; layout=layout, PLOT_DEFAULTS...)
 
 scatter!(layers, diff_norms; subplot=1, xticks=layers, label="", PLOT_DEFAULTS...)
@@ -183,7 +178,7 @@ ylabel!("Fermi–Dirac function difference"; subplot=7)
 
 histogram!(
     𝛌;
-    subplot=7,
+    subplot=8,
     nbins=nbins,
     normalize=true,
     legend_position=:top,
@@ -192,12 +187,12 @@ histogram!(
 )
 histogram!(
     Λ;
-    subplot=7,
+    subplot=8,
     nbins=nbins,
     normalize=true,
     label="original random eigvals",
     PLOT_DEFAULTS...,
 )
-plot!(dist; subplot=7, label="original distribution")
-xlabel!("eigenvalues distribution"; subplot=7)
-ylabel!("density"; subplot=7)
+plot!(dist; subplot=8, label="original distribution")
+xlabel!("eigenvalues distribution"; subplot=8)
+ylabel!("density"; subplot=8)
