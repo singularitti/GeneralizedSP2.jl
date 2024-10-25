@@ -53,23 +53,25 @@ end
 set_isapprox_rtol(1e-13)
 β = 4
 μ = 0.8
-matsize = 2048
-# dist = Cauchy(0.35, 0.2)
-# dist = Arcsine(0.2, 0.9)
-# dist = Erlang(5, 1)
-# dist = JohnsonSU(0, 1, 0, 1)
-# dist = BetaPrime(1, 2)
-# dist = Exponential(1)
-# dist = Laplace(0.5, 0.1)
-# dist = LogitNormal(-5, 7)
-dist = LogUniform(12, 20)
-# dist = Uniform(-5, 7)
-# dist = MixtureModel([Normal(0.2, 0.1), Normal(0.5, 0.1), Normal(0.9, 0.1)], [0.3, 0.4, 0.3])
+matsize = 1024
+
+dist = Cauchy(0.35, 0.2)
+dist = Arcsine(0.2, 0.9)
+dist = Erlang(5, 1)
+dist = JohnsonSU(0, 1, 0, 1)
+dist = BetaPrime(1, 2)
+dist = Exponential(1)
+dist = Laplace(0.5, 0.1)
+dist = LogitNormal(-5, 7)
+dist = LogUniform(100, 200)
+dist = Uniform(-5, 7)
+dist = MixtureModel([Normal(-40, 10), Normal(0, 10), Normal(40, 10)], [0.25, 0.5, 0.25])
 # dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
 # dist = MixtureModel(
-#     [Uniform(0, 0.2), Uniform(0.2, 0.5), Uniform(0.5, 0.7), Uniform(0.7, 1)],
+#     [Uniform(-10, 50), Uniform(50, 90), Uniform(90, 150), Uniform(150, 200)],
 #     [0.1, 0.2, 0.2, 0.5],
 # )
+
 Λ = rand(EigvalsSampler(dist), matsize)
 V = rand(EigvecsSampler(dist), matsize, matsize)
 H = Hamiltonian(Eigen(Λ, V))
@@ -91,7 +93,7 @@ derivative_norms = []
 estimated_mu = []
 dms = []
 for nlayers in layers
-    𝛉, σ, v = fit_fermi_dirac(𝐱, μ, β, nlayers)
+    𝛉, _, _ = fit_fermi_dirac(𝐱, μ, β, nlayers)
     𝐲 = fermi_dirac_model(𝐱, 𝛉)
     residuals = 𝐲 - fermi_dirac.(𝐱, μ, β)
     fit_err = mean(abs2, residuals)
