@@ -48,8 +48,8 @@ function compute_mu(𝐇, nocc)
     return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=true)
 end
 
-β = 4
-μ = 0.8
+β = 10
+μ = 0.45
 H = diagonalhamil(1000, 235)
 
 emin, emax = eigvals_extrema(H)
