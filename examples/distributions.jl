@@ -202,6 +202,6 @@ histogram!(
     label="original random eigvals",
     PLOT_DEFAULTS...,
 )
-plot!(dist; subplot=8, label="original distribution")
+density!(dist; subplot=8, label="original distribution")
 xlabel!("eigenvalues distribution"; subplot=8)
 ylabel!("density"; subplot=8)
