@@ -18,7 +18,7 @@ PLOT_DEFAULTS = Dict(
     :markerstrokewidth => 0,
     :titlefontsize => 8,
     :plot_titlefontsize => 8,
-    :guidefontsize => 8,
+    :guidefontsize => 7,
     :tickfontsize => 6,
     :legendfontsize => 6,
     :margin => (4, :mm),
@@ -107,7 +107,13 @@ for nlayers in layers
     push!(ys, 𝐲)
 end
 
-plot(; layout=(2, 4), PLOT_DEFAULTS...)
+layout = @layout [
+    grid(1, 4){0.5h}
+    [
+        grid(1, 2) grid(1, 1){0.5w}
+    ]
+]
+plot(; layout=layout, PLOT_DEFAULTS...)
 
 scatter!(layers, diff_norms; subplot=1, xticks=layers, label="", PLOT_DEFAULTS...)
 xlims!(extrema(layers); subplot=1)
