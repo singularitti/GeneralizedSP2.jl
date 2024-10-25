@@ -9,18 +9,19 @@ using StatsPlots
 using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
-    :size => (1300, 700),
+    :size => (1400, 700),
     :dpi => 400,
     :framestyle => :box,
     :linewidth => 1,
-    :markersize => 1,
+    :markersize => 3,
+    :markerstrokealpha => 0,
     :markerstrokewidth => 0,
-    :titlefontsize => 9,
-    :plot_titlefontsize => 9,
-    :guidefontsize => 9,
-    :tickfontsize => 7,
-    :legendfontsize => 7,
-    :left_margin => (3, :mm),
+    :titlefontsize => 8,
+    :plot_titlefontsize => 8,
+    :guidefontsize => 8,
+    :tickfontsize => 6,
+    :legendfontsize => 6,
+    :margin => (4, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
@@ -52,16 +53,16 @@ end
 set_isapprox_rtol(1e-13)
 β = 4
 μ = 0.8
-matsize = 1024
+matsize = 2048
 # dist = Cauchy(0.35, 0.2)
 # dist = Arcsine(0.2, 0.9)
 # dist = Erlang(5, 1)
-dist = JohnsonSU(0, 1, 0, 1)
+# dist = JohnsonSU(0, 1, 0, 1)
 # dist = BetaPrime(1, 2)
 # dist = Exponential(1)
 # dist = Laplace(0.5, 0.1)
 # dist = LogitNormal(-5, 7)
-# dist = LogUniform(0.1, 0.9)
+dist = LogUniform(12, 20)
 # dist = Uniform(-5, 7)
 # dist = MixtureModel([Normal(0.2, 0.1), Normal(0.5, 0.1), Normal(0.9, 0.1)], [0.3, 0.4, 0.3])
 # dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
@@ -81,7 +82,7 @@ dm_exact ≈ fermi_dirac(H_scaled, μ, β)
 N_exact = tr(dm_exact)
 
 nbins = 40
-layers = 20:3:50
+layers = 15:3:40
 ys = []
 fit_errors = []
 diff_norms = []
@@ -99,7 +100,7 @@ for nlayers in layers
     dm = fermi_dirac_model(H_scaled, 𝛉)
     push!(dms, dm)
     Nocc = tr(dm)
-    # push!(estimated_mu, estimate_mu(H_scaled, Nocc))
+    push!(estimated_mu, estimate_mu(H_scaled, Nocc))
     push!(diff_norms, norm(dm_exact - dm))
     push!(Noccs, Nocc)
     push!(derivative_norms, norm(𝝝̄))
@@ -108,56 +109,56 @@ end
 
 plot(; layout=(2, 4), PLOT_DEFAULTS...)
 
-scatter!(layers, diff_norms; subplot=1, xticks=layers, label="")
+scatter!(layers, diff_norms; subplot=1, xticks=layers, label="", PLOT_DEFAULTS...)
 xlims!(extrema(layers); subplot=1)
 xlabel!(raw"number of layers $L$"; subplot=1)
 ylabel!(raw"$| D - P |$"; subplot=1)
 
 hline!([N_exact]; subplot=2, xticks=layers, label="exact Nocc")
-scatter!(layers, Noccs; subplot=2, xticks=layers, label="Nocc")
+scatter!(layers, Noccs; subplot=2, xticks=layers, label="Nocc", PLOT_DEFAULTS...)
 xlims!(extrema(layers); subplot=2)
 xlabel!(raw"number of layers $L$"; subplot=2)
 ylabel!(raw"$N$"; subplot=2)
 
-scatter!(layers, derivative_norms; subplot=3, xticks=layers, label="")
+scatter!(layers, derivative_norms; subplot=3, xticks=layers, label="", PLOT_DEFAULTS...)
 xlims!(extrema(layers); subplot=3)
 xlabel!(raw"number of layers $L$"; subplot=3)
 ylabel!(raw"$| \dot{\theta} |$"; subplot=3)
 
-scatter!(layers, fit_errors; subplot=4, xticks=layers, label="")
+scatter!(
+    layers, fit_errors; yscale=:log10, subplot=4, xticks=layers, label="", PLOT_DEFAULTS...
+)
 xlims!(extrema(layers); subplot=4)
 xlabel!(raw"number of layers $L$"; subplot=4)
 ylabel!(raw"MSE of fitting"; subplot=4)
 
-plot!(
-    eigvals(H),
-    eigvals(dm_exact);
-    subplot=5,
-    linestyle=:dot,
-    label="exact FD on eigenvalues of H",
-)
+𝛌 = eigvals(H)
+plot!(𝛌, eigvals(dm_exact); subplot=5, linestyle=:dot, label="exact FD on eigenvalues of H")
 for (dm, nlayer) in zip(dms, layers)
     plot!(
-        eigvals(H),
-        eigvals(dm);
-        subplot=5,
-        linestyle=:dash,
-        legend_position=:left,
-        label="N=$nlayer",
+        𝛌, eigvals(dm); subplot=5, linestyle=:dash, legend_position=:left, label="N=$nlayer"
     )
 end
 xlabel!(raw"eigenvalues distribution"; subplot=5)
 ylabel!("Fermi–Dirac function"; subplot=5)
 
 histogram!(
-    eigvals(H);
+    𝛌;
     subplot=6,
     nbins=nbins,
     normalize=true,
     legend_position=:top,
     label="diagonalized eigenvalues distribution",
+    PLOT_DEFAULTS...,
 )
-histogram!(Λ; subplot=6, nbins=nbins, normalize=true, label="original random eigvals")
+histogram!(
+    Λ;
+    subplot=6,
+    nbins=nbins,
+    normalize=true,
+    label="original random eigvals",
+    PLOT_DEFAULTS...,
+)
 plot!(dist; subplot=6, label="original distribution")
 xlabel!("eigenvalues distribution"; subplot=6)
 ylabel!("density"; subplot=6)
