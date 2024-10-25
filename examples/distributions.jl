@@ -157,6 +157,7 @@ xlabel!(raw"number of layers $L$"; subplot=5)
 ylabel!(raw"$\mu$"; subplot=5)
 
 𝛌 = eigvals(H)
+occupations = eigvals(dm_exact)
 plot!(𝛌, eigvals(dm_exact); subplot=6, linestyle=:dot, label="exact FD on eigenvalues of H")
 for (dm, nlayer) in zip(dms, layers)
     plot!(
@@ -165,6 +166,20 @@ for (dm, nlayer) in zip(dms, layers)
 end
 xlabel!(raw"eigenvalues distribution"; subplot=6)
 ylabel!("Fermi–Dirac function"; subplot=6)
+
+hline!([zero(occupations)]; subplot=7, seriescolor=:black, primary=false)
+for (dm, nlayer) in zip(dms, layers)
+    plot!(
+        𝛌,
+        eigvals(dm) .- occupations;
+        subplot=7,
+        linestyle=:dash,
+        legend_position=:top,
+        label="N=$nlayer",
+    )
+end
+xlabel!(raw"eigenvalues distribution"; subplot=7)
+ylabel!("Fermi–Dirac function difference"; subplot=7)
 
 histogram!(
     𝛌;
