@@ -51,8 +51,8 @@ function compute_mu(𝐇, Nocc)
 end
 
 set_isapprox_rtol(1e-13)
-β = 10
-μ = 0.5
+β = 10.0f0
+μ = 0.5f0
 matsize = 2048
 
 # dist = Cauchy(0.35, 0.2)
@@ -60,10 +60,10 @@ matsize = 2048
 # dist = Erlang(100, 10)
 # dist = JohnsonSU(0, 1, 0, 1)
 # dist = BetaPrime(1, 2)
-dist = Semicircle(50)
+# dist = Semicircle(50)
 # dist = Laplace(0.5, 0.1)
 # dist = LogitNormal(-5, 7)
-# dist = LogUniform(100, 200)
+dist = LogUniform(100.0f0, 200.0f0)
 # dist = Uniform(-5, 7)
 # dist = MixtureModel([Normal(-40, 10), Normal(0, 10), Normal(40, 10)], [0.25, 0.5, 0.25])
 # dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
@@ -71,11 +71,11 @@ dist = Semicircle(50)
 
 Λ = rand(EigvalsSampler(dist), matsize)
 V = rand(EigvecsSampler(dist), matsize, matsize)
-H = Hamiltonian(Eigen(Λ, V))
+H = Float32.(Hamiltonian(Eigen(Λ, V)))
 # emin, emax = eigvals_extrema(H)
 emin, emax = minimum(eigvals(H)) - 10, maximum(eigvals(H)) + 10
 lower_bound, upper_bound = 0, 1
-𝐱 = sample_by_pdf(bell_distribution(μ, β, 10), μ, (lower_bound, upper_bound))
+𝐱 = Float32.(sample_by_pdf(bell_distribution(μ, β, 100), μ, (lower_bound, upper_bound)))  # Increase sampling
 H_scaled = rescale_one_zero(emin, emax)(H)
 dm_exact = rescaled_fermi_dirac(H, μ, β, (emin, emax))
 dm_exact ≈ fermi_dirac(H_scaled, μ, β)
