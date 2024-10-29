@@ -5,7 +5,7 @@ using GeneralizedSP2: fermi_dirac_prime, transform_fermi_dirac_derivative
 using LinearAlgebra
 using Roots: Newton, find_zero
 using Plots
-using StatsPlots: StatsPlots
+using StatsPlots
 using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
@@ -53,7 +53,7 @@ end
 set_isapprox_rtol(1e-13)
 β = 10.0f0
 μ = 0.5f0
-matsize = 2048
+systemsize = 2048
 
 # dist = Cauchy(0.35, 0.2)
 # dist = Chisq(5)
@@ -69,42 +69,46 @@ dist = LogUniform(100.0f0, 200.0f0)
 # dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
 # dist = MixtureModel([Uniform(-10, 50), Uniform(50, 90)], [0.4, 0.6])
 
-Λ = rand(EigvalsSampler(dist), matsize)
-V = rand(EigvecsSampler(dist), matsize, matsize)
+Λ = rand(EigvalsSampler(dist), systemsize)
+V = rand(EigvecsSampler(dist), systemsize, systemsize)
 H = Float32.(Hamiltonian(Eigen(Λ, V)))
 # emin, emax = eigvals_extrema(H)
 emin, emax = minimum(eigvals(H)) - 10, maximum(eigvals(H)) + 10
 lower_bound, upper_bound = 0, 1
 𝐱 = Float32.(sample_by_pdf(bell_distribution(μ, β, 100), μ, (lower_bound, upper_bound)))  # Increase sampling
 H_scaled = rescale_one_zero(emin, emax)(H)
-dm_exact = rescaled_fermi_dirac(H, μ, β, (emin, emax))
-dm_exact ≈ fermi_dirac(H_scaled, μ, β)
-N_exact = tr(dm_exact)
+exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (emin, emax))
+@assert exact_densitymatrix ≈ fermi_dirac(H_scaled, μ, β)
+exact_occupation = tr(exact_densitymatrix)
 
-nbins = 40
 layers = 10:2:30
 ys = []
 fit_errors = []
 diff_norms = []
-Noccs = []
+occupations = []
 derivative_norms = []
 estimated_mu = []
-dms = []
+densitymatrices = []
 for nlayers in layers
     𝛉, _, _ = fit_fermi_dirac(𝐱, μ, β, nlayers)
+
     𝐲 = fermi_dirac_model(𝐱, 𝛉)
-    residuals = 𝐲 - fermi_dirac.(𝐱, μ, β)
-    fit_err = mean(abs2, residuals)
-    push!(fit_errors, fit_err)
-    𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱, 𝛉)
-    dm = fermi_dirac_model(H_scaled, 𝛉)
-    push!(dms, dm)
-    Nocc = tr(dm)
-    push!(estimated_mu, estimate_mu(H_scaled, Nocc))
-    push!(diff_norms, norm(dm_exact - dm))
-    push!(Noccs, Nocc)
-    push!(derivative_norms, norm(𝝝̄))
     push!(ys, 𝐲)
+
+    residuals = 𝐲 - fermi_dirac.(𝐱, μ, β)
+    push!(fit_errors, mean(abs2, residuals))
+
+    𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱, 𝛉)
+    push!(derivative_norms, norm(𝝝̄))
+
+    densitymatrix = fermi_dirac_model(H_scaled, 𝛉)
+    push!(densitymatrices, densitymatrix)
+    push!(diff_norms, norm(exact_densitymatrix - densitymatrix))
+
+    occupation = tr(densitymatrix)
+    push!(occupations, occupation)
+
+    push!(estimated_mu, estimate_mu(H_scaled, occupation))
 end
 
 layout = (2, 4)
@@ -115,8 +119,8 @@ xlims!(extrema(layers); subplot=1)
 xlabel!(raw"number of layers $L$"; subplot=1)
 ylabel!(raw"$| D - P |$"; subplot=1)
 
-hline!([N_exact]; subplot=2, xticks=layers, label="exact Nocc")
-scatter!(layers, Noccs; subplot=2, xticks=layers, label="Nocc", PLOT_DEFAULTS...)
+hline!([exact_occupation]; subplot=2, xticks=layers, label="exact Nocc")
+scatter!(layers, occupations; subplot=2, xticks=layers, label="Nocc", PLOT_DEFAULTS...)
 xlims!(extrema(layers); subplot=2)
 xlabel!(raw"number of layers $L$"; subplot=2)
 ylabel!(raw"$N$"; subplot=2)
@@ -135,7 +139,10 @@ ylabel!(raw"MSE of fitting"; subplot=4)
 
 hline!([μ]; subplot=5, xticks=layers, label="preset μ")
 hline!(
-    [compute_mu(H_scaled, N_exact)]; subplot=5, xticks=layers, label="reversed solving μ"
+    [compute_mu(H_scaled, exact_occupation)];
+    subplot=5,
+    xticks=layers,
+    label="reversed solving μ",
 )
 scatter!(
     layers,
@@ -152,29 +159,29 @@ xlabel!(raw"number of layers $L$"; subplot=5)
 ylabel!(raw"$\mu$"; subplot=5)
 
 𝛌 = eigvals(H)
-occupations = eigvals(dm_exact)
+𝐎 = eigvals(exact_densitymatrix)
 plot!(
-    𝛌,
-    eigvals(dm_exact);
-    subplot=6,
-    linestyle=:dot,
-    label="exact FD on eigenvalues of H",
-    PLOT_DEFAULTS...,
+    𝛌, 𝐎; subplot=6, linestyle=:dot, label="exact FD on eigenvalues of H", PLOT_DEFAULTS...
 )
-for (dm, nlayer) in zip(dms, layers)
+for (densitymatrix, nlayer) in zip(densitymatrices, layers)
     plot!(
-        𝛌, eigvals(dm); subplot=6, linestyle=:dash, legend_position=:left, label="N=$nlayer"
+        𝛌,
+        eigvals(densitymatrix);
+        subplot=6,
+        linestyle=:dash,
+        legend_position=:left,
+        label="N=$nlayer",
     )
 end
 xlims!(extrema(𝛌); subplot=6)
 xlabel!(raw"eigenvalues distribution"; subplot=6)
 ylabel!("Fermi–Dirac function"; subplot=6)
 
-hline!([zero(occupations)]; subplot=7, seriescolor=:black, primary=false, PLOT_DEFAULTS...)
-for (dm, nlayer) in zip(dms, layers)
+hline!([zero(𝐎)]; subplot=7, seriescolor=:black, primary=false, PLOT_DEFAULTS...)
+for (densitymatrix, nlayer) in zip(densitymatrices, layers)
     plot!(
         𝛌,
-        eigvals(dm) .- occupations;
+        eigvals(densitymatrix) .- 𝐎;
         subplot=7,
         linestyle=:dash,
         legend_position=:topleft,
@@ -188,7 +195,7 @@ ylabel!("Fermi–Dirac function difference"; subplot=7)
 histogram!(
     𝛌;
     subplot=8,
-    nbins=nbins,
+    nbins=40,
     normalize=true,
     legend_position=:top,
     label="diagonalized",
