@@ -50,10 +50,10 @@ function compute_mu(𝐇, Nocc)
     return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=false)
 end
 
-function hamiltonian(dist, size=2048, rtol=1e-13)
+function hamiltonian(dist, syssize=2048; rtol=1e-13)
     set_isapprox_rtol(rtol)
-    Λ = rand(EigvalsSampler(dist), size)
-    V = rand(EigvecsSampler(dist), size, size)
+    Λ = rand(EigvalsSampler(dist), syssize)
+    V = rand(EigvecsSampler(dist), syssize, syssize)
     return Hamiltonian(Eigen(Λ, V))
 end
 
