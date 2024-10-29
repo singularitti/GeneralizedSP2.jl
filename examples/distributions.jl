@@ -30,7 +30,7 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-function estimate_mu(𝐇, Nocc)
+function estimate_mu(𝐇, β, Nocc)
     Nocc = floor(Int, Nocc)
     diagonal = sort(diag(𝐇))
     HOMO, LUMO = diagonal[Nocc], diagonal[Nocc + 1]
@@ -40,7 +40,7 @@ function estimate_mu(𝐇, Nocc)
     return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=false)
 end
 
-function compute_mu(𝐇, Nocc)
+function compute_mu(𝐇, β, Nocc)
     Nocc = floor(Int, Nocc)
     evals = eigvals(𝐇)
     HOMO, LUMO = evals[Nocc], evals[Nocc + 1]
@@ -125,7 +125,7 @@ foreach((Float32.(H), Float64.(H))) do H
         tr(densitymatrix)
     end
     estimated_mu = map(occupations) do occupation
-        estimate_mu(H_scaled, occupation)
+        estimate_mu(H_scaled, β, occupation)
     end
 
     scatter!(
@@ -180,7 +180,7 @@ foreach((Float32.(H), Float64.(H))) do H
 
     hline!([μ]; subplot=5, xticks=layers, label="preset μ")
     hline!(
-        [compute_mu(H_scaled, exact_occupation)];
+        [compute_mu(H_scaled, β, exact_occupation)];
         subplot=5,
         xticks=layers,
         label="reversed solving μ: " * string(eltype(exact_occupation)),
