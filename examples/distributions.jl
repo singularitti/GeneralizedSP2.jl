@@ -50,10 +50,28 @@ function compute_mu(𝐇, Nocc)
     return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=false)
 end
 
-set_isapprox_rtol(1e-13)
+function hamiltonian(dist, size=2048, rtol=1e-13)
+    set_isapprox_rtol(rtol)
+    Λ = rand(EigvalsSampler(dist), size)
+    V = rand(EigvecsSampler(dist), size, size)
+    return Float32.(Hamiltonian(Eigen(Λ, V)))
+end
+
+function rescaled_hamiltonian(H::AbstractMatrix)
+    # emin, emax = eigvals_extrema(H)
+    emin, emax = minimum(eigvals(H)) - 10, maximum(eigvals(H)) + 10
+    return rescale_one_zero(emin, emax)(H), emin, emax
+end
+
+function samplex(μ, β, npoints_scale=100)
+    lower_bound, upper_bound = zero(μ), oneunit(μ)
+    return sample_by_pdf(
+        bell_distribution(μ, β, npoints_scale), μ, (lower_bound, upper_bound)
+    )
+end
+
 β = 10.0f0
 μ = 0.5f0
-systemsize = 2048
 
 # dist = Cauchy(0.35, 0.2)
 # dist = Chisq(5)
@@ -69,14 +87,8 @@ dist = LogUniform(100.0f0, 200.0f0)
 # dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
 # dist = MixtureModel([Uniform(-10, 50), Uniform(50, 90)], [0.4, 0.6])
 
-Λ = rand(EigvalsSampler(dist), systemsize)
-V = rand(EigvecsSampler(dist), systemsize, systemsize)
-H = Float32.(Hamiltonian(Eigen(Λ, V)))
-# emin, emax = eigvals_extrema(H)
-emin, emax = minimum(eigvals(H)) - 10, maximum(eigvals(H)) + 10
-lower_bound, upper_bound = 0, 1
-𝐱 = Float32.(sample_by_pdf(bell_distribution(μ, β, 100), μ, (lower_bound, upper_bound)))  # Increase sampling
-H_scaled = rescale_one_zero(emin, emax)(H)
+H = hamiltonian(dist, 2048)
+H_scaled, emin, emax = rescaled_hamiltonian(H)
 exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (emin, emax))
 @assert exact_densitymatrix ≈ fermi_dirac(H_scaled, μ, β)
 exact_occupation = tr(exact_densitymatrix)
