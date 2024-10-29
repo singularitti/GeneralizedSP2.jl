@@ -54,7 +54,7 @@ function hamiltonian(dist, size=2048, rtol=1e-13)
     set_isapprox_rtol(rtol)
     Λ = rand(EigvalsSampler(dist), size)
     V = rand(EigvecsSampler(dist), size, size)
-    return Float32.(Hamiltonian(Eigen(Λ, V)))
+    return Hamiltonian(Eigen(Λ, V))
 end
 
 function rescaled_hamiltonian(H::AbstractMatrix)
