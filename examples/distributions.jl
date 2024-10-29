@@ -93,34 +93,35 @@ exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (emin, emax))
 @assert exact_densitymatrix ≈ fermi_dirac(H_scaled, μ, β)
 exact_occupation = tr(exact_densitymatrix)
 
+𝐱 = samplex(μ, β, 100)
+
 layers = 10:2:30
-ys = []
-fit_errors = []
-diff_norms = []
-occupations = []
-derivative_norms = []
-estimated_mu = []
-densitymatrices = []
-for nlayers in layers
+𝚯 = map(layers) do nlayers
     𝛉, _, _ = fit_fermi_dirac(𝐱, μ, β, nlayers)
-
-    𝐲 = fermi_dirac_model(𝐱, 𝛉)
-    push!(ys, 𝐲)
-
+    𝛉
+end
+ys = map(𝚯) do 𝛉
+    fermi_dirac_model(𝐱, 𝛉)
+end
+fit_errors = map(𝚯, ys) do 𝛉, 𝐲
     residuals = 𝐲 - fermi_dirac.(𝐱, μ, β)
-    push!(fit_errors, mean(abs2, residuals))
-
+    mean(abs2, residuals)
+end
+derivative_norms = map(𝚯) do 𝛉
     𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱, 𝛉)
-    push!(derivative_norms, norm(𝝝̄))
-
-    densitymatrix = fermi_dirac_model(H_scaled, 𝛉)
-    push!(densitymatrices, densitymatrix)
-    push!(diff_norms, norm(exact_densitymatrix - densitymatrix))
-
-    occupation = tr(densitymatrix)
-    push!(occupations, occupation)
-
-    push!(estimated_mu, estimate_mu(H_scaled, occupation))
+    norm(𝝝̄)
+end
+densitymatrices = map(𝚯) do 𝛉
+    fermi_dirac_model(H_scaled, 𝛉)
+end
+diff_norms = map(densitymatrices) do densitymatrix
+    norm(exact_densitymatrix - densitymatrix)
+end
+occupations = map(densitymatrices) do densitymatrix
+    tr(densitymatrix)
+end
+estimated_mu = map(occupations) do occupation
+    estimate_mu(H_scaled, occupation)
 end
 
 layout = (2, 4)
