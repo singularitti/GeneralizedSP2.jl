@@ -12,8 +12,7 @@ fermi_dirac(𝐇::AbstractMatrix, μ, β) = matrix_function(ε -> fermi_dirac(ε
 function rescaled_fermi_dirac(𝐇::AbstractMatrix, μ, β, (εₘᵢₙ, εₘₐₓ)=eigvals_extrema(𝐇))
     𝐇′ = -𝐇 + (εₘₐₓ * (oneunit(μ) - μ) + μ * εₘᵢₙ) * I
     β′ = β / (εₘₐₓ - εₘᵢₙ)
-    η = exp(𝐇′ * β′)
-    return inv(oneunit(η) + η)
+    return matrix_function(ε -> fermi_dirac(ε, μ, β′), 𝐇′)
 end
 
 function fermi_dirac_prime(ε, μ, β)
