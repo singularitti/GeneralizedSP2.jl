@@ -5,4 +5,5 @@ using Test
     # Write your tests here.
     include("inference.jl")
     include("gradients.jl")
+    include("rescaling.jl")
 end
