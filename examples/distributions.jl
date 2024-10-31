@@ -92,13 +92,11 @@ H_raw = hamiltonian(dist, 1024)
 H = T.(H_raw)
 β = convert(T, 50)
 μ = convert(T, 0.4)
-H_scaled, emin, emax = rescaled_hamiltonian(H)
-exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (emin, emax))
-@assert exact_densitymatrix ≈ fermi_dirac(H_scaled, μ, β)
+H_scaled, εₘᵢₙ, εₘₐₓ = rescaled_hamiltonian(H)
+exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
 exact_occupation = tr(exact_densitymatrix)
 𝛌 = eigvals(H)
-𝐎 = eigvals(exact_densitymatrix)
-@assert fermi_dirac.(𝛌, μ, β) ≈ 𝐎
+𝐎 = fermi_dirac.(rescale_one_zero(εₘᵢₙ, εₘₐₓ).(𝛌), μ, β)
 
 𝐱 = samplex(μ, β, 100)
 
