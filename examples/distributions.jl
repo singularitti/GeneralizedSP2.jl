@@ -99,6 +99,7 @@ exact_occupation = tr(exact_densitymatrix)
 𝐎 = fermi_dirac.(rescale_one_zero(εₘᵢₙ, εₘₐₓ).(𝛌), μ, β)
 
 𝐱 = samplex(μ, β, 100)
+𝐱_inv = εₘₐₓ .- (εₘₐₓ - εₘᵢₙ) * 𝐱
 
 layers = 10:3:30
 𝚯 = map(layers) do nlayers
@@ -208,7 +209,7 @@ plot!(
     label="exact FD on eigenvalues of H: " * string(eltype(𝐎)),
     PLOT_DEFAULTS...,
 )
-for (densitymatrix, nlayer) in zip(densitymatrices, layers)
+for (densitymatrix, nlayer, y) in zip(densitymatrices, layers, ys)
     plot!(
         𝛌,
         eigvals(densitymatrix);
@@ -216,6 +217,14 @@ for (densitymatrix, nlayer) in zip(densitymatrices, layers)
         linestyle=:dash,
         legend_position=:left,
         label="N=$nlayer: " * string(eltype(densitymatrix)),
+    )
+    plot!(
+        𝐱_inv,
+        y;
+        subplot=6,
+        linestyle=:solid,
+        legend_position=:left,
+        label="N=$nlayer: fitting",
     )
 end
 xlims!(extrema(𝛌); subplot=6)
