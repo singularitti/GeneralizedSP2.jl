@@ -265,7 +265,6 @@ histogram!(
     label="diagonalized",
     PLOT_DEFAULTS...,
 )
-# density!(Λ; subplot=8, bandwidth=8, trim=true, label="preset")
 xlabel!("eigenvalues distribution"; subplot=8)
 ylabel!("density"; subplot=8)
 
