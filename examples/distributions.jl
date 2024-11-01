@@ -26,7 +26,7 @@ PLOT_DEFAULTS = Dict(
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
-    :legend_position => :right,
+    :legend_position => :bottomleft,
     :background_color_inside => nothing,
     :color_palette => :tab10,
 )
@@ -155,7 +155,16 @@ plot!(
     label="exact FD on eigenvalues of H: " * string(eltype(𝐎)),
     PLOT_DEFAULTS...,
 )
-for (densitymatrix, nlayer, y) in zip(densitymatrices, layers, ys)
+plot!(
+    𝐱_inv,
+    ys[end];
+    subplot=2,
+    linestyle=:solid,
+    legend_position=:left,
+    label="fitting with N=$(layers[end])",
+    PLOT_DEFAULTS...,
+)
+for (densitymatrix, nlayer) in zip(densitymatrices, layers)
     plot!(
         𝛌,
         eigvals(densitymatrix);
@@ -165,15 +174,6 @@ for (densitymatrix, nlayer, y) in zip(densitymatrices, layers, ys)
         label="N=$nlayer: " * string(eltype(densitymatrix)),
         PLOT_DEFAULTS...,
     )
-    # plot!(
-    #     𝐱_inv,
-    #     y;
-    #     subplot=2,
-    #     linestyle=:solid,
-    #     legend_position=:left,
-    #     label="N=$nlayer: fitting",
-    #     PLOT_DEFAULTS...,
-    # )
 end
 xlims!(extrema(𝛌); subplot=2)
 xlabel!(raw"eigenvalues distribution"; subplot=2)
@@ -205,7 +205,7 @@ scatter!(
     legend_position=:bottomleft,
 )
 xlabel!(raw"number of layers $L$"; subplot=4)
-ylabel!(raw"$| D - P |$"; subplot=4)
+ylabel!(raw"$| D - P | / | P |$"; subplot=4)
 
 hline!(
     [exact_occupation];
@@ -260,7 +260,7 @@ scatter!(
     markershape=:circle,
     xticks=layers,
     legend_position=:left,
-    label="estimatd μ: " * string(eltype(H_scaled)),
+    label="estimatd μ: " * string(eltype(estimated_mu)),
     PLOT_DEFAULTS...,
 )
 xlims!(extrema(layers); subplot=8)
@@ -268,7 +268,13 @@ xlabel!(raw"number of layers $L$"; subplot=8)
 ylabel!(raw"$\mu$"; subplot=8)
 
 histogram!(
-    𝛌; subplot=9, nbins=45, normalize=true, legend_position=:top, label="", PLOT_DEFAULTS...
+    𝛌;
+    subplot=9,
+    nbins=45,
+    normalize=true,
+    legend_position=:top,
+    label=string(eltype(𝛌)),
+    PLOT_DEFAULTS...,
 )
 xlims!(extrema(𝛌); subplot=9)
 xlabel!("eigenvalues distribution"; subplot=9)
