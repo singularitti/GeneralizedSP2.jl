@@ -9,7 +9,7 @@ using StatsPlots
 using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
-    :size => (1800, 700),
+    :size => (1800, 900),
     :dpi => 400,
     :framestyle => :box,
     :linewidth => 1,
@@ -84,7 +84,7 @@ dist = LogUniform(100, 200)
 # dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
 # dist = MixtureModel([Uniform(-10, 50), Uniform(50, 90)], [0.4, 0.6])
 
-layout = (2, 4)
+layout = (3, 3)
 plot(; layout=layout, PLOT_DEFAULTS...)
 
 T = Float64
