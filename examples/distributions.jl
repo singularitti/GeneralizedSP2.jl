@@ -259,7 +259,7 @@ ylabel!("Fermi–Dirac function difference"; subplot=7)
 histogram!(
     𝛌;
     subplot=8,
-    nbins=40,
+    nbins=45,
     normalize=true,
     legend_position=:top,
     label="diagonalized",
@@ -280,6 +280,6 @@ scatter!(
 )
 xlims!(extrema(layers); subplot=9)
 xlabel!(raw"number of layers $L$"; subplot=9)
-ylabel!(raw"$\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_\text{exact} H)$"; subplot=9)
+ylabel!(raw"$\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_{\text{exact}} H)$"; subplot=9)
 
 plot!()
