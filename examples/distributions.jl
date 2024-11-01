@@ -152,6 +152,7 @@ hline!(
     subplot=2,
     xticks=layers,
     label="exact Nocc: " * string(eltype(exact_occupation)),
+    PLOT_DEFAULTS...,
 )
 scatter!(
     layers,
@@ -161,6 +162,7 @@ scatter!(
     label="Nocc: " * string(eltype(occupations)),
     PLOT_DEFAULTS...,
     legend_position=:bottomleft,
+    PLOT_DEFAULTS...,
 )
 xlims!(extrema(layers); subplot=2)
 xlabel!(raw"number of layers $L$"; subplot=2)
@@ -184,12 +186,13 @@ xlims!(extrema(layers); subplot=4)
 xlabel!(raw"number of layers $L$"; subplot=4)
 ylabel!(raw"MSE of fitting"; subplot=4)
 
-hline!([μ]; subplot=5, xticks=layers, label="preset μ")
+hline!([μ]; subplot=5, xticks=layers, label="preset μ", PLOT_DEFAULTS...)
 # hline!(
 #     [compute_mu(H_scaled, β, exact_occupation)];
 #     subplot=5,
 #     xticks=layers,
 #     label="reversed solving μ: " * string(eltype(exact_occupation)),
+#     PLOT_DEFAULTS...,
 # )
 scatter!(
     layers,
@@ -221,6 +224,7 @@ for (densitymatrix, nlayer, y) in zip(densitymatrices, layers, ys)
         linestyle=:dash,
         legend_position=:left,
         label="N=$nlayer: " * string(eltype(densitymatrix)),
+        PLOT_DEFAULTS...,
     )
     plot!(
         𝐱_inv,
@@ -229,6 +233,7 @@ for (densitymatrix, nlayer, y) in zip(densitymatrices, layers, ys)
         linestyle=:solid,
         legend_position=:left,
         label="N=$nlayer: fitting",
+        PLOT_DEFAULTS...,
     )
 end
 xlims!(extrema(𝛌); subplot=6)
@@ -244,6 +249,7 @@ for (densitymatrix, nlayer) in zip(densitymatrices, layers)
         linestyle=:dash,
         legend_position=:topleft,
         label="N=$nlayer: " * string(eltype(densitymatrix)),
+        PLOT_DEFAULTS...,
     )
 end
 xlims!(extrema(𝛌); subplot=7)
@@ -271,6 +277,7 @@ scatter!(
     label=string(eltype(band_energies)),
     PLOT_DEFAULTS...,
     legend_position=:bottomleft,
+    PLOT_DEFAULTS...,
 )
 xlims!(extrema(layers); subplot=9)
 xlabel!(raw"number of layers $L$"; subplot=9)
