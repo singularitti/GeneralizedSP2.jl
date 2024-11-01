@@ -89,9 +89,9 @@ layout = (3, 3)
 plot(; layout=layout, PLOT_DEFAULTS...)
 
 T = Float64
-H_raw = hamiltonian(dist, 1024)
-H = T.(H_raw)
-β = convert(T, 50)
+H = hamiltonian(dist, 2048)
+H = T.(H)
+β = convert(T, 100)
 μ = convert(T, 0.4)
 H_scaled, εₘᵢₙ, εₘₐₓ = rescaled_hamiltonian(H)
 exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
@@ -102,7 +102,7 @@ exact_occupation = tr(exact_densitymatrix)
 𝐱 = samplex(μ, β, 100)
 𝐱_inv = εₘₐₓ .- (εₘₐₓ - εₘᵢₙ) * 𝐱
 
-layers = 15:3:30
+layers = 15:2:30
 𝚯 = map(layers) do nlayers
     𝛉, _, _ = fit_fermi_dirac(𝐱, μ, β, nlayers)
     𝛉
@@ -144,7 +144,6 @@ scatter!(
     PLOT_DEFAULTS...,
     legend_position=:bottomleft,
 )
-xlims!(extrema(layers); subplot=1)
 xlabel!(raw"number of layers $L$"; subplot=1)
 ylabel!(raw"$| D - P |$"; subplot=1)
 
@@ -170,7 +169,6 @@ xlabel!(raw"number of layers $L$"; subplot=2)
 ylabel!(raw"$N$"; subplot=2)
 
 scatter!(layers, derivative_norms; subplot=3, xticks=layers, label="", PLOT_DEFAULTS...)
-xlims!(extrema(layers); subplot=3)
 xlabel!(raw"number of layers $L$"; subplot=3)
 ylabel!(raw"$| \dot{\theta} |$"; subplot=3)
 
@@ -183,7 +181,6 @@ scatter!(
     label=string(eltype(fit_errors)),
     PLOT_DEFAULTS...,
 )
-xlims!(extrema(layers); subplot=4)
 xlabel!(raw"number of layers $L$"; subplot=4)
 ylabel!(raw"MSE of fitting"; subplot=4)
 
@@ -263,8 +260,10 @@ histogram!(
     nbins=45,
     normalize=true,
     legend_position=:top,
+    label="",
     PLOT_DEFAULTS...,
 )
+xlims!(extrema(𝛌); subplot=8)
 xlabel!("eigenvalues distribution"; subplot=8)
 ylabel!("density"; subplot=8)
 
@@ -278,7 +277,6 @@ scatter!(
     legend_position=:bottomleft,
     PLOT_DEFAULTS...,
 )
-xlims!(extrema(layers); subplot=9)
 xlabel!(raw"number of layers $L$"; subplot=9)
 ylabel!(raw"$\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_{\textrm{exact}} H)$"; subplot=9)
 
