@@ -137,79 +137,20 @@ exact_band_energies = tr(exact_densitymatrix * H)
 
 scatter!(
     layers,
-    diff_norms;
-    subplot=1,
-    xticks=layers,
-    label=string(eltype(diff_norms)),
-    PLOT_DEFAULTS...,
-    legend_position=:bottomleft,
-)
-xlabel!(raw"number of layers $L$"; subplot=1)
-ylabel!(raw"$| D - P |$"; subplot=1)
-
-hline!(
-    [exact_occupation];
-    subplot=2,
-    xticks=layers,
-    label="exact Nocc: " * string(eltype(exact_occupation)),
-    PLOT_DEFAULTS...,
-)
-scatter!(
-    layers,
-    occupations;
-    subplot=2,
-    xticks=layers,
-    label="Nocc: " * string(eltype(occupations)),
-    PLOT_DEFAULTS...,
-    legend_position=:bottomleft,
-    PLOT_DEFAULTS...,
-)
-xlims!(extrema(layers); subplot=2)
-xlabel!(raw"number of layers $L$"; subplot=2)
-ylabel!(raw"$N$"; subplot=2)
-
-scatter!(layers, derivative_norms; subplot=3, xticks=layers, label="", PLOT_DEFAULTS...)
-xlabel!(raw"number of layers $L$"; subplot=3)
-ylabel!(raw"$| \dot{\theta} |$"; subplot=3)
-
-scatter!(
-    layers,
     fit_errors;
     yscale=:log10,
-    subplot=4,
+    subplot=1,
     xticks=layers,
     label=string(eltype(fit_errors)),
     PLOT_DEFAULTS...,
 )
-xlabel!(raw"number of layers $L$"; subplot=4)
-ylabel!(raw"MSE of fitting"; subplot=4)
-
-hline!([μ]; subplot=5, xticks=layers, label="preset μ", PLOT_DEFAULTS...)
-# hline!(
-#     [compute_mu(H_scaled, β, exact_occupation)];
-#     subplot=5,
-#     xticks=layers,
-#     label="reversed solving μ: " * string(eltype(exact_occupation)),
-#     PLOT_DEFAULTS...,
-# )
-scatter!(
-    layers,
-    estimated_mu;
-    subplot=5,
-    markershape=:circle,
-    xticks=layers,
-    legend_position=:left,
-    label="estimatd μ: " * string(eltype(H_scaled)),
-    PLOT_DEFAULTS...,
-)
-xlims!(extrema(layers); subplot=5)
-xlabel!(raw"number of layers $L$"; subplot=5)
-ylabel!(raw"$\mu$"; subplot=5)
+xlabel!(raw"number of layers $L$"; subplot=1)
+ylabel!(raw"MSE of fitting"; subplot=1)
 
 plot!(
     𝛌,
     𝐎;
-    subplot=6,
+    subplot=2,
     linestyle=:dash,
     label="exact FD on eigenvalues of H: " * string(eltype(𝐎)),
     PLOT_DEFAULTS...,
@@ -218,7 +159,7 @@ for (densitymatrix, nlayer, y) in zip(densitymatrices, layers, ys)
     plot!(
         𝛌,
         eigvals(densitymatrix);
-        subplot=6,
+        subplot=2,
         linestyle=:dot,
         legend_position=:left,
         label="N=$nlayer: " * string(eltype(densitymatrix)),
@@ -227,57 +168,110 @@ for (densitymatrix, nlayer, y) in zip(densitymatrices, layers, ys)
     # plot!(
     #     𝐱_inv,
     #     y;
-    #     subplot=6,
+    #     subplot=2,
     #     linestyle=:solid,
     #     legend_position=:left,
     #     label="N=$nlayer: fitting",
     #     PLOT_DEFAULTS...,
     # )
 end
-xlims!(extrema(𝛌); subplot=6)
-xlabel!(raw"eigenvalues distribution"; subplot=6)
-ylabel!("Fermi–Dirac function"; subplot=6)
+xlims!(extrema(𝛌); subplot=2)
+xlabel!(raw"eigenvalues distribution"; subplot=2)
+ylabel!("Fermi–Dirac function"; subplot=2)
 
-hline!([zero(𝐎)]; subplot=7, seriescolor=:black, primary=false, PLOT_DEFAULTS...)
+hline!([zero(𝐎)]; subplot=3, seriescolor=:black, primary=false, PLOT_DEFAULTS...)
 for (densitymatrix, nlayer) in zip(densitymatrices, layers)
     plot!(
         𝛌,
         eigvals(densitymatrix) .- 𝐎;
-        subplot=7,
+        subplot=3,
         linestyle=:dot,
         legend_position=:topleft,
         label="N=$nlayer: " * string(eltype(densitymatrix)),
         PLOT_DEFAULTS...,
     )
 end
-xlims!(extrema(𝛌); subplot=7)
-xlabel!(raw"eigenvalues distribution"; subplot=7)
-ylabel!("Fermi–Dirac function difference"; subplot=7)
+xlims!(extrema(𝛌); subplot=3)
+xlabel!(raw"eigenvalues distribution"; subplot=3)
+ylabel!("Fermi–Dirac function difference"; subplot=3)
 
-histogram!(
-    𝛌;
-    subplot=8,
-    nbins=45,
-    normalize=true,
-    legend_position=:top,
-    label="",
+scatter!(
+    layers,
+    diff_norms;
+    subplot=4,
+    xticks=layers,
+    label=string(eltype(diff_norms)),
+    PLOT_DEFAULTS...,
+    legend_position=:bottomleft,
+)
+xlabel!(raw"number of layers $L$"; subplot=4)
+ylabel!(raw"$| D - P |$"; subplot=4)
+
+hline!(
+    [exact_occupation];
+    subplot=5,
+    xticks=layers,
+    label="exact Nocc: " * string(eltype(exact_occupation)),
     PLOT_DEFAULTS...,
 )
-xlims!(extrema(𝛌); subplot=8)
-xlabel!("eigenvalues distribution"; subplot=8)
-ylabel!("density"; subplot=8)
+scatter!(
+    layers,
+    occupations;
+    subplot=5,
+    xticks=layers,
+    label="Nocc: " * string(eltype(occupations)),
+    PLOT_DEFAULTS...,
+    legend_position=:bottomleft,
+    PLOT_DEFAULTS...,
+)
+xlims!(extrema(layers); subplot=5)
+xlabel!(raw"number of layers $L$"; subplot=5)
+ylabel!(raw"$N$"; subplot=5)
 
 scatter!(
     layers,
     band_energies .- exact_band_energies;
-    subplot=9,
+    subplot=6,
     xticks=layers,
     label=string(eltype(band_energies)),
     PLOT_DEFAULTS...,
     legend_position=:bottomleft,
     PLOT_DEFAULTS...,
 )
-xlabel!(raw"number of layers $L$"; subplot=9)
-ylabel!(raw"$\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_{\textrm{exact}} H)$"; subplot=9)
+xlabel!(raw"number of layers $L$"; subplot=6)
+ylabel!(raw"$\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_{\textrm{exact}} H)$"; subplot=6)
+
+scatter!(layers, derivative_norms; subplot=7, xticks=layers, label="", PLOT_DEFAULTS...)
+xlabel!(raw"number of layers $L$"; subplot=7)
+ylabel!(raw"$| \dot{\theta} |$"; subplot=7)
+
+hline!([μ]; subplot=8, xticks=layers, label="preset μ", PLOT_DEFAULTS...)
+# hline!(
+#     [compute_mu(H_scaled, β, exact_occupation)];
+#     subplot=8,
+#     xticks=layers,
+#     label="reversed solving μ: " * string(eltype(exact_occupation)),
+#     PLOT_DEFAULTS...,
+# )
+scatter!(
+    layers,
+    estimated_mu;
+    subplot=8,
+    markershape=:circle,
+    xticks=layers,
+    legend_position=:left,
+    label="estimatd μ: " * string(eltype(H_scaled)),
+    PLOT_DEFAULTS...,
+)
+xlims!(extrema(layers); subplot=8)
+xlabel!(raw"number of layers $L$"; subplot=8)
+ylabel!(raw"$\mu$"; subplot=8)
+
+histogram!(
+    𝛌; subplot=9, nbins=45, normalize=true, legend_position=:top, label="", PLOT_DEFAULTS...
+)
+xlims!(extrema(𝛌); subplot=9)
+xlabel!("eigenvalues distribution"; subplot=9)
+ylabel!("density"; subplot=9)
 
 plot!()
