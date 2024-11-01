@@ -89,13 +89,16 @@ dist = LogUniform(100, 200)
 layout = (3, 3)
 plot(; layout=layout, PLOT_DEFAULTS...)
 
-T = Float64
-H = hamiltonian(dist, 2048)
-H = T.(H)
-β = convert(T, 100)
+# T = Float64
+# T = Float32
+# H = hamiltonian(dist, 2048)
+H = diagonalhamil(512, 235)
+H = Hamiltonian(T.(H))
+β = convert(T, 200)
 μ = convert(T, 0.4)
 H_scaled, εₘᵢₙ, εₘₐₓ = rescaled_hamiltonian(H)
 exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
+exact_densitymatrix_norm = norm(exact_densitymatrix)
 exact_occupation = tr(exact_densitymatrix)
 𝛌 = eigvals(H)
 𝐎 = real(fermi_dirac.(rescale_one_zero(εₘᵢₙ, εₘₐₓ).(𝛌), μ, β))  # Must be all reals
@@ -123,7 +126,7 @@ densitymatrices = map(𝚯) do 𝛉
     fermi_dirac_model(H_scaled, 𝛉)
 end
 diff_norms = map(densitymatrices) do densitymatrix
-    norm(exact_densitymatrix - densitymatrix)
+    norm(densitymatrix - exact_densitymatrix) / exact_densitymatrix_norm
 end
 occupations = map(densitymatrices) do densitymatrix
     tr(densitymatrix)
