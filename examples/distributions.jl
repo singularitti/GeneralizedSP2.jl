@@ -129,6 +129,10 @@ end
 estimated_mu = map(occupations) do occupation
     estimate_mu(H_scaled, β, occupation)
 end
+band_energies = map(densitymatrices) do densitymatrix
+    tr(densitymatrix * H)
+end
+exact_band_energies = tr(exact_densitymatrix * H)
 
 scatter!(
     layers,
@@ -258,5 +262,18 @@ histogram!(
 # density!(Λ; subplot=8, bandwidth=8, trim=true, label="preset")
 xlabel!("eigenvalues distribution"; subplot=8)
 ylabel!("density"; subplot=8)
+
+scatter!(
+    layers,
+    band_energies .- exact_band_energies;
+    subplot=9,
+    xticks=layers,
+    label=string(eltype(band_energies)),
+    PLOT_DEFAULTS...,
+    legend_position=:bottomleft,
+)
+xlims!(extrema(layers); subplot=9)
+xlabel!(raw"number of layers $L$"; subplot=9)
+ylabel!(raw"$\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_\text{exact} H)$"; subplot=9)
 
 plot!()
