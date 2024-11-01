@@ -60,7 +60,8 @@ end
 
 function rescaled_hamiltonian(H::AbstractMatrix)
     # emin, emax = eigvals_extrema(H)
-    emin, emax = minimum(eigvals(H)) - 10, maximum(eigvals(H)) + 10
+    𝚲 = real(eigvals(H))  # Must be all reals
+    emin, emax = minimum(𝚲) - 10, maximum(𝚲) + 10
     return rescale_one_zero(emin, emax)(H), emin, emax
 end
 
@@ -97,7 +98,7 @@ H_scaled, εₘᵢₙ, εₘₐₓ = rescaled_hamiltonian(H)
 exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
 exact_occupation = tr(exact_densitymatrix)
 𝛌 = eigvals(H)
-𝐎 = fermi_dirac.(rescale_one_zero(εₘᵢₙ, εₘₐₓ).(𝛌), μ, β)
+𝐎 = real(fermi_dirac.(rescale_one_zero(εₘᵢₙ, εₘₐₓ).(𝛌), μ, β))  # Must be all reals
 
 𝐱 = samplex(μ, β, 100)
 𝐱_inv = εₘₐₓ .- (εₘₐₓ - εₘᵢₙ) * 𝐱
