@@ -1,3 +1,4 @@
+using ExponentialUtilities: ExpMethodHigham2005Base, exponential!
 using GershgorinDiscs: eigvals_extrema
 using LinearAlgebra: I, Diagonal, eigen, eigvals
 
@@ -13,14 +14,18 @@ function fermi_dirac(ε, μ, β)
     return inv(oneunit(η) + η)
 end
 function fermi_dirac(𝐇::AbstractMatrix, μ, β)
-    η = exp((𝐇 - μ * I) * β)
+    η = (𝐇 - μ * I) * β
+    exponential!(η, ExpMethodHigham2005Base())
+    # η = exp((𝐇 - μ * I) * β)
     return inv(oneunit(η) + η)
 end
 
 function rescaled_fermi_dirac(𝐇::AbstractMatrix, μ, β, (εₘᵢₙ, εₘₐₓ)=eigvals_extrema(𝐇))
     𝐇′ = -𝐇 + (εₘₐₓ * (oneunit(μ) - μ) + μ * εₘᵢₙ) * I
     β′ = β / (εₘₐₓ - εₘᵢₙ)
-    η = exp(𝐇′ * β′)
+    η = 𝐇′ * β′
+    exponential!(η, ExpMethodHigham2005Base())
+    # η = exp(𝐇′ * β′)
     return inv(oneunit(η) + η)
 end
 function rescaled_fermi_dirac2(𝐇::AbstractMatrix, μ, β, (εₘᵢₙ, εₘₐₓ)=eigvals_extrema(𝐇))
