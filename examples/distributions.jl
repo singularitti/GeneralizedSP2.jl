@@ -9,19 +9,20 @@ using StatsPlots
 using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
-    :size => (1800, 900),
+    :size => (1900, 900),
     :dpi => 400,
     :framestyle => :box,
     :linewidth => 1,
     :markersize => 3,
     :markerstrokealpha => 0,
     :markerstrokewidth => 0,
+    :yformatter => :plain,
     :titlefontsize => 8,
     :plot_titlefontsize => 8,
     :guidefontsize => 7,
     :tickfontsize => 6,
     :legendfontsize => 6,
-    :margin => (4, :mm),
+    :left_margin => (8, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
@@ -101,7 +102,7 @@ exact_occupation = tr(exact_densitymatrix)
 𝐱 = samplex(μ, β, 100)
 𝐱_inv = εₘₐₓ .- (εₘₐₓ - εₘᵢₙ) * 𝐱
 
-layers = 10:3:30
+layers = 15:3:30
 𝚯 = map(layers) do nlayers
     𝛉, _, _ = fit_fermi_dirac(𝐱, μ, β, nlayers)
     𝛉
@@ -212,7 +213,7 @@ plot!(
     𝛌,
     𝐎;
     subplot=6,
-    linestyle=:dot,
+    linestyle=:dash,
     label="exact FD on eigenvalues of H: " * string(eltype(𝐎)),
     PLOT_DEFAULTS...,
 )
@@ -221,20 +222,20 @@ for (densitymatrix, nlayer, y) in zip(densitymatrices, layers, ys)
         𝛌,
         eigvals(densitymatrix);
         subplot=6,
-        linestyle=:dash,
+        linestyle=:dot,
         legend_position=:left,
         label="N=$nlayer: " * string(eltype(densitymatrix)),
         PLOT_DEFAULTS...,
     )
-    plot!(
-        𝐱_inv,
-        y;
-        subplot=6,
-        linestyle=:solid,
-        legend_position=:left,
-        label="N=$nlayer: fitting",
-        PLOT_DEFAULTS...,
-    )
+    # plot!(
+    #     𝐱_inv,
+    #     y;
+    #     subplot=6,
+    #     linestyle=:solid,
+    #     legend_position=:left,
+    #     label="N=$nlayer: fitting",
+    #     PLOT_DEFAULTS...,
+    # )
 end
 xlims!(extrema(𝛌); subplot=6)
 xlabel!(raw"eigenvalues distribution"; subplot=6)
@@ -246,7 +247,7 @@ for (densitymatrix, nlayer) in zip(densitymatrices, layers)
         𝛌,
         eigvals(densitymatrix) .- 𝐎;
         subplot=7,
-        linestyle=:dash,
+        linestyle=:dot,
         legend_position=:topleft,
         label="N=$nlayer: " * string(eltype(densitymatrix)),
         PLOT_DEFAULTS...,
@@ -262,7 +263,6 @@ histogram!(
     nbins=45,
     normalize=true,
     legend_position=:top,
-    label="diagonalized",
     PLOT_DEFAULTS...,
 )
 xlabel!("eigenvalues distribution"; subplot=8)
@@ -280,6 +280,6 @@ scatter!(
 )
 xlims!(extrema(layers); subplot=9)
 xlabel!(raw"number of layers $L$"; subplot=9)
-ylabel!(raw"$\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_{\text{exact}} H)$"; subplot=9)
+ylabel!(raw"$\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_{\textrm{exact}} H)$"; subplot=9)
 
 plot!()
