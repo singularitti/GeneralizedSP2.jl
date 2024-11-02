@@ -183,7 +183,21 @@ xlims!(extrema(𝛌); subplot=2)
 xlabel!(raw"eigenvalues distribution"; subplot=2)
 ylabel!("Fermi–Dirac function"; subplot=2)
 
-hline!([zero(𝐎)]; subplot=3, seriescolor=:black, primary=false, PLOT_DEFAULTS...)
+hline!(
+    [zero(𝐎)];
+    subplot=3,
+    label="exact FD on eigenvalues of H: " * string(eltype(𝐎)),
+    PLOT_DEFAULTS...,
+)
+plot!(
+    𝐱_inv,
+    ys[end] - fermi_dirac.(𝐱, μ, β);
+    subplot=3,
+    linestyle=:solid,
+    legend_position=:left,
+    label="fitting with N=$(layers[end])",
+    PLOT_DEFAULTS...,
+)
 for (densitymatrix, nlayer) in zip(densitymatrices, layers)
     plot!(
         𝛌,
