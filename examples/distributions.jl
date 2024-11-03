@@ -23,6 +23,7 @@ PLOT_DEFAULTS = Dict(
     :tickfontsize => 6,
     :legendfontsize => 6,
     :left_margin => (8, :mm),
+    :bottom_margin => (4, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
@@ -223,7 +224,7 @@ scatter!(
     legend_position=:bottomleft,
 )
 xlabel!(raw"number of layers $L$"; subplot=4)
-ylabel!(raw"$| D - P | / | P |$"; subplot=4)
+ylabel!(raw"$| \rho - \rho_{\textrm{exact}} | / | \rho_{\textrm{exact}} |$"; subplot=4)
 
 hline!(
     [exact_occupation];
@@ -248,7 +249,7 @@ ylabel!(raw"$N$"; subplot=5)
 
 scatter!(
     layers,
-    band_energies .- exact_band_energies;
+    (band_energies .- exact_band_energies) ./ exact_band_energies;
     subplot=6,
     xticks=layers,
     label=string(eltype(band_energies)),
@@ -257,7 +258,10 @@ scatter!(
     PLOT_DEFAULTS...,
 )
 xlabel!(raw"number of layers $L$"; subplot=6)
-ylabel!(raw"$\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_{\textrm{exact}} H)$"; subplot=6)
+ylabel!(
+    raw"$\left(\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_{\textrm{exact}} H)\right) / \mathrm{tr}(\rho_{\textrm{exact}} H)$";
+    subplot=6,
+)
 
 scatter!(layers, derivative_norms; subplot=7, xticks=layers, label="", PLOT_DEFAULTS...)
 xlabel!(raw"number of layers $L$"; subplot=7)
