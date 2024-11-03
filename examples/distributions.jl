@@ -89,11 +89,9 @@ dist = LogUniform(100, 200)
 layout = (3, 3)
 plot(; layout=layout, PLOT_DEFAULTS...)
 
-# T = Float64
+T = Float64
 # T = Float32
-# H = hamiltonian(dist, 2048)
-H = diagonalhamil(512, 235)
-H = Hamiltonian(T.(H))
+H = hamiltonian(dist, 2048)
 β = convert(T, 200)
 μ = convert(T, 0.4)
 H_scaled, εₘᵢₙ, εₘₐₓ = rescaled_hamiltonian(H)
