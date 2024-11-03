@@ -16,7 +16,6 @@ PLOT_DEFAULTS = Dict(
     :markersize => 3,
     :markerstrokealpha => 0,
     :markerstrokewidth => 0,
-    :yformatter => :plain,
     :titlefontsize => 8,
     :plot_titlefontsize => 8,
     :guidefontsize => 7,
