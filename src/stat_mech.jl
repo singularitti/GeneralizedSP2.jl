@@ -2,12 +2,7 @@ using GershgorinDiscs: eigvals_extrema
 using LinearAlgebra: I, Diagonal, eigen, eigvals
 using IsApprox: isunitary
 
-export fermi_dirac,
-    rescaled_fermi_dirac,
-    rescaled_fermi_dirac2,
-    electronic_energy,
-    electronic_entropy,
-    occupations
+export fermi_dirac, rescaled_fermi_dirac, electronic_energy, electronic_entropy, occupations
 
 function fermi_dirac(ε, μ, β)
     η = exp((ε - μ) * β)
@@ -15,13 +10,13 @@ function fermi_dirac(ε, μ, β)
 end
 fermi_dirac(𝐇::AbstractMatrix, μ, β) = matrix_function(ε -> fermi_dirac(ε, μ, β), 𝐇)
 
+# function rescaled_fermi_dirac(𝐇::AbstractMatrix, μ, β, (εₘᵢₙ, εₘₐₓ)=eigvals_extrema(𝐇))
+#     𝐇′ = -𝐇 + (εₘₐₓ * (oneunit(μ) - μ) + μ * εₘᵢₙ) * I
+#     β′ = β / (εₘₐₓ - εₘᵢₙ)
+#     η = exp(𝐇′ * β′)
+#     return inv(oneunit(η) + η)
+# end
 function rescaled_fermi_dirac(𝐇::AbstractMatrix, μ, β, (εₘᵢₙ, εₘₐₓ)=eigvals_extrema(𝐇))
-    𝐇′ = -𝐇 + (εₘₐₓ * (oneunit(μ) - μ) + μ * εₘᵢₙ) * I
-    β′ = β / (εₘₐₓ - εₘᵢₙ)
-    η = exp(𝐇′ * β′)
-    return inv(oneunit(η) + η)
-end
-function rescaled_fermi_dirac2(𝐇::AbstractMatrix, μ, β, (εₘᵢₙ, εₘₐₓ)=eigvals_extrema(𝐇))
     E = eigen(𝐇)
     𝛌_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ).(E.values)
     Λ = map(𝛌_scaled) do λ_scaled
