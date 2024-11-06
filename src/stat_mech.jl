@@ -1,5 +1,6 @@
 using GershgorinDiscs: eigvals_extrema
 using LinearAlgebra: I, Diagonal, eigen, eigvals
+using IsApprox: isunitary
 
 export fermi_dirac,
     rescaled_fermi_dirac,
@@ -50,3 +51,24 @@ electronic_entropy(ε, μ, β) =
     (fermi_dirac(ε, μ, β) * (ε - μ) - electronic_energy(ε, μ, β)) * β
 
 occupations(dm::AbstractMatrix) = eigvals(dm)
+
+"""
+    matrix_function(f, A)
+
+Compute the matrix function `f(A)` for a square matrix `A` using the eigenvalue decomposition method.
+
+The function computes `f(A)` by diagonalizing `A`, applying the scalar function `f` to the eigenvalues,
+and then reconstructing the matrix. Specifically, it performs the following steps:
+1. Compute the eigenvalue decomposition of `A` as `A = V * D * V⁻¹`, where `D` is a diagonal matrix of
+   eigenvalues and `V` is the matrix of eigenvectors.
+2. Apply the function `f` element-wise to the eigenvalues in `D`.
+3. Reconstruct the matrix as `f(A) = V * Diagonal(f(D)) * V⁻¹`.
+"""
+function matrix_function(f, A)
+    E = eigen(A)
+    Λ, V = E.values, E.vectors
+    if isunitary(V)
+        return V * Diagonal(f.(Λ)) * V'
+    end
+    return V * Diagonal(f.(Λ)) * inv(V)  # `Diagonal` is faster than `diagm`
+end
