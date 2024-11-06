@@ -91,10 +91,13 @@ plot(; layout=layout, PLOT_DEFAULTS...)
 
 T = Float64
 # T = Float32
-H = hamiltonian(dist, 2048)
-β = convert(T, 200)
-μ = convert(T, 0.4)
+# H = hamiltonian(dist, 512)
+H = diagonalhamil(1024, 40)
+β = convert(T, 1.25)
+μ = convert(T, 0)
 H_scaled, εₘᵢₙ, εₘₐₓ = rescaled_hamiltonian(H)
+β′ = β * (εₘᵢₙ - εₘₐₓ)
+μ′ = (μ - εₘₐₓ) / (εₘᵢₙ - εₘₐₓ)
 exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
 exact_densitymatrix_norm = norm(exact_densitymatrix)
 exact_occupation = tr(exact_densitymatrix)
@@ -106,7 +109,7 @@ exact_occupation = tr(exact_densitymatrix)
 
 layers = 15:2:30
 𝚯 = map(layers) do nlayers
-    𝛉, _, _ = fit_fermi_dirac(𝐱, μ, β, nlayers)
+    𝛉, _, _ = fit_fermi_dirac(𝐱, μ′, β′, nlayers)
     𝛉
 end
 ys = map(𝚯) do 𝛉
