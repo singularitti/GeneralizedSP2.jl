@@ -2,8 +2,12 @@ using LsqFit: curve_fit, coef, stderror, vcov
 
 export fit_fermi_dirac, fit_entropy
 
-function fit_fermi_dirac(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
-    _checkdomain(𝐱, μ, β)
+function fit_fermi_dirac(
+    𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN, check_domain=false, show_trace=false
+)
+    if check_domain
+        _checkdomain(𝐱, μ, β)
+    end
     𝛉 = init_params(μ, nlayers)  # Initialize model with SP2
     fitted = curve_fit(
         fermi_dirac_model!,
@@ -13,12 +17,17 @@ function fit_fermi_dirac(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
         𝛉;  # p0
         maxIter=max_iter,
         inplace=true,
+        show_trace=show_trace,
     )
     return coef(fitted), stderror(fitted; rtol=rtol), vcov(fitted)
 end
 
-function fit_entropy(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
-    _checkdomain(𝐱, μ, β)
+function fit_entropy(
+    𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN, check_domain=false, show_trace=false
+)
+    if check_domain
+        _checkdomain(𝐱, μ, β)
+    end
     𝛉 = init_params(μ, nlayers)  # Initialize model with SP2
     fitted = curve_fit(
         entropy_model!,
@@ -28,6 +37,7 @@ function fit_entropy(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
         𝛉;
         maxIter=max_iter,
         inplace=true,
+        show_trace=show_trace,
     )
     return coef(fitted), stderror(fitted; rtol=rtol), vcov(fitted)
 end
