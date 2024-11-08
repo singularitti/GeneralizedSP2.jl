@@ -30,7 +30,7 @@ end
             3/4 3/4
         ]
     end
-    @test_throws ArgumentError rescale_zero_one(3, 3.0)
+    @test_throws AssertionError rescale_zero_one(3, 3.0)
 end
 
 @testset "Test `rescale_one_zero`" begin
@@ -50,7 +50,7 @@ end
             -3/4 1/4
         ]
     end
-    @test_throws ArgumentError rescale_one_zero(3, 3.0)
+    @test_throws AssertionError rescale_one_zero(3, 3.0)
 end
 
 @testset "Test `eigvals` will return a random order of eigenvalues" begin
