@@ -88,6 +88,29 @@ function matrix_function(f, A)
     return V * Diagonal(f.(Λ)) * inv(V)  # `Diagonal` is faster than `diagm`
 end
 
+struct Rescaler{K,B}
+    k::K
+    b::B
+    function Rescaler(k::K, b::B) where {K,B}
+        if iszero(k)
+            throw(ArgumentError("The slope `k` must be non-zero!"))
+        end
+        return new{K,B}(k, b)
+    end
+end
+
+struct Inverse{T}
+    rescaler::T
+end
+
+(r::Rescaler)(x::Number) = r.k * x + r.b  # `x` can be out of the range [min, max]
+(r::Rescaler)(X::AbstractMatrix) = r.k * X + r.b * I
+
+(i::Inverse{<:Rescaler})(y::Number) = (y - i.r.b) / i.r.k
+(i::Inverse{<:Rescaler})(Y::AbstractMatrix) = (Y - i.r.b * I) / i.r.k
+
+Base.inv(r::Rescaler) = Inverse(r)
+
 function rescale_zero_one(𝐱)  # Map `max` to 1, `min` to 0
     min, max = extrema(𝐱)
     @assert min < max
@@ -103,3 +126,13 @@ function rescale_one_zero(𝐱)  # Map `max` to 0, `min` to 1
     return Rescaler(k, b)
 end
 rescale_one_zero(𝐱...) = rescale_one_zero(𝐱)
+
+function Base.show(io::IO, ::MIME"text/plain", rescaler::Rescaler)
+    k, b = rescaler.k, rescaler.b
+    if b < zero(b)
+        print(io, "y = $k x - $(abs(b))")
+    else
+        print(io, "y = $k x + $b")
+    end
+    return nothing
+end
