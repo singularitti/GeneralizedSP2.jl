@@ -4,8 +4,7 @@ export fit_fermi_dirac, fit_entropy
 
 function fit_fermi_dirac(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
     _checkdomain(𝐱, μ, β)
-    # Initialize model with SP2
-    𝛉 = init_params(μ, nlayers)
+    𝛉 = init_params(μ, nlayers)  # Initialize model with SP2
     fitted = curve_fit(
         fermi_dirac_model!,
         fermi_dirac_derivatives!,
@@ -20,8 +19,7 @@ end
 
 function fit_entropy(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
     _checkdomain(𝐱, μ, β)
-    # Initialize model with SP2
-    𝛉 = init_params(μ, nlayers)
+    𝛉 = init_params(μ, nlayers)  # Initialize model with SP2
     fitted = curve_fit(
         entropy_model!,
         entropy_derivatives!,
