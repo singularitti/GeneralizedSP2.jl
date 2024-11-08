@@ -33,13 +33,13 @@ function fit_entropy(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
 end
 
 function _checkdomain(𝐱, μ, β)
-    if zero(eltype(𝐱)) <= minimum(𝐱) <= oneunit(eltype(𝐱))
-        throw(DomainError("𝐱 must be in the range [0, 1]!"))
+    if minimum(𝐱) < zero(eltype(𝐱)) || maximum(𝐱) > oneunit(eltype(𝐱))
+        throw(DomainError("rescaled 𝐱 must be in the range [0, 1]!"))
     end
-    if zero(μ) <= μ <= oneunit(μ)
-        throw(DomainError("μ must be in the range [0, 1]!"))
+    if μ < zero(μ) || μ > oneunit(μ)
+        throw(DomainError("rescaled μ must be in the range [0, 1]!"))
     end
-    if β < zero(β)
-        throw(DomainError("β must be positive!"))
+    if β >= zero(β)
+        throw(DomainError("rescaled β must be negative!"))
     end
 end
