@@ -56,11 +56,14 @@ occupations(dm::AbstractMatrix) = eigvals(dm)
 
 function rescale_mu(μ, 𝛆)
     εₘᵢₙ, εₘₐₓ = extrema(𝛆)
+    @assert εₘₐₓ > εₘᵢₙ
+    @assert εₘᵢₙ <= μ <= εₘₐₓ "μ must be in the range [εₘₐₓ, εₘᵢₙ]!"
     return (μ - εₘₐₓ) / (εₘᵢₙ - εₘₐₓ)
 end
 
 function rescale_beta(β, 𝛆)
     εₘᵢₙ, εₘₐₓ = extrema(𝛆)
+    @assert εₘₐₓ > εₘᵢₙ
     return β * (εₘᵢₙ - εₘₐₓ)
 end
 
@@ -87,9 +90,7 @@ end
 
 function rescale_zero_one(𝐱)
     min, max = extrema(𝐱)
-    if min == max
-        throw(ArgumentError("min and max cannot be the same!"))
-    end
+    @assert min < max
     rescaler(x::Number) = (x - min) / (max - min)  # `x` can be out of the range [min, max]
     function rescaler(A::AbstractMatrix)
         k, b = inv(max - min), min / (min - max)
@@ -101,9 +102,7 @@ rescale_zero_one(𝐱...) = rescale_zero_one(𝐱)
 
 function rescale_one_zero(𝐱)
     min, max = extrema(𝐱)
-    if min == max
-        throw(ArgumentError("min and max cannot be the same!"))
-    end
+    @assert min < max
     rescaler(x::Number) = (x - max) / (min - max)  # `x` can be out of the range [min, max]
     function rescaler(A::AbstractMatrix)
         k, b = inv(min - max), max / (max - min)
