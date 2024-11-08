@@ -111,7 +111,7 @@ exact_occupation = tr(exact_densitymatrix)
 
 layers = 15:2:30
 𝚯 = map(layers) do nlayers
-    𝛉, _, _ = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=10000)
+    𝛉, _, _ = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=1000)
     𝛉
 end
 𝐲_fitted = map(𝚯) do 𝛉
