@@ -48,9 +48,7 @@ function apply_model!(
     result::AbstractVector{R}, 𝐱::AbstractVector{S}, Θ::AbstractMatrix{T}
 ) where {R,S,T}
     _checkshape(Θ)
-    if !isa(oneunit(S) * oneunit(T), R)
-        throw(DimensionError(oneunit(S) * oneunit(T), oneunit(R)))
-    end
+    _checkdimension(R, S, T)
     map!(result, 𝐱) do x
         y = x  # `x` and `y` are 2 numbers
         accumulator = zero(eltype(result))  # Accumulator of the summation
@@ -67,9 +65,7 @@ function apply_model!(
 ) where {R,S,T}
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
     _checkshape(Θ)
-    if !isa(oneunit(S) * oneunit(T), R)
-        throw(DimensionError(oneunit(S) * oneunit(T), oneunit(R)))
-    end
+    _checkdimension(R, S, T)
     map!(zero, result, result)
     Y = X
     for 𝛉 in eachcol(Θ)
@@ -199,5 +195,11 @@ entropy_derivatives!(𝝝̄, 𝐱, 𝝷) = manualdiff_model!(transform_entropy_d
 function _checkshape(Θ::AbstractMatrix)
     if size(Θ, 1) != LAYER_WIDTH
         throw(DimensionMismatch("input coefficients matrix must have $LAYER_WIDTH rows!"))  # See https://discourse.julialang.org/t/120556/2
+    end
+end
+
+function _checkdimension(R, S, T)
+    if !isa(oneunit(S) * oneunit(T), R)
+        throw(DimensionError(oneunit(S) * oneunit(T), oneunit(R)))
     end
 end
