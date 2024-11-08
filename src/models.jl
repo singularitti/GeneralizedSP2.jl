@@ -20,9 +20,7 @@ Base.showerror(io::IO, e::DimensionError) =
     print(io, "DimensionError: $(e.x) and $(e.y) are not dimensionally compatible.")
 
 function apply_model(x, Θ::AbstractMatrix{T}) where {T}
-    if size(Θ, 1) != LAYER_WIDTH
-        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
-    end
+    _checkshape(Θ)
     accumulator = zero(x * oneunit(T))  # Accumulator of the summation
     y = x  # `x` and `y` are 2 numbers
     for 𝛉 in eachcol(Θ)
@@ -34,9 +32,7 @@ function apply_model(x, Θ::AbstractMatrix{T}) where {T}
 end
 function apply_model(X::AbstractMatrix{S}, Θ::AbstractMatrix{T}) where {S,T}
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
-    if size(Θ, 1) != LAYER_WIDTH
-        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
-    end
+    _checkshape(Θ)
     accumulator = zeros(typeof(oneunit(S) * oneunit(T)), size(X))
     Y = X
     for 𝛉 in eachcol(Θ)
@@ -51,9 +47,7 @@ apply_model(𝐱, 𝛉::AbstractVector) = apply_model(𝐱, reshape(𝛉, LAYER_
 function apply_model!(
     result::AbstractVector{R}, 𝐱::AbstractVector{S}, Θ::AbstractMatrix{T}
 ) where {R,S,T}
-    if size(Θ, 1) != LAYER_WIDTH
-        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
-    end
+    _checkshape(Θ)
     if !isa(oneunit(S) * oneunit(T), R)
         throw(DimensionError(oneunit(S) * oneunit(T), oneunit(R)))
     end
@@ -72,9 +66,7 @@ function apply_model!(
     result::AbstractMatrix{R}, X::AbstractMatrix{S}, 𝝷::AbstractMatrix{T}
 ) where {R,S,T}
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
-    if size(𝝷, 1) != LAYER_WIDTH
-        throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
-    end
+    _checkshape(𝝷)
     if !isa(oneunit(S) * oneunit(T), R)
         throw(DimensionError(oneunit(S) * oneunit(T), oneunit(R)))
     end
@@ -203,3 +195,9 @@ fermi_dirac_derivatives!(𝝝̄, 𝐱, 𝝷) =
 
 entropy_derivatives!(𝝝̄, 𝐱, 𝝷) = manualdiff_model!(transform_entropy_derivative, 𝝝̄, 𝐱, 𝝷)
 # entropy_derivatives!(𝝝̄, 𝐱, 𝝷) = autodiff_model!(transform_entropy, 𝝝̄, 𝐱, 𝝷)
+
+function _checkshape(Θ::AbstractMatrix)
+    if size(Θ, 1) != LAYER_WIDTH
+        throw(DimensionMismatch("input coefficients matrix must have $LAYER_WIDTH rows!"))  # See https://discourse.julialang.org/t/120556/2
+    end
+end
