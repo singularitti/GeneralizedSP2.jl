@@ -103,11 +103,11 @@ exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ)
 exact_densitymatrix_norm = norm(exact_densitymatrix, Inf)
 exact_occupation = tr(exact_densitymatrix)
 𝛌 = eigvals(H)
-𝐎 = eigvals(exact_densitymatrix)
+𝐎 = real(eigvals(exact_densitymatrix))
 
-𝐱′ = samplex(μ, β, 100)
+𝐱′ = chebyshevnodes_1st(10000, (0, 1))
 𝐲̂ = fermi_dirac.(𝐱′, μ′, β′)
-𝐱′_inv = inv(rescale_one_zero(εₘᵢₙ, εₘₐₓ)).(𝐱′)
+𝐱′_inv = sort(inv(rescale_one_zero(εₘᵢₙ, εₘₐₓ)).(𝐱′))
 
 layers = 15:2:30
 𝚯 = map(layers) do nlayers
