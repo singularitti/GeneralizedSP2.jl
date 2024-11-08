@@ -7,8 +7,8 @@ export fermi_dirac,
     electronic_energy,
     electronic_entropy,
     occupations,
-    rescaled_mu,
-    rescaled_beta,
+    rescale_mu,
+    rescale_beta,
     rescale_zero_one,
     rescale_one_zero
 
@@ -19,15 +19,15 @@ end
 fermi_dirac(H::AbstractMatrix, μ, β) = matrix_function(ε -> fermi_dirac(ε, μ, β), H)
 
 # function rescaled_fermi_dirac(H::AbstractMatrix, μ, β, 𝛆=eigvals_extrema(H))
-#     μ′ = rescaled_mu(μ, 𝛆)
-#     β′ = rescaled_beta(β, 𝛆)
+#     μ′ = rescale_mu(μ, 𝛆)
+#     β′ = rescale_beta(β, 𝛆)
 #     H′ = H - μ′ * I
 #     η = exp(H′ * β′)
 #     return inv(oneunit(η) + η)
 # end
 function rescaled_fermi_dirac(H::AbstractMatrix, μ, β, 𝛆=eigvals_extrema(H))
-    μ′ = rescaled_mu(μ, 𝛆)
-    β′ = rescaled_beta(β, 𝛆)
+    μ′ = rescale_mu(μ, 𝛆)
+    β′ = rescale_beta(β, 𝛆)
     f = rescale_one_zero(𝛆)
     return matrix_function(H) do ε
         ε′ = f(ε)
@@ -54,12 +54,12 @@ electronic_entropy(ε, μ, β) =
 
 occupations(dm::AbstractMatrix) = eigvals(dm)
 
-function rescaled_mu(μ, 𝛆)
+function rescale_mu(μ, 𝛆)
     εₘᵢₙ, εₘₐₓ = extrema(𝛆)
     return (μ - εₘₐₓ) / (εₘᵢₙ - εₘₐₓ)
 end
 
-function rescaled_beta(β, 𝛆)
+function rescale_beta(β, 𝛆)
     εₘᵢₙ, εₘₐₓ = extrema(𝛆)
     return β * (εₘᵢₙ - εₘₐₓ)
 end
