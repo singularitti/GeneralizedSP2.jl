@@ -85,7 +85,7 @@ function matrix_function(f, A)
     return V * Diagonal(f.(Λ)) * inv(V)  # `Diagonal` is faster than `diagm`
 end
 
-function rescale_zero_one(𝐱...)
+function rescale_zero_one(𝐱)
     min, max = extrema(𝐱)
     if min == max
         throw(ArgumentError("min and max cannot be the same!"))
@@ -98,7 +98,7 @@ function rescale_zero_one(𝐱...)
     return rescaler
 end
 
-function rescale_one_zero(𝐱...)
+function rescale_one_zero(𝐱)
     min, max = extrema(𝐱)
     if min == max
         throw(ArgumentError("min and max cannot be the same!"))
