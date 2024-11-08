@@ -41,8 +41,8 @@ function rescale_one_zero(𝐱)  # Map `max` to 0, `min` to 1
 end
 rescale_one_zero(𝐱...) = rescale_one_zero(𝐱)
 
-function Base.show(io::IO, ::MIME"text/plain", rescaler::Rescaler)
-    k, b = rescaler.k, rescaler.b
+function Base.show(io::IO, ::MIME"text/plain", r::Rescaler)
+    k, b = r.k, r.b
     if b < zero(b)
         print(io, "y = $k x - $(abs(b))")
     else
