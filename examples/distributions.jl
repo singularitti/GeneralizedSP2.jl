@@ -105,24 +105,24 @@ exact_occupation = tr(exact_densitymatrix)
 𝛌 = eigvals(H)
 𝐎 = eigvals(exact_densitymatrix)
 
-𝐱 = samplex(μ, β, 100)
-𝐲_exact = fermi_dirac.(𝐱, μ′, β′)
-𝐱_inv = εₘₐₓ .- (εₘₐₓ - εₘᵢₙ) * 𝐱
+𝐱′ = samplex(μ, β, 100)
+𝐲̂ = fermi_dirac.(𝐱′, μ′, β′)
+𝐱′_inv = inv(rescale_one_zero(εₘᵢₙ, εₘₐₓ)).(𝐱′)
 
 layers = 15:2:30
 𝚯 = map(layers) do nlayers
-    𝛉, _, _ = fit_fermi_dirac(𝐱, μ′, β′, nlayers; max_iter=10000)
+    𝛉, _, _ = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=10000)
     𝛉
 end
 𝐲_fitted = map(𝚯) do 𝛉
-    fermi_dirac_model(𝐱, 𝛉)
+    fermi_dirac_model(𝐱′, 𝛉)
 end
 fit_errors = map(𝚯, 𝐲_fitted) do 𝛉, 𝐲
-    residuals = 𝐲 - 𝐲_exact
+    residuals = 𝐲 - 𝐲̂
     mean(abs2, residuals)
 end
 derivative_norms = map(𝚯) do 𝛉
-    𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱, 𝛉)
+    𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱′, 𝛉)
     norm(𝝝̄, Inf)
 end
 densitymatrices = map(𝚯) do 𝛉
@@ -158,7 +158,7 @@ plot!(
     𝛌, 𝐎; subplot=2, linestyle=:dash, label="exact FD" * string(eltype(𝐎)), PLOT_DEFAULTS...
 )
 plot!(
-    𝐱_inv,
+    𝐱′_inv,
     𝐲_fitted[end];
     subplot=2,
     linestyle=:solid,
@@ -183,8 +183,8 @@ ylabel!("Fermi–Dirac function"; subplot=2)
 
 hline!([zero(𝐎)]; subplot=3, label="exact FD" * string(eltype(𝐎)), PLOT_DEFAULTS...)
 plot!(
-    𝐱_inv,
-    𝐲_fitted[end] - 𝐲_exact;
+    𝐱′_inv,
+    𝐲_fitted[end] - 𝐲̂;
     subplot=3,
     linestyle=:solid,
     legend_position=:left,
