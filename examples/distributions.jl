@@ -129,7 +129,7 @@ densitymatrices = map(𝚯) do 𝛉
     fermi_dirac_model(H_scaled, 𝛉)
 end
 diff_norms = map(densitymatrices) do densitymatrix
-    norm(densitymatrix - exact_densitymatrix, Inf) / exact_densitymatrix_norm
+    norm(densitymatrix - exact_densitymatrix, Inf)
 end
 occupations = map(densitymatrices) do densitymatrix
     tr(densitymatrix)
@@ -229,7 +229,7 @@ scatter!(
     legend_position=:bottomleft,
 )
 xlabel!(raw"number of layers $L$"; subplot=4)
-ylabel!(raw"$| \rho - \rho_{\textrm{exact}} | / | \rho_{\textrm{exact}} |$"; subplot=4)
+ylabel!(raw"$| \rho - \rho_{\textrm{exact}} |_{\textrm{\infty}}$"; subplot=4)
 
 hline!(
     [exact_occupation];
