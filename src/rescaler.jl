@@ -50,3 +50,13 @@ function Base.show(io::IO, ::MIME"text/plain", r::Rescaler)
     end
     return nothing
 end
+function Base.show(io::IO, ::MIME"text/plain", ir::Inverse{<:Rescaler})
+    k, b = ir.rescaler.k, ir.rescaler.b
+    k⁻¹, b⁻¹ = inv(k), -b / k
+    if b⁻¹ < zero(b⁻¹)
+        print(io, "x = $k⁻¹ y - $(abs(b⁻¹))")
+    else
+        print(io, "x = $k⁻¹ y + $b⁻¹")
+    end
+    return nothing
+end
