@@ -90,12 +90,12 @@ function rescale_zero_one(𝐱...)
     if min == max
         throw(ArgumentError("min and max cannot be the same!"))
     end
-    rescale(x::Number) = (x - min) / (max - min)  # `x` can be out of the range [min, max]
-    function rescale(A::AbstractMatrix)
+    rescaler(x::Number) = (x - min) / (max - min)  # `x` can be out of the range [min, max]
+    function rescaler(A::AbstractMatrix)
         k, b = inv(max - min), min / (min - max)
         return k * A + b * I  # Map `max` to 1, `min` to 0
     end
-    return rescale
+    return rescaler
 end
 
 function rescale_one_zero(𝐱...)
@@ -103,10 +103,10 @@ function rescale_one_zero(𝐱...)
     if min == max
         throw(ArgumentError("min and max cannot be the same!"))
     end
-    rescale(x::Number) = (x - max) / (min - max)  # `x` can be out of the range [min, max]
-    function rescale(A::AbstractMatrix)
+    rescaler(x::Number) = (x - max) / (min - max)  # `x` can be out of the range [min, max]
+    function rescaler(A::AbstractMatrix)
         k, b = inv(min - max), max / (max - min)
         return k * A + b * I  # Map `max` to 0, `min` to 1
     end
-    return rescale
+    return rescaler
 end
