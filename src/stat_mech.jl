@@ -88,36 +88,18 @@ function matrix_function(f, A)
     return V * Diagonal(f.(Λ)) * inv(V)  # `Diagonal` is faster than `diagm`
 end
 
-function rescale_zero_one(𝐱)
+function rescale_zero_one(𝐱)  # Map `max` to 1, `min` to 0
     min, max = extrema(𝐱)
     @assert min < max
     k, b = inv(max - min), min / (min - max)
-    @assert !iszero(k)
-
-    rescaler(x::Number) = k * x + b  # `x` can be out of the range [min, max]
-    rescaler(X::AbstractMatrix) = k * X + b * I  # Map `max` to 1, `min` to 0
-
-    rescaler⁻¹(y::Number) = y * (max - min) + min
-    rescaler⁻¹(Y::AbstractMatrix) = (Y - b * I) / k
-    Base.inv(::typeof(rescaler)) = rescaler⁻¹
-
-    return rescaler
+    return Rescaler(k, b)
 end
 rescale_zero_one(𝐱...) = rescale_zero_one(𝐱)
 
-function rescale_one_zero(𝐱)
+function rescale_one_zero(𝐱)  # Map `max` to 0, `min` to 1
     min, max = extrema(𝐱)
     @assert min < max
     k, b = inv(min - max), max / (max - min)
-    @assert !iszero(k)
-
-    rescaler(x::Number) = k * x + b  # `x` can be out of the range [min, max]
-    rescaler(X::AbstractMatrix) = k * X + b * I  # Map `max` to 0, `min` to 1
-
-    rescaler⁻¹(y::Number) = y * (min - max) + max
-    rescaler⁻¹(Y::AbstractMatrix) = (Y - b * I) / k
-    Base.inv(::typeof(rescaler)) = rescaler⁻¹
-
-    return rescaler
+    return Rescaler(k, b)
 end
 rescale_one_zero(𝐱...) = rescale_one_zero(𝐱)
