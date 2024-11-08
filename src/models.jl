@@ -63,16 +63,16 @@ function apply_model!(
     return result
 end
 function apply_model!(
-    result::AbstractMatrix{R}, X::AbstractMatrix{S}, 𝝷::AbstractMatrix{T}
+    result::AbstractMatrix{R}, X::AbstractMatrix{S}, Θ::AbstractMatrix{T}
 ) where {R,S,T}
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
-    _checkshape(𝝷)
+    _checkshape(Θ)
     if !isa(oneunit(S) * oneunit(T), R)
         throw(DimensionError(oneunit(S) * oneunit(T), oneunit(R)))
     end
     map!(zero, result, result)
     Y = X
-    for 𝛉 in eachcol(𝝷)
+    for 𝛉 in eachcol(Θ)
         result += 𝛉[4] * Y
         Y = 𝛉[1] * Y^2 + 𝛉[2] * Y + 𝛉[3] * oneunit(Y)  # Note this is not element-wise!
     end
