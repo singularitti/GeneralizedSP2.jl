@@ -223,6 +223,7 @@ scatter!(
     layers,
     diff_norms;
     subplot=4,
+    yscale=:log10,
     xticks=layers,
     label=string(eltype(diff_norms)),
     PLOT_DEFAULTS...,
