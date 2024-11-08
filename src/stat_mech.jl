@@ -2,7 +2,13 @@ using GershgorinDiscs: eigvals_extrema
 using LinearAlgebra: I, Diagonal, eigen, eigvals
 using IsApprox: isunitary
 
-export fermi_dirac, rescaled_fermi_dirac, electronic_energy, electronic_entropy, occupations
+export fermi_dirac,
+    rescaled_fermi_dirac,
+    electronic_energy,
+    electronic_entropy,
+    occupations,
+    rescaled_mu,
+    rescaled_beta
 
 function fermi_dirac(ε, μ, β)
     η = exp((ε - μ) * β)
@@ -44,6 +50,16 @@ electronic_entropy(ε, μ, β) =
     (fermi_dirac(ε, μ, β) * (ε - μ) - electronic_energy(ε, μ, β)) * β
 
 occupations(dm::AbstractMatrix) = eigvals(dm)
+
+function rescaled_mu(μ, 𝛆)
+    εₘᵢₙ, εₘₐₓ = extrema(𝛆)
+    return (μ - εₘₐₓ) / (εₘᵢₙ - εₘₐₓ)
+end
+
+function rescaled_beta(β, 𝛆)
+    εₘᵢₙ, εₘₐₓ = extrema(𝛆)
+    return β * (εₘᵢₙ - εₘₐₓ)
+end
 
 """
     matrix_function(f, A)
