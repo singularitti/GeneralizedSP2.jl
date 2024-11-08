@@ -2,7 +2,7 @@ using LsqFit: curve_fit, coef, stderror, vcov
 
 export fit_fermi_dirac, fit_entropy
 
-function fit_fermi_dirac(𝐱, μ, β, nlayers=20; max_iter=100, rtol=NaN)
+function fit_fermi_dirac(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
     # Initialize model with SP2
     𝛉 = init_params(μ, nlayers)
     fitted = curve_fit(
@@ -17,7 +17,7 @@ function fit_fermi_dirac(𝐱, μ, β, nlayers=20; max_iter=100, rtol=NaN)
     return coef(fitted), stderror(fitted; rtol=rtol), vcov(fitted)
 end
 
-function fit_entropy(𝐱, μ, β, nlayers=20; max_iter=100, rtol=NaN)
+function fit_entropy(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
     # Initialize model with SP2
     𝛉 = init_params(μ, nlayers)
     fitted = curve_fit(
