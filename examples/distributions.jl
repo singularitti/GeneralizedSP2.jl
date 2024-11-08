@@ -106,6 +106,7 @@ exact_occupation = tr(exact_densitymatrix)
 𝐎 = eigvals(exact_densitymatrix)
 
 𝐱 = samplex(μ, β, 100)
+𝐲_exact = fermi_dirac.(𝐱, μ′, β′)
 𝐱_inv = εₘₐₓ .- (εₘₐₓ - εₘᵢₙ) * 𝐱
 
 layers = 15:2:30
@@ -113,11 +114,11 @@ layers = 15:2:30
     𝛉, _, _ = fit_fermi_dirac(𝐱, μ′, β′, nlayers)
     𝛉
 end
-ys = map(𝚯) do 𝛉
+𝐲_fitted = map(𝚯) do 𝛉
     fermi_dirac_model(𝐱, 𝛉)
 end
-fit_errors = map(𝚯, ys) do 𝛉, 𝐲
-    residuals = 𝐲 - fermi_dirac.(𝐱, μ, β)
+fit_errors = map(𝚯, 𝐲_fitted) do 𝛉, 𝐲
+    residuals = 𝐲 - 𝐲_exact
     mean(abs2, residuals)
 end
 derivative_norms = map(𝚯) do 𝛉
@@ -154,16 +155,11 @@ xlabel!(raw"number of layers $L$"; subplot=1)
 ylabel!(raw"MSE of fitting"; subplot=1)
 
 plot!(
-    𝛌,
-    𝐎;
-    subplot=2,
-    linestyle=:dash,
-    label="exact FD on eigenvalues of H: " * string(eltype(𝐎)),
-    PLOT_DEFAULTS...,
+    𝛌, 𝐎; subplot=2, linestyle=:dash, label="exact FD" * string(eltype(𝐎)), PLOT_DEFAULTS...
 )
 plot!(
     𝐱_inv,
-    ys[end];
+    𝐲_fitted[end];
     subplot=2,
     linestyle=:solid,
     legend_position=:left,
@@ -185,15 +181,10 @@ xlims!(extrema(𝛌); subplot=2)
 xlabel!(raw"eigenvalues distribution"; subplot=2)
 ylabel!("Fermi–Dirac function"; subplot=2)
 
-hline!(
-    [zero(𝐎)];
-    subplot=3,
-    label="exact FD on eigenvalues of H: " * string(eltype(𝐎)),
-    PLOT_DEFAULTS...,
-)
+hline!([zero(𝐎)]; subplot=3, label="exact FD" * string(eltype(𝐎)), PLOT_DEFAULTS...)
 plot!(
     𝐱_inv,
-    ys[end] - fermi_dirac.(𝐱, μ, β);
+    𝐲_fitted[end] - 𝐲_exact;
     subplot=3,
     linestyle=:solid,
     legend_position=:left,
