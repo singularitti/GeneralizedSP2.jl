@@ -103,7 +103,7 @@ exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ)
 exact_densitymatrix_norm = norm(exact_densitymatrix, Inf)
 exact_occupation = tr(exact_densitymatrix)
 𝛌 = eigvals(H)
-𝐎 = fermi_dirac.(rescale_one_zero(εₘᵢₙ, εₘₐₓ).(𝛌), μ, β)  # Must be all reals
+𝐎 = eigvals(exact_densitymatrix)
 
 𝐱 = samplex(μ, β, 100)
 𝐱_inv = εₘₐₓ .- (εₘₐₓ - εₘᵢₙ) * 𝐱
