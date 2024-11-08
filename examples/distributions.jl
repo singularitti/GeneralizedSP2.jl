@@ -93,11 +93,12 @@ T = Float64
 # T = Float32
 # H = hamiltonian(dist, 512)
 H = diagonalhamil(1024, 40)
-β = convert(T, 1.25)
-μ = convert(T, 0)
+β = convert(T, 1.25)  # Physical
+μ = convert(T, 0)  # Physical
 H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
-β′ = β * (εₘᵢₙ - εₘₐₓ)
-μ′ = (μ - εₘₐₓ) / (εₘᵢₙ - εₘₐₓ)
+β′ = rescale_beta(β, (εₘᵢₙ, εₘₐₓ))
+μ′ = rescale_mu(μ, (εₘᵢₙ, εₘₐₓ))
+
 exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
 exact_densitymatrix_norm = norm(exact_densitymatrix, Inf)
 exact_occupation = tr(exact_densitymatrix)
