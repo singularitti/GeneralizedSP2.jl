@@ -3,6 +3,7 @@ using LsqFit: curve_fit, coef, stderror, vcov
 export fit_fermi_dirac, fit_entropy
 
 function fit_fermi_dirac(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
+    _checkdomain(𝐱, μ, β)
     # Initialize model with SP2
     𝛉 = init_params(μ, nlayers)
     fitted = curve_fit(
@@ -18,6 +19,7 @@ function fit_fermi_dirac(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
 end
 
 function fit_entropy(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
+    _checkdomain(𝐱, μ, β)
     # Initialize model with SP2
     𝛉 = init_params(μ, nlayers)
     fitted = curve_fit(
@@ -30,4 +32,16 @@ function fit_entropy(𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN)
         inplace=true,
     )
     return coef(fitted), stderror(fitted; rtol=rtol), vcov(fitted)
+end
+
+function _checkdomain(𝐱, μ, β)
+    if zero(eltype(𝐱)) <= minimum(𝐱) <= oneunit(eltype(𝐱))
+        throw(DomainError("𝐱 must be in the range [0, 1]!"))
+    end
+    if zero(μ) <= μ <= oneunit(μ)
+        throw(DomainError("μ must be in the range [0, 1]!"))
+    end
+    if β < zero(β)
+        throw(DomainError("β must be positive!"))
+    end
 end
