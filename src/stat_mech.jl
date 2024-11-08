@@ -97,6 +97,7 @@ function rescale_zero_one(𝐱)
     end
     return rescaler
 end
+rescale_zero_one(𝐱...) = rescale_zero_one(𝐱)
 
 function rescale_one_zero(𝐱)
     min, max = extrema(𝐱)
@@ -110,3 +111,4 @@ function rescale_one_zero(𝐱)
     end
     return rescaler
 end
+rescale_one_zero(𝐱...) = rescale_one_zero(𝐱)
