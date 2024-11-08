@@ -91,11 +91,16 @@ end
 function rescale_zero_one(𝐱)
     min, max = extrema(𝐱)
     @assert min < max
-    rescaler(x::Number) = (x - min) / (max - min)  # `x` can be out of the range [min, max]
-    function rescaler(A::AbstractMatrix)
-        k, b = inv(max - min), min / (min - max)
-        return k * A + b * I  # Map `max` to 1, `min` to 0
-    end
+    k, b = inv(max - min), min / (min - max)
+    @assert !iszero(k)
+
+    rescaler(x::Number) = k * x + b  # `x` can be out of the range [min, max]
+    rescaler(X::AbstractMatrix) = k * X + b * I  # Map `max` to 1, `min` to 0
+
+    rescaler⁻¹(y::Number) = y * (max - min) + min
+    rescaler⁻¹(Y::AbstractMatrix) = (Y - b * I) / k
+    Base.inv(::typeof(rescaler)) = rescaler⁻¹
+
     return rescaler
 end
 rescale_zero_one(𝐱...) = rescale_zero_one(𝐱)
@@ -103,11 +108,16 @@ rescale_zero_one(𝐱...) = rescale_zero_one(𝐱)
 function rescale_one_zero(𝐱)
     min, max = extrema(𝐱)
     @assert min < max
-    rescaler(x::Number) = (x - max) / (min - max)  # `x` can be out of the range [min, max]
-    function rescaler(A::AbstractMatrix)
-        k, b = inv(min - max), max / (max - min)
-        return k * A + b * I  # Map `max` to 0, `min` to 1
-    end
+    k, b = inv(min - max), max / (max - min)
+    @assert !iszero(k)
+
+    rescaler(x::Number) = k * x + b  # `x` can be out of the range [min, max]
+    rescaler(X::AbstractMatrix) = k * X + b * I  # Map `max` to 0, `min` to 1
+
+    rescaler⁻¹(y::Number) = y * (min - max) + max
+    rescaler⁻¹(Y::AbstractMatrix) = (Y - b * I) / k
+    Base.inv(::typeof(rescaler)) = rescaler⁻¹
+
     return rescaler
 end
 rescale_one_zero(𝐱...) = rescale_one_zero(𝐱)
