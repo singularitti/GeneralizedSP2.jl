@@ -8,9 +8,7 @@ export apply_model!,
     manualdiff_model!,
     manualdiff_model,
     fermi_dirac_model,
-    entropy_model,
-    rescale_zero_one,
-    rescale_one_zero
+    entropy_model
 
 # See https://github.com/PainterQubits/Unitful.jl/blob/6bf6f99/src/utils.jl#L241-L247
 struct DimensionError{X,Y} <: Exception
@@ -205,29 +203,3 @@ fermi_dirac_derivatives!(𝝝̄, 𝐱, 𝝷) =
 
 entropy_derivatives!(𝝝̄, 𝐱, 𝝷) = manualdiff_model!(transform_entropy_derivative, 𝝝̄, 𝐱, 𝝷)
 # entropy_derivatives!(𝝝̄, 𝐱, 𝝷) = autodiff_model!(transform_entropy, 𝝝̄, 𝐱, 𝝷)
-
-function rescale_zero_one(𝐱...)
-    min, max = extrema(𝐱)
-    if min == max
-        throw(ArgumentError("min and max cannot be the same!"))
-    end
-    rescale(x::Number) = (x - min) / (max - min)  # `x` can be out of the range [min, max]
-    function rescale(A::AbstractMatrix)
-        k, b = inv(max - min), min / (min - max)
-        return k * A + b * I  # Map `max` to 1, `min` to 0
-    end
-    return rescale
-end
-
-function rescale_one_zero(𝐱...)
-    min, max = extrema(𝐱)
-    if min == max
-        throw(ArgumentError("min and max cannot be the same!"))
-    end
-    rescale(x::Number) = (x - max) / (min - max)  # `x` can be out of the range [min, max]
-    function rescale(A::AbstractMatrix)
-        k, b = inv(min - max), max / (max - min)
-        return k * A + b * I  # Map `max` to 0, `min` to 1
-    end
-    return rescale
-end
