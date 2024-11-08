@@ -99,7 +99,7 @@ H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
 β′ = β * (εₘᵢₙ - εₘₐₓ)
 μ′ = (μ - εₘₐₓ) / (εₘᵢₙ - εₘₐₓ)
 exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
-exact_densitymatrix_norm = norm(exact_densitymatrix)
+exact_densitymatrix_norm = norm(exact_densitymatrix, Inf)
 exact_occupation = tr(exact_densitymatrix)
 𝛌 = eigvals(H)
 𝐎 = fermi_dirac.(rescale_one_zero(εₘᵢₙ, εₘₐₓ).(𝛌), μ, β)  # Must be all reals
@@ -121,13 +121,13 @@ fit_errors = map(𝚯, ys) do 𝛉, 𝐲
 end
 derivative_norms = map(𝚯) do 𝛉
     𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱, 𝛉)
-    norm(𝝝̄)
+    norm(𝝝̄, Inf)
 end
 densitymatrices = map(𝚯) do 𝛉
     fermi_dirac_model(H_scaled, 𝛉)
 end
 diff_norms = map(densitymatrices) do densitymatrix
-    norm(densitymatrix - exact_densitymatrix) / exact_densitymatrix_norm
+    norm(densitymatrix - exact_densitymatrix, Inf) / exact_densitymatrix_norm
 end
 occupations = map(densitymatrices) do densitymatrix
     tr(densitymatrix)
