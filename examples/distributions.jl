@@ -58,7 +58,7 @@ function hamiltonian(dist, syssize=2048; rtol=1e-13)
     return Hamiltonian(Eigen(Λ, V))
 end
 
-function rescaled_hamiltonian(H::AbstractMatrix)
+function rescale_hamiltonian(H::AbstractMatrix)
     # emin, emax = eigvals_extrema(H)
     𝚲 = eigvals(H)  # Must be all reals
     emin, emax = minimum(𝚲) - 10, maximum(𝚲) + 10
@@ -95,7 +95,7 @@ T = Float64
 H = diagonalhamil(1024, 40)
 β = convert(T, 1.25)
 μ = convert(T, 0)
-H_scaled, εₘᵢₙ, εₘₐₓ = rescaled_hamiltonian(H)
+H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
 β′ = β * (εₘᵢₙ - εₘₐₓ)
 μ′ = (μ - εₘₐₓ) / (εₘᵢₙ - εₘₐₓ)
 exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))

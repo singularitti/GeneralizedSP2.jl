@@ -8,7 +8,7 @@ function rand_hamiltonian(syssize, α=2)
     return collect(hermitianpart(Q * Λ * Q')), 𝛌  # Use `collect` to avoid Hermitian-specific algorithms
 end
 
-function rescaled_hamiltonian(H::AbstractMatrix)
+function rescale_hamiltonian(H::AbstractMatrix)
     εₘᵢₙ, εₘₐₓ = minimum(eigvals(H)) - 10, maximum(eigvals(H)) + 10
     return rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H), εₘᵢₙ, εₘₐₓ
 end
@@ -26,7 +26,7 @@ end
     end
     @testset "Test on the rescaled Fermi–Dirac function" begin
         μ, β = 0.35, 4
-        H_scaled, εₘᵢₙ, εₘₐₓ = rescaled_hamiltonian(H)
+        H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
         D = rescaled_fermi_dirac2(H, μ, β, (εₘᵢₙ, εₘₐₓ))
         D′ = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
         @test D ≈ D′
