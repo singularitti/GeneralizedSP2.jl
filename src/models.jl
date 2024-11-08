@@ -1,5 +1,5 @@
 using LinearAlgebra: I, checksquare
-using Enzyme: Reverse, Const, Duplicated, autodiff
+# using Enzyme: Reverse, Const, Duplicated, autodiff
 
 export apply_model!,
     apply_model,
@@ -139,7 +139,7 @@ function autodiff_model!(f, 𝝝̄, 𝐱, Θ)
         y = zeros(1)
         ȳ = ones(1)
         Θ̄ = zero(Θ)
-        autodiff(Reverse, _apply_model!, Duplicated(y, ȳ), Const([x]), Duplicated(Θ, Θ̄))
+        # autodiff(Reverse, _apply_model!, Duplicated(y, ȳ), Const([x]), Duplicated(Θ, Θ̄))
         𝝝̄[i, :, :] = Θ̄
     end
     return 𝝝̄
