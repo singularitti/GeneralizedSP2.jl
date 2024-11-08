@@ -21,48 +21,48 @@ end
 Base.showerror(io::IO, e::DimensionError) =
     print(io, "DimensionError: $(e.x) and $(e.y) are not dimensionally compatible.")
 
-function apply_model(x, 𝝷::AbstractMatrix{T}) where {T}
-    if size(𝝷, 1) != LAYER_WIDTH
+function apply_model(x, Θ::AbstractMatrix{T}) where {T}
+    if size(Θ, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
     accumulator = zero(x * oneunit(T))  # Accumulator of the summation
     y = x  # `x` and `y` are 2 numbers
-    for 𝛉 in eachcol(𝝷)
+    for 𝛉 in eachcol(Θ)
         accumulator += 𝛉[4] * y
         y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3] * oneunit(y)
     end
     accumulator += oneunit(T) * y
     return accumulator
 end
-function apply_model(𝗫::AbstractMatrix{X}, 𝝷::AbstractMatrix{T}) where {X,T}
-    checksquare(𝗫)  # See https://discourse.julialang.org/t/120556/2
-    if size(𝝷, 1) != LAYER_WIDTH
+function apply_model(X::AbstractMatrix{S}, Θ::AbstractMatrix{T}) where {S,T}
+    checksquare(X)  # See https://discourse.julialang.org/t/120556/2
+    if size(Θ, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
-    accumulator = zeros(typeof(oneunit(X) * oneunit(T)), size(𝗫))
-    𝗬 = 𝗫
-    for 𝛉 in eachcol(𝝷)
-        accumulator += 𝛉[4] * 𝗬
-        𝗬 = 𝛉[1] * 𝗬^2 + 𝛉[2] * 𝗬 + 𝛉[3] * oneunit(𝗬)  # Note this is not element-wise!
+    accumulator = zeros(typeof(oneunit(S) * oneunit(T)), size(X))
+    Y = X
+    for 𝛉 in eachcol(Θ)
+        accumulator += 𝛉[4] * Y
+        Y = 𝛉[1] * Y^2 + 𝛉[2] * Y + 𝛉[3] * oneunit(Y)  # Note this is not element-wise!
     end
-    accumulator += oneunit(T) * 𝗬
+    accumulator += oneunit(T) * Y
     return accumulator
 end
 apply_model(𝐱, 𝛉::AbstractVector) = apply_model(𝐱, reshape(𝛉, LAYER_WIDTH, :))
 
 function apply_model!(
-    result::AbstractVector{Y}, 𝐱::AbstractVector{X}, 𝝷::AbstractMatrix{T}
-) where {X,Y,T}
-    if size(𝝷, 1) != LAYER_WIDTH
+    result::AbstractVector{R}, 𝐱::AbstractVector{S}, Θ::AbstractMatrix{T}
+) where {R,S,T}
+    if size(Θ, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
-    if !isa(oneunit(X) * oneunit(T), Y)
-        throw(DimensionError(oneunit(X) * oneunit(T), oneunit(Y)))
+    if !isa(oneunit(S) * oneunit(T), R)
+        throw(DimensionError(oneunit(S) * oneunit(T), oneunit(R)))
     end
     map!(result, 𝐱) do x
         y = x  # `x` and `y` are 2 numbers
         accumulator = zero(eltype(result))  # Accumulator of the summation
-        for 𝛉 in eachcol(𝝷)
+        for 𝛉 in eachcol(Θ)
             accumulator += 𝛉[4] * y
             y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3] * oneunit(y)
         end
@@ -71,22 +71,22 @@ function apply_model!(
     return result
 end
 function apply_model!(
-    result::AbstractMatrix{Y}, 𝗫::AbstractMatrix{X}, 𝝷::AbstractMatrix{T}
-) where {X,Y,T}
-    checksquare(𝗫)  # See https://discourse.julialang.org/t/120556/2
+    result::AbstractMatrix{R}, X::AbstractMatrix{S}, 𝝷::AbstractMatrix{T}
+) where {R,S,T}
+    checksquare(X)  # See https://discourse.julialang.org/t/120556/2
     if size(𝝷, 1) != LAYER_WIDTH
         throw(ArgumentError("input coefficients matrix must have $LAYER_WIDTH rows!"))
     end
-    if !isa(oneunit(X) * oneunit(T), Y)
-        throw(DimensionError(oneunit(X) * oneunit(T), oneunit(Y)))
+    if !isa(oneunit(S) * oneunit(T), R)
+        throw(DimensionError(oneunit(S) * oneunit(T), oneunit(R)))
     end
     map!(zero, result, result)
-    𝗬 = 𝗫
+    Y = X
     for 𝛉 in eachcol(𝝷)
-        result += 𝛉[4] * 𝗬
-        𝗬 = 𝛉[1] * 𝗬^2 + 𝛉[2] * 𝗬 + 𝛉[3] * oneunit(𝗬)  # Note this is not element-wise!
+        result += 𝛉[4] * Y
+        Y = 𝛉[1] * Y^2 + 𝛉[2] * Y + 𝛉[3] * oneunit(Y)  # Note this is not element-wise!
     end
-    result += oneunit(T) * 𝗬
+    result += oneunit(T) * Y
     return result
 end
 apply_model!(result, 𝐱, 𝛉::AbstractVector) =
@@ -94,67 +94,67 @@ apply_model!(result, 𝐱, 𝛉::AbstractVector) =
 
 finalize_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
 
-function fermi_dirac_model(𝐱::AbstractVector, 𝝷)
+function fermi_dirac_model(𝐱::AbstractVector, Θ)
     return map(𝐱) do x
-        finalize_fermi_dirac(apply_model(x, 𝝷))  # This is element-wise!
+        finalize_fermi_dirac(apply_model(x, Θ))  # This is element-wise!
     end
 end
-function fermi_dirac_model(𝗫::AbstractMatrix, 𝝷)
-    intermediate = apply_model(𝗫, 𝝷)
+function fermi_dirac_model(X::AbstractMatrix, Θ)
+    intermediate = apply_model(X, Θ)
     return finalize_fermi_dirac(intermediate)  # Note this is not element-wise!
 end
 
-function fermi_dirac_model!(result::AbstractVector, 𝐱::AbstractVector, 𝝷)
+function fermi_dirac_model!(result::AbstractVector, 𝐱::AbstractVector, Θ)
     return map!(result, 𝐱) do x
-        finalize_fermi_dirac(apply_model(x, 𝝷))  # This is element-wise!
+        finalize_fermi_dirac(apply_model(x, Θ))  # This is element-wise!
     end
 end
-function fermi_dirac_model!(result::AbstractMatrix, 𝗫::AbstractMatrix, 𝝷)
-    intermediate = apply_model(𝗫, 𝝷)
+function fermi_dirac_model!(result::AbstractMatrix, X::AbstractMatrix, Θ)
+    intermediate = apply_model(X, Θ)
     copy!(result, finalize_fermi_dirac(intermediate))  # Note this is not element-wise!
     return result
 end
 
 finalize_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
 
-function entropy_model(𝐱::AbstractVector, 𝝷)
+function entropy_model(𝐱::AbstractVector, Θ)
     return map(𝐱) do x
-        finalize_entropy(apply_model(x, 𝝷))  # This is element-wise!
+        finalize_entropy(apply_model(x, Θ))  # This is element-wise!
     end
 end
-function entropy_model(𝗫::AbstractMatrix, 𝝷)
-    intermediate = apply_model(𝗫, 𝝷)
+function entropy_model(X::AbstractMatrix, Θ)
+    intermediate = apply_model(X, Θ)
     return finalize_entropy(intermediate)  # Note this is not element-wise!
 end
 
-function entropy_model!(result::AbstractVector, 𝐱::AbstractVector, 𝝷)
+function entropy_model!(result::AbstractVector, 𝐱::AbstractVector, Θ)
     return map!(result, 𝐱) do x
-        finalize_entropy(apply_model(x, 𝝷))  # This is element-wise!
+        finalize_entropy(apply_model(x, Θ))  # This is element-wise!
     end
 end
-function entropy_model!(result::AbstractMatrix, 𝗫::AbstractMatrix, 𝝷)
-    intermediate = apply_model(𝗫, 𝝷)
+function entropy_model!(result::AbstractMatrix, X::AbstractMatrix, Θ)
+    intermediate = apply_model(X, Θ)
     copy!(result, finalize_entropy(intermediate))  # Note this is not element-wise!
     return result
 end
 
-function autodiff_model(f, 𝐱, 𝝷)
-    𝝝̄ = Array{eltype(𝝷)}(undef, size(𝐱)..., size(𝝷)...)
-    return autodiff_model!(f, 𝝝̄, 𝐱, 𝝷)
+function autodiff_model(f, 𝐱, Θ)
+    𝝝̄ = Array{eltype(Θ)}(undef, size(𝐱)..., size(Θ)...)
+    return autodiff_model!(f, 𝝝̄, 𝐱, Θ)
 end
 
-function autodiff_model!(f, 𝝝̄, 𝐱, 𝝷)
-    function _apply_model!(𝐲, 𝐱, 𝝷)
-        apply_model!(f, 𝐲, 𝐱, 𝝷)
+function autodiff_model!(f, 𝝝̄, 𝐱, Θ)
+    function _apply_model!(𝐲, 𝐱, Θ)
+        apply_model!(f, 𝐲, 𝐱, Θ)
         return nothing
     end
 
     foreach(enumerate(𝐱)) do (i, x)
         y = zeros(1)
         ȳ = ones(1)
-        𝝷̄ = zero(𝝷)
-        autodiff(Reverse, _apply_model!, Duplicated(y, ȳ), Const([x]), Duplicated(𝝷, 𝝷̄))
-        𝝝̄[i, :, :] = 𝝷̄
+        Θ̄ = zero(Θ)
+        autodiff(Reverse, _apply_model!, Duplicated(y, ȳ), Const([x]), Duplicated(Θ, Θ̄))
+        𝝝̄[i, :, :] = Θ̄
     end
     return 𝝝̄
 end

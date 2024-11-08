@@ -42,16 +42,16 @@ function forward_pass(branches, 𝐱)
 end
 
 function init_params(μ, nlayers)
-    𝝷 = zeros(eltype(μ), LAYER_WIDTH, nlayers)
+    Θ = zeros(eltype(μ), LAYER_WIDTH, nlayers)
     branches = determine_branches(μ, nlayers)
 
     for (i, branch) in zip(1:nlayers, branches)
         if branch  # μᵢ < μ
-            𝝷[:, i] = [1, 0, 0, 0] # x' = x^2, increase μᵢ
+            Θ[:, i] = [1, 0, 0, 0] # x' = x^2, increase μᵢ
         else
-            𝝷[:, i] = [-1, 2, 0, 0] # x' = 2x - x^2, decrease μᵢ
+            Θ[:, i] = [-1, 2, 0, 0] # x' = 2x - x^2, decrease μᵢ
         end
     end
 
-    return vec(𝝷)
+    return vec(Θ)
 end
