@@ -13,15 +13,15 @@ struct Rescaler{K,B}
     end
 end
 
-struct Inverse{T}
+struct Inverse{T<:Rescaler}
     rescaler::T
 end
 
 (r::Rescaler)(x::Number) = r.k * x + r.b  # `x` can be out of the range [min, max]
 (r::Rescaler)(X::AbstractMatrix) = r.k * X + r.b * I
 
-(i::Inverse{<:Rescaler})(y::Number) = (y - i.r.b) / i.r.k
-(i::Inverse{<:Rescaler})(Y::AbstractMatrix) = (Y - i.r.b * I) / i.r.k
+(i::Inverse{<:Rescaler})(y::Number) = (y - i.rescaler.b) / i.rescaler.k
+(i::Inverse{<:Rescaler})(Y::AbstractMatrix) = (Y - i.rescaler.b * I) / i.rescaler.k
 
 Base.inv(r::Rescaler) = Inverse(r)
 
