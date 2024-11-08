@@ -155,15 +155,28 @@ xlabel!(raw"number of layers $L$"; subplot=1)
 ylabel!(raw"MSE of fitting"; subplot=1)
 
 plot!(
-    𝛌, 𝐎; subplot=2, linestyle=:dash, label="exact FD" * string(eltype(𝐎)), PLOT_DEFAULTS...
+    𝐱′_inv,
+    𝐲̂;
+    subplot=2,
+    linestyle=:solid,
+    label=raw"$\hat{\mathbf{y}}$ for fitting: " * string(eltype(𝐎)),
+    PLOT_DEFAULTS...,
 )
 plot!(
     𝐱′_inv,
     𝐲_fitted[end];
     subplot=2,
-    linestyle=:solid,
+    linestyle=:dashdotdot,
     legend_position=:left,
-    label="fitting with N=$(layers[end])",
+    label="fitted with N=$(layers[end])",
+    PLOT_DEFAULTS...,
+)
+plot!(
+    𝛌,
+    𝐎;
+    subplot=2,
+    linestyle=:dash,
+    label="exact DM eigvals: " * string(eltype(𝐎)),
     PLOT_DEFAULTS...,
 )
 for (densitymatrix, nlayer) in zip(densitymatrices, layers)
