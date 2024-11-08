@@ -28,9 +28,9 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-function estimate_mu(𝐇, nocc)
+function estimate_mu(H, nocc)
     nocc = floor(Int, nocc)
-    diagonal = sort(diag(𝐇))
+    diagonal = sort(diag(H))
     HOMO, LUMO = diagonal[nocc], diagonal[nocc + 1]
     μ₀ = (HOMO + LUMO) / 2
     g(μ) = nocc - sum(fermi_dirac.(diagonal, μ, β))
@@ -38,9 +38,9 @@ function estimate_mu(𝐇, nocc)
     return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=true)
 end
 
-function compute_mu(𝐇, nocc)
+function compute_mu(H, nocc)
     nocc = floor(Int, nocc)
-    evals = eigvals(𝐇)
+    evals = eigvals(H)
     HOMO, LUMO = evals[nocc], evals[nocc + 1]
     μ₀ = (HOMO + LUMO) / 2
     g(μ) = nocc - sum(fermi_dirac.(evals, μ, β))
