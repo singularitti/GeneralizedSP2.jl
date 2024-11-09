@@ -5,6 +5,7 @@ using GeneralizedSP2: fermi_dirac_prime, transform_fermi_dirac_derivative
 using LinearAlgebra
 using Roots: Newton, find_zero
 using Plots
+using ProgressMeter
 using StatsPlots
 using ToyHamiltonians
 
@@ -111,8 +112,8 @@ E = eigen(H)
 𝐱′_inv = sort(inv(rescale_one_zero(εₘᵢₙ, εₘₐₓ)).(𝐱′))
 
 layers = 15:2:30
-𝚯 = map(layers) do nlayers
-    𝛉, _, _ = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=1000)
+𝚯 = @showprogress map(layers) do nlayers
+    𝛉, _, _ = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=100000)
     𝛉
 end
 𝐲_fitted = map(𝚯) do 𝛉
