@@ -3,12 +3,7 @@ using LinearAlgebra: Diagonal, eigen, eigvals
 using IsApprox: isunitary
 
 export fermi_dirac,
-    rescaled_fermi_dirac,
-    electronic_energy,
-    electronic_entropy,
-    occupations,
-    rescale_mu,
-    rescale_beta
+    rescaled_fermi_dirac, electronic_energy, electronic_entropy, rescale_mu, rescale_beta
 
 function fermi_dirac(ε, μ, β)
     η = exp((ε - μ) * β)
@@ -49,8 +44,6 @@ end
 
 electronic_entropy(ε, μ, β) =
     (fermi_dirac(ε, μ, β) * (ε - μ) - electronic_energy(ε, μ, β)) * β
-
-occupations(dm::AbstractMatrix) = eigvals(dm)
 
 function rescale_mu(μ, 𝛆)
     εₘᵢₙ, εₘₐₓ = extrema(𝛆)
