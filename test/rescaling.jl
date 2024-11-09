@@ -1,9 +1,9 @@
 using LinearAlgebra: Diagonal, eigvals, hermitianpart, ishermitian, qr
 using Random: randexp
 
-function rand_hamiltonian(syssize, α=2)
-    Q, _ = qr(randn(syssize, syssize))
-    𝛌 = α * randexp(syssize)
+function rand_hamiltonian(sys_size, α=2)
+    Q, _ = qr(randn(sys_size, sys_size))
+    𝛌 = α * randexp(sys_size)
     Λ = Diagonal(𝛌)
     return collect(hermitianpart(Q * Λ * Q')), 𝛌  # Use `collect` to avoid Hermitian-specific algorithms
 end
