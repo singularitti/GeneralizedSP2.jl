@@ -13,15 +13,8 @@ struct Rescaler{K,B}
     end
 end
 
-struct Inverse{T<:Rescaler}
-    rescaler::T
-end
-
 (r::Rescaler)(x::Number) = r.k * x + r.b  # `x` can be out of the range [min, max]
 (r::Rescaler)(X::AbstractMatrix) = r.k * X + r.b * I
-
-(i::Inverse{<:Rescaler})(y::Number) = (y - i.rescaler.b) / i.rescaler.k
-(i::Inverse{<:Rescaler})(Y::AbstractMatrix) = (Y - i.rescaler.b * I) / i.rescaler.k
 
 Base.inv(r::Rescaler) = Inverse(r)
 
@@ -47,16 +40,6 @@ function Base.show(io::IO, ::MIME"text/plain", r::Rescaler)
         print(io, "y = $k x - $(abs(b))")
     else
         print(io, "y = $k x + $b")
-    end
-    return nothing
-end
-function Base.show(io::IO, ::MIME"text/plain", ir::Inverse{<:Rescaler})
-    k, b = ir.rescaler.k, ir.rescaler.b
-    k⁻¹, b⁻¹ = inv(k), -b / k
-    if b⁻¹ < zero(b⁻¹)
-        print(io, "x = $k⁻¹ y - $(abs(b⁻¹))")
-    else
-        print(io, "x = $k⁻¹ y + $b⁻¹")
     end
     return nothing
 end
