@@ -9,7 +9,7 @@ function rand_hamiltonian(syssize, α=2)
 end
 
 function rescale_hamiltonian(H::AbstractMatrix)
-    εₘᵢₙ, εₘₐₓ = minimum(eigvals(H)) - 10, maximum(eigvals(H)) + 10
+    εₘᵢₙ, εₘₐₓ = floor(minimum(eigvals(H))), ceil(maximum(eigvals(H)))
     return rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H), εₘᵢₙ, εₘₐₓ
 end
 

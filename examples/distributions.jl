@@ -59,10 +59,10 @@ function hamiltonian(dist, sys_size=2048; rtol=1e-13)
 end
 
 function rescale_hamiltonian(H::AbstractMatrix)
-    # emin, emax = eigvals_extrema(H)
+    # εₘᵢₙ, εₘₐₓ = eigvals_extrema(H)
     𝚲 = eigvals(H)  # Must be all reals
-    emin, emax = minimum(𝚲) - 10, maximum(𝚲) + 10
-    return rescale_one_zero(emin, emax)(H), emin, emax
+    εₘᵢₙ, εₘₐₓ = floor(minimum(𝚲)), ceil(maximum(𝚲))
+    return rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H), εₘᵢₙ, εₘₐₓ
 end
 
 function samplex(μ, β, npoints_scale=100)
