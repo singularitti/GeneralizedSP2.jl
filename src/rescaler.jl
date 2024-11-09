@@ -16,7 +16,7 @@ end
 (r::Rescaler)(x::Number) = r.k * x + r.b  # `x` can be out of the range [min, max]
 (r::Rescaler)(X::AbstractMatrix) = r.k * X + r.b * I
 
-Base.inv(r::Rescaler) = Inverse(r)
+Base.inv(r::Rescaler) = Rescaler(inv(r.k), -r.b / r.k)
 
 function rescale_zero_one(𝐱)  # Map `max` to 1, `min` to 0
     min, max = extrema(𝐱)
