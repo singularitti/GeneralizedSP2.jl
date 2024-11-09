@@ -17,6 +17,7 @@ end
     𝐱 = 1:5
     X = [1.0 2.0; 3.0 4.0]
     rescaler = rescale_zero_one(𝐱)
+    @test inv(inv(rescaler)) == rescaler
     @testset "Test number rescaling" begin
         @test rescaler(1.0) == 0
         @test rescaler(5.0) == 1
@@ -37,6 +38,7 @@ end
     𝐱 = 5:-1:1
     X = [1.0 2.0; 3.0 4.0]
     rescaler = rescale_one_zero(𝐱)
+    @test inv(inv(rescaler)) == rescaler
     @testset "Test number rescaling" begin
         @test rescaler(1.0) == 1
         @test rescaler(5.0) == 0
