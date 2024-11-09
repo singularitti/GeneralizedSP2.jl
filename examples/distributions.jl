@@ -102,8 +102,9 @@ H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
 exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
 exact_densitymatrix_norm = norm(exact_densitymatrix, Inf)
 exact_occupation = tr(exact_densitymatrix)
-𝛌 = eigvals(H)
-𝐎 = real(eigvals(exact_densitymatrix))
+E = eigen(H)
+𝛌, V = E.values, E.vectors
+𝐎 = diag(inv(V) * exact_densitymatrix * V)  # Cannot just use `eigvals` since it is not in corresponding order
 
 𝐱′ = chebyshevnodes_1st(10000, (0, 1))
 𝐲̂ = fermi_dirac.(𝐱′, μ′, β′)
@@ -130,6 +131,9 @@ densitymatrices = map(𝚯) do 𝛉
 end
 diff_norms = map(densitymatrices) do densitymatrix
     norm(densitymatrix - exact_densitymatrix, Inf)
+end
+fd_distributions = map(densitymatrices) do densitymatrix
+    diag(inv(V) * densitymatrix * V)  # Cannot just use `eigvals` since it is not in corresponding order
 end
 occupations = map(densitymatrices) do densitymatrix
     tr(densitymatrix)
@@ -179,14 +183,14 @@ plot!(
     label="exact DM eigvals: " * string(eltype(𝐎)),
     PLOT_DEFAULTS...,
 )
-for (densitymatrix, nlayer) in zip(densitymatrices, layers)
+for (fd_distribution, nlayer) in zip(fd_distributions, layers)
     plot!(
         𝛌,
-        eigvals(densitymatrix);
+        fd_distribution;
         subplot=2,
         linestyle=:dot,
         legend_position=:left,
-        label="N=$nlayer: " * string(eltype(densitymatrix)),
+        label="N=$nlayer: " * string(eltype(fd_distribution)),
         PLOT_DEFAULTS...,
     )
 end
@@ -204,14 +208,14 @@ plot!(
     label="fitting with N=$(layers[end])",
     PLOT_DEFAULTS...,
 )
-for (densitymatrix, nlayer) in zip(densitymatrices, layers)
+for (fd_distribution, nlayer) in zip(fd_distributions, layers)
     plot!(
         𝛌,
-        eigvals(densitymatrix) .- 𝐎;
+        fd_distribution .- 𝐎;
         subplot=3,
         linestyle=:dot,
         legend_position=:topleft,
-        label="N=$nlayer: " * string(eltype(densitymatrix)),
+        label="N=$nlayer: " * string(eltype(fd_distribution)),
         PLOT_DEFAULTS...,
     )
 end
