@@ -106,7 +106,7 @@ E = eigen(H)
 𝛌, V = E.values, E.vectors
 𝐎 = diag(inv(V) * exact_densitymatrix * V)  # Cannot just use `eigvals` since it is not in corresponding order
 
-𝐱′ = chebyshevnodes_1st(10000, (0, 1))
+𝐱′ = reverse(chebyshevnodes_1st(1000, (0, 1)))  # Have to reverse since β′ is negative
 𝐲̂ = fermi_dirac.(𝐱′, μ′, β′)
 𝐱′_inv = sort(inv(rescale_one_zero(εₘᵢₙ, εₘₐₓ)).(𝐱′))
 
