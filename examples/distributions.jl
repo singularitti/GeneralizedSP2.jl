@@ -108,7 +108,7 @@ E = eigen(H)
 
 layers = 15:2:30
 𝚯 = @showprogress map(layers) do nlayers
-    𝛉, _, _ = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=100000)
+    𝛉, _, _ = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter)
     𝛉
 end
 𝐲_fitted = map(𝚯) do 𝛉
