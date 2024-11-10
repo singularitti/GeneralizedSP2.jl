@@ -10,7 +10,6 @@ using StatsPlots
 using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
-    :size => (1900, 900),
     :dpi => 400,
     :framestyle => :box,
     :linewidth => 1,
@@ -23,7 +22,7 @@ PLOT_DEFAULTS = Dict(
     :tickfontsize => 6,
     :legendfontsize => 6,
     :left_margin => (8, :mm),
-    :bottom_margin => (4, :mm),
+    :bottom_margin => (6, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
@@ -87,15 +86,11 @@ dist = LogUniform(100, 200)
 # dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
 # dist = MixtureModel([Uniform(-10, 50), Uniform(50, 90)], [0.4, 0.6])
 
-layout = (3, 3)
-plot(; layout=layout, PLOT_DEFAULTS...)
-
-T = Float64
-# T = Float32
-# H = hamiltonian(dist, 512)
-H = diagonalhamil(1024, 40)
-β = convert(T, 1.25)  # Physical
-μ = convert(T, 0)  # Physical
+max_iter = 100000
+H = hamiltonian(dist, 512)
+# H = diagonalhamil(1024, 40)
+β = 1.25  # Physical
+μ = 150  # Physical
 H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
 β′ = rescale_beta(β, (εₘᵢₙ, εₘₐₓ))
 μ′ = rescale_mu(μ, (εₘᵢₙ, εₘₐₓ))
@@ -147,6 +142,9 @@ band_energies = map(densitymatrices) do densitymatrix
 end
 exact_band_energies = tr(exact_densitymatrix * H)
 
+layout = (1, 3)
+plot(; layout=layout, PLOT_DEFAULTS..., size=(1600, 400))
+
 scatter!(
     layers,
     fit_errors;
@@ -164,7 +162,7 @@ plot!(
     𝐲̂;
     subplot=2,
     linestyle=:solid,
-    label=raw"$\hat{\mathbf{y}}$ for fitting: " * string(eltype(𝐎)),
+    label=raw"$\hat{\mathbf{y}}$ for fitting",
     PLOT_DEFAULTS...,
 )
 plot!(
@@ -176,14 +174,7 @@ plot!(
     label="fitted with N=$(layers[end])",
     PLOT_DEFAULTS...,
 )
-plot!(
-    𝛌,
-    𝐎;
-    subplot=2,
-    linestyle=:dash,
-    label="exact DM eigvals: " * string(eltype(𝐎)),
-    PLOT_DEFAULTS...,
-)
+plot!(𝛌, 𝐎; subplot=2, linestyle=:dash, label="exact DM eigvals", PLOT_DEFAULTS...)
 for (fd_distribution, nlayer) in zip(fd_distributions, layers)
     plot!(
         𝛌,
@@ -191,7 +182,7 @@ for (fd_distribution, nlayer) in zip(fd_distributions, layers)
         subplot=2,
         linestyle=:dot,
         legend_position=:left,
-        label="N=$nlayer: " * string(eltype(fd_distribution)),
+        label="N=$nlayer",
         PLOT_DEFAULTS...,
     )
 end
@@ -199,7 +190,7 @@ xlims!(extrema(𝛌); subplot=2)
 xlabel!(raw"eigenvalues distribution"; subplot=2)
 ylabel!("Fermi–Dirac function"; subplot=2)
 
-hline!([zero(𝐎)]; subplot=3, label="exact FD" * string(eltype(𝐎)), PLOT_DEFAULTS...)
+hline!([zero(𝐎)]; subplot=3, label="exact FD", PLOT_DEFAULTS...)
 plot!(
     𝐱′_inv,
     𝐲_fitted[end] - 𝐲̂;
@@ -216,101 +207,106 @@ for (fd_distribution, nlayer) in zip(fd_distributions, layers)
         subplot=3,
         linestyle=:dot,
         legend_position=:topleft,
-        label="N=$nlayer: " * string(eltype(fd_distribution)),
+        label="N=$nlayer",
         PLOT_DEFAULTS...,
     )
 end
 xlims!(extrema(𝛌); subplot=3)
 xlabel!(raw"eigenvalues distribution"; subplot=3)
 ylabel!("Fermi–Dirac function difference"; subplot=3)
+savefig("$(dist)_$(β)_$(μ)_$(max_iter)_fermi_dirac.png")
+
+layout = (1, 3)
+plot(; layout=layout, PLOT_DEFAULTS..., size=(1600, 400))
 
 scatter!(
     layers,
     diff_norms;
-    subplot=4,
+    subplot=1,
     yscale=:log10,
     xticks=layers,
     label=string(eltype(diff_norms)),
     PLOT_DEFAULTS...,
     legend_position=:bottomleft,
 )
-xlabel!(raw"number of layers $L$"; subplot=4)
-ylabel!(raw"$| \rho - \rho_{\textrm{exact}} |_{\textrm{\infty}}$"; subplot=4)
+xlabel!(raw"number of layers $L$"; subplot=1)
+ylabel!(raw"$| \rho - \rho_{\textrm{exact}} |_{\textrm{\infty}}$"; subplot=1)
 
-hline!(
-    [exact_occupation];
-    subplot=5,
-    xticks=layers,
-    label="exact Nocc: " * string(eltype(exact_occupation)),
-    PLOT_DEFAULTS...,
-)
+hline!([exact_occupation]; subplot=2, xticks=layers, label="exact Nocc", PLOT_DEFAULTS...)
 scatter!(
     layers,
     occupations;
-    subplot=5,
+    subplot=2,
     xticks=layers,
-    label="Nocc: " * string(eltype(occupations)),
+    label="Nocc",
     PLOT_DEFAULTS...,
     legend_position=:bottomleft,
     PLOT_DEFAULTS...,
 )
-xlims!(extrema(layers); subplot=5)
-xlabel!(raw"number of layers $L$"; subplot=5)
-ylabel!(raw"$N$"; subplot=5)
+xlims!(extrema(layers); subplot=2)
+xlabel!(raw"number of layers $L$"; subplot=2)
+ylabel!(raw"$N$"; subplot=2)
 
 scatter!(
     layers,
     (band_energies .- exact_band_energies) ./ exact_band_energies;
-    subplot=6,
+    subplot=3,
     xticks=layers,
     label=string(eltype(band_energies)),
     PLOT_DEFAULTS...,
     legend_position=:bottomleft,
     PLOT_DEFAULTS...,
 )
-xlabel!(raw"number of layers $L$"; subplot=6)
+xlabel!(raw"number of layers $L$"; subplot=3)
 ylabel!(
     raw"$\left(\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_{\textrm{exact}} H)\right) / \mathrm{tr}(\rho_{\textrm{exact}} H)$";
-    subplot=6,
+    subplot=3,
 )
+savefig("$(dist)_$(β)_$(μ)_$(max_iter)_norm.png")
 
-scatter!(layers, derivative_norms; subplot=7, xticks=layers, label="", PLOT_DEFAULTS...)
-xlabel!(raw"number of layers $L$"; subplot=7)
-ylabel!(raw"$| \dot{\theta} |$"; subplot=7)
+layout = (1, 2)
+plot(; layout=layout, PLOT_DEFAULTS..., size=(3200 / 3, 400))
 
-hline!([μ]; subplot=8, xticks=layers, label="preset μ", PLOT_DEFAULTS...)
+scatter!(layers, derivative_norms; subplot=1, xticks=layers, label="", PLOT_DEFAULTS...)
+xlabel!(raw"number of layers $L$"; subplot=1)
+ylabel!(raw"$| \dot{\theta} |$"; subplot=1)
+
+hline!([μ]; subplot=2, xticks=layers, label="preset μ", PLOT_DEFAULTS...)
 # hline!(
 #     [compute_mu(H_scaled, β, exact_occupation)];
-#     subplot=8,
+#     subplot=2,
 #     xticks=layers,
-#     label="reversed solving μ: " * string(eltype(exact_occupation)),
+#     label="reversed solving μ",
 #     PLOT_DEFAULTS...,
 # )
 scatter!(
     layers,
     estimated_mu;
-    subplot=8,
+    subplot=2,
     markershape=:circle,
     xticks=layers,
     legend_position=:left,
-    label="estimatd μ: " * string(eltype(estimated_mu)),
+    label="estimatd μ",
     PLOT_DEFAULTS...,
 )
-xlims!(extrema(layers); subplot=8)
-xlabel!(raw"number of layers $L$"; subplot=8)
-ylabel!(raw"$\mu$"; subplot=8)
+xlims!(extrema(layers); subplot=2)
+xlabel!(raw"number of layers $L$"; subplot=2)
+ylabel!(raw"$\mu$"; subplot=2)
+savefig("$(dist)_$(β)_$(μ)_$(max_iter)_mu.png")
+
+layout = (1, 1)
+plot(; layout=layout, PLOT_DEFAULTS..., size=(1600 / 3, 400))
 
 histogram!(
     𝛌;
-    subplot=9,
+    subplot=1,
     nbins=45,
     normalize=true,
     legend_position=:top,
     label=string(eltype(𝛌)),
     PLOT_DEFAULTS...,
 )
-xlims!(extrema(𝛌); subplot=9)
-xlabel!("eigenvalues distribution"; subplot=9)
-ylabel!("density"; subplot=9)
-
-plot!()
+xlims!(extrema(𝛌); subplot=1)
+xlabel!("eigenvalues distribution"; subplot=1)
+ylabel!("density"; subplot=1)
+savefig("$(dist)_$(β)_$(μ)_$(max_iter)_hist.png")
