@@ -86,7 +86,7 @@ dist = LogUniform(100, 200)
 # dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
 # dist = MixtureModel([Uniform(-10, 50), Uniform(50, 90)], [0.4, 0.6])
 
-max_iter = 100000
+max_iter = 1_000_000
 H = hamiltonian(dist, 512)
 # H = diagonalhamil(1024, 40)
 β = 1.25  # Physical
@@ -106,7 +106,7 @@ E = eigen(H)
 𝐲̂ = fermi_dirac.(𝐱′, μ′, β′)
 𝐱′_inv = sort(inv(rescale_one_zero(εₘᵢₙ, εₘₐₓ)).(𝐱′))
 
-layers = 15:2:30
+layers = 18:21
 𝚯 = @showprogress map(layers) do nlayers
     𝛉, _, _ = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter)
     𝛉
