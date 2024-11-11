@@ -146,13 +146,7 @@ layout = (1, 3)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(1600, 400))
 
 scatter!(
-    layers,
-    fit_errors;
-    yscale=:log10,
-    subplot=1,
-    xticks=layers,
-    label=string(eltype(fit_errors)),
-    PLOT_DEFAULTS...,
+    layers, fit_errors; yscale=:log10, subplot=1, xticks=layers, label="", PLOT_DEFAULTS...
 )
 xlabel!(raw"number of layers $L$"; subplot=1)
 ylabel!(raw"MSE of fitting"; subplot=1)
@@ -225,7 +219,7 @@ scatter!(
     subplot=1,
     yscale=:log10,
     xticks=layers,
-    label=string(eltype(diff_norms)),
+    label="",
     PLOT_DEFAULTS...,
     legend_position=:bottomleft,
 )
@@ -252,7 +246,7 @@ scatter!(
     (band_energies .- exact_band_energies) ./ exact_band_energies;
     subplot=3,
     xticks=layers,
-    label=string(eltype(band_energies)),
+    label="",
     PLOT_DEFAULTS...,
     legend_position=:bottomleft,
     PLOT_DEFAULTS...,
@@ -298,13 +292,7 @@ layout = (1, 1)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(1600 / 3, 400))
 
 histogram!(
-    𝛌;
-    subplot=1,
-    nbins=45,
-    normalize=true,
-    legend_position=:top,
-    label=string(eltype(𝛌)),
-    PLOT_DEFAULTS...,
+    𝛌; subplot=1, nbins=45, normalize=true, legend_position=:top, label="", PLOT_DEFAULTS...
 )
 xlims!(extrema(𝛌); subplot=1)
 xlabel!("eigenvalues distribution"; subplot=1)
