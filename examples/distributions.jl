@@ -131,12 +131,15 @@ results = map(max_iters) do max_iter
     (rmse=rmse, times=times)
 end
 
-# Convert results to a format suitable for plotting
+time_matrix = hcat([result.times for result in results]...)
 rmse_matrix = hcat([result.rmse for result in results]...)
-# Plot RMSE vs. number of layers with separate series for each max_iter
-plot(
+
+layout = (1, 2)
+plot(; layout=layout, PLOT_DEFAULTS..., size=(3200 / 3, 400))
+plot!(
     layers,
     rmse_matrix;
+    subplot=1,
     label=hcat(("max iter=$max_iter" for max_iter in max_iters)...),
     yscale=:log10,
     xticks=layers,
@@ -145,9 +148,19 @@ plot(
     PLOT_DEFAULTS...,
     legend_position=:topright,
 )
-xlabel!(raw"number of layers $L$")
-ylabel!(raw"RMSE of fitting")
-savefig("$(dist_name)_$(β)_$(μ)_rmse.png")
+plot!(
+    layers,
+    time_matrix;
+    subplot=2,
+    label=hcat(("max iter=$max_iter" for max_iter in max_iters)...),
+    yscale=:log10,
+    xticks=layers,
+    xlabel=raw"number of layers $L$",
+    ylabel="time (s)",
+    PLOT_DEFAULTS...,
+    legend_position=:topleft,
+)
+savefig("$(dist_name)_$(β)_$(μ)_time.png")
 
 max_iter = 1_000_000
 layers = 18:21
