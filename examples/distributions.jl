@@ -86,9 +86,8 @@ dist = LogUniform(100, 200)
 # dist = MixtureModel([Normal(-40, 10), Normal(0, 10), Normal(40, 10)], [0.25, 0.5, 0.25])
 # dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
 # dist = MixtureModel([Uniform(-10, 50), Uniform(50, 90)], [0.4, 0.6])
-
 dist_name = "loguniform"
-max_iter = 1_000_000
+
 H = hamiltonian(dist, 512)
 # H = diagonalhamil(1024, 40)
 β = 1.25  # Physical
@@ -108,7 +107,51 @@ E = eigen(H)
 𝐲̂ = fermi_dirac.(𝐱′, μ′, β′)
 𝐱′_inv = sort(inv(rescale_one_zero(εₘᵢₙ, εₘₐₓ)).(𝐱′))
 
+layers = 10:21
+max_iters = [1_000, 10_000, 100_000]
+
+results = map(max_iters) do max_iter
+    println("fitting for max_iter = $max_iter")
+    timed_results = @showprogress map(layers) do nlayers
+        @timed fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter)
+    end
+    𝚯 = map(timed_results) do timed_result
+        first(timed_result.value)
+    end
+    times = map(timed_results) do timed_result
+        timed_result.time
+    end
+    𝐲_fitted = map(𝚯) do 𝛉
+        fermi_dirac_model(𝐱′, 𝛉)
+    end
+    rmse = map(𝚯, 𝐲_fitted) do 𝛉, 𝐲
+        residuals = 𝐲 - 𝐲̂
+        sqrt(mean(abs2, residuals))
+    end
+    (rmse=rmse, times=times)
+end
+
+# Convert results to a format suitable for plotting
+rmse_matrix = hcat([result.rmse for result in results]...)
+# Plot RMSE vs. number of layers with separate series for each max_iter
+plot(
+    layers,
+    rmse_matrix;
+    label=hcat(("max iter=$max_iter" for max_iter in max_iters)...),
+    yscale=:log10,
+    xticks=layers,
+    xlabel=raw"number of layers $L$",
+    ylabel="RMSE of fitting",
+    PLOT_DEFAULTS...,
+    legend_position=:topright,
+)
+xlabel!(raw"number of layers $L$")
+ylabel!(raw"RMSE of fitting")
+savefig("$(dist_name)_$(β)_$(μ)_rmse.png")
+
+max_iter = 1_000_000
 layers = 18:21
+println("fitting for max_iter = $max_iter")
 𝚯 = @showprogress map(layers) do nlayers
     𝛉, _, _ = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter)
     𝛉
