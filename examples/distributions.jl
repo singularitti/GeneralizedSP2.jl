@@ -136,7 +136,7 @@ occupations = map(densitymatrices) do densitymatrix
     tr(densitymatrix)
 end
 estimated_mu = map(occupations) do occupation
-    estimate_mu(H_scaled, β, occupation)
+    estimate_mu(H_scaled, β′, occupation)
 end
 band_energies = map(densitymatrices) do densitymatrix
     tr(densitymatrix * H)
@@ -264,14 +264,15 @@ scatter!(layers, derivative_norms; subplot=1, xticks=layers, label="", PLOT_DEFA
 xlabel!(raw"number of layers $L$"; subplot=1)
 ylabel!(raw"$| \dot{\theta} |_\infty$"; subplot=1)
 
-hline!([μ]; subplot=2, xticks=layers, label="preset μ", PLOT_DEFAULTS...)
-# hline!(
-#     [compute_mu(H_scaled, β, exact_occupation)];
-#     subplot=2,
-#     xticks=layers,
-#     label="reversed solving μ",
-#     PLOT_DEFAULTS...,
-# )
+hline!([μ′]; subplot=2, xticks=layers, label="preset", PLOT_DEFAULTS...)
+hline!(
+    [compute_mu(H_scaled, β′, exact_occupation)];
+    subplot=2,
+    linestyle=:dash,
+    xticks=layers,
+    label="reversed solved",
+    PLOT_DEFAULTS...,
+)
 scatter!(
     layers,
     estimated_mu;
@@ -279,12 +280,12 @@ scatter!(
     markershape=:circle,
     xticks=layers,
     legend_position=:left,
-    label="estimatd μ",
+    label="estimatd",
     PLOT_DEFAULTS...,
 )
 xlims!(extrema(layers); subplot=2)
 xlabel!(raw"number of layers $L$"; subplot=2)
-ylabel!(raw"$\mu$"; subplot=2)
+ylabel!(raw"rescaled $\mu$"; subplot=2)
 savefig("$(dist_name)_$(β)_$(μ)_$(max_iter)_mu.png")
 
 layout = (1, 1)
