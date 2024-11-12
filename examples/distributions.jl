@@ -86,6 +86,7 @@ dist = LogUniform(100, 200)
 # dist = MixtureModel([Cauchy(0.25, 0.2), Laplace(0.5, 0.1)], [0.6, 0.4])
 # dist = MixtureModel([Uniform(-10, 50), Uniform(50, 90)], [0.4, 0.6])
 
+dist_name = "loguniform"
 max_iter = 1_000_000
 H = hamiltonian(dist, 512)
 # H = diagonalhamil(1024, 40)
@@ -179,15 +180,15 @@ for (fd_distribution, nlayer) in zip(fd_distributions, layers)
     )
 end
 xlims!(extrema(𝛌); subplot=2)
-xlabel!(raw"eigenvalues distribution"; subplot=2)
+xlabel!(raw"eigenvalue distribution"; subplot=2)
 ylabel!("Fermi–Dirac function"; subplot=2)
 
-hline!([zero(𝐎)]; subplot=3, label="exact FD", PLOT_DEFAULTS...)
+hline!([zero(𝐎)]; subplot=3, seriescolor=:black, primary=false, PLOT_DEFAULTS...)
 plot!(
     𝐱′_inv,
     𝐲_fitted[end] - 𝐲̂;
     subplot=3,
-    linestyle=:solid,
+    linestyle=:dashdotdot,
     legend_position=:left,
     label="fitting with N=$(layers[end])",
     PLOT_DEFAULTS...,
@@ -204,9 +205,9 @@ for (fd_distribution, nlayer) in zip(fd_distributions, layers)
     )
 end
 xlims!(extrema(𝛌); subplot=3)
-xlabel!(raw"eigenvalues distribution"; subplot=3)
-ylabel!("Fermi–Dirac function difference"; subplot=3)
-savefig("$(dist)_$(β)_$(μ)_$(max_iter)_fermi_dirac.png")
+xlabel!(raw"eigenvalue distribution"; subplot=3)
+ylabel!("occpuation difference"; subplot=3)
+savefig("$(dist_name)_$(β)_$(μ)_$(max_iter)_fermi_dirac.png")
 
 layout = (1, 3)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(1600, 400))
@@ -222,7 +223,7 @@ scatter!(
     legend_position=:bottomleft,
 )
 xlabel!(raw"number of layers $L$"; subplot=1)
-ylabel!(raw"$| \rho - \rho_{\textrm{exact}} |_{\textrm{\infty}}$"; subplot=1)
+ylabel!(raw"$| \rho - \rho_{\textrm{exact}} |_\infty$"; subplot=1)
 
 hline!([exact_occupation]; subplot=2, xticks=layers, label="exact Nocc", PLOT_DEFAULTS...)
 scatter!(
@@ -233,11 +234,11 @@ scatter!(
     label="Nocc",
     PLOT_DEFAULTS...,
     legend_position=:bottomleft,
-    PLOT_DEFAULTS...,
+    yformatter=:plain,
 )
 xlims!(extrema(layers); subplot=2)
 xlabel!(raw"number of layers $L$"; subplot=2)
-ylabel!(raw"$N$"; subplot=2)
+ylabel!(raw"$\mathrm{tr}(\rho)$"; subplot=2)
 
 scatter!(
     layers,
@@ -254,14 +255,14 @@ ylabel!(
     raw"$\left(\mathrm{tr}(\rho H) - \mathrm{tr}(\rho_{\textrm{exact}} H)\right) / \mathrm{tr}(\rho_{\textrm{exact}} H)$";
     subplot=3,
 )
-savefig("$(dist)_$(β)_$(μ)_$(max_iter)_norm.png")
+savefig("$(dist_name)_$(β)_$(μ)_$(max_iter)_norm.png")
 
 layout = (1, 2)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(3200 / 3, 400))
 
 scatter!(layers, derivative_norms; subplot=1, xticks=layers, label="", PLOT_DEFAULTS...)
 xlabel!(raw"number of layers $L$"; subplot=1)
-ylabel!(raw"$| \dot{\theta} |$"; subplot=1)
+ylabel!(raw"$| \dot{\theta} |_\infty$"; subplot=1)
 
 hline!([μ]; subplot=2, xticks=layers, label="preset μ", PLOT_DEFAULTS...)
 # hline!(
@@ -284,7 +285,7 @@ scatter!(
 xlims!(extrema(layers); subplot=2)
 xlabel!(raw"number of layers $L$"; subplot=2)
 ylabel!(raw"$\mu$"; subplot=2)
-savefig("$(dist)_$(β)_$(μ)_$(max_iter)_mu.png")
+savefig("$(dist_name)_$(β)_$(μ)_$(max_iter)_mu.png")
 
 layout = (1, 1)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(1600 / 3, 400))
@@ -293,6 +294,6 @@ histogram!(
     𝛌; subplot=1, nbins=45, normalize=true, legend_position=:top, label="", PLOT_DEFAULTS...
 )
 xlims!(extrema(𝛌); subplot=1)
-xlabel!("eigenvalues distribution"; subplot=1)
+xlabel!("eigenvalue distribution"; subplot=1)
 ylabel!("density"; subplot=1)
-savefig("$(dist)_$(β)_$(μ)_$(max_iter)_hist.png")
+savefig("$(dist_name)_$(β)_$(μ)_$(max_iter)_hist.png")
