@@ -6,6 +6,7 @@ using LinearAlgebra
 using Roots: Newton, find_zero
 using Plots
 using ProgressMeter
+using Statistics: mean
 using StatsPlots
 using ToyHamiltonians
 
