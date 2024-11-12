@@ -114,9 +114,9 @@ end
 𝐲_fitted = map(𝚯) do 𝛉
     fermi_dirac_model(𝐱′, 𝛉)
 end
-fit_errors = map(𝚯, 𝐲_fitted) do 𝛉, 𝐲
+rmse = map(𝚯, 𝐲_fitted) do 𝛉, 𝐲
     residuals = 𝐲 - 𝐲̂
-    mean(abs2, residuals)
+    sqrt(mean(abs2, residuals))
 end
 derivative_norms = map(𝚯) do 𝛉
     𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱′, 𝛉)
@@ -145,11 +145,9 @@ exact_band_energies = tr(exact_densitymatrix * H)
 layout = (1, 3)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(1600, 400))
 
-scatter!(
-    layers, fit_errors; yscale=:log10, subplot=1, xticks=layers, label="", PLOT_DEFAULTS...
-)
+scatter!(layers, rmse; yscale=:log10, subplot=1, xticks=layers, label="", PLOT_DEFAULTS...)
 xlabel!(raw"number of layers $L$"; subplot=1)
-ylabel!(raw"MSE of fitting"; subplot=1)
+ylabel!(raw"RMSE of fitting"; subplot=1)
 
 plot!(
     𝐱′_inv,
