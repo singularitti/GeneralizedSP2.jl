@@ -1,10 +1,7 @@
-using Distributions
 using GeneralizedSP2
-using LinearAlgebra: Eigen, eigvals
 using Plots
 using ProgressMeter: @showprogress
 using Statistics: mean
-using ToyHamiltonians: Hamiltonian, EigvalsSampler, EigvecsSampler, set_isapprox_rtol
 using BenchmarkTools
 
 SUITE = BenchmarkGroup()
@@ -33,41 +30,14 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-function hamiltonian(dist, sys_size=2048; rtol=1e-13)
-    set_isapprox_rtol(rtol)
-    Λ = rand(EigvalsSampler(dist), sys_size)
-    V = rand(EigvecsSampler(dist), sys_size, sys_size)
-    return Hamiltonian(Eigen(Λ, V))
-end
-
-function rescale_hamiltonian(H::AbstractMatrix)
-    # εₘᵢₙ, εₘₐₓ = eigvals_extrema(H)
-    𝚲 = eigvals(H)  # Must be all reals
-    εₘᵢₙ, εₘₐₓ = floor(minimum(𝚲)), ceil(maximum(𝚲))
-    return rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H), εₘᵢₙ, εₘₐₓ
-end
-
-function samplex(μ, β, npoints_scale=100)
-    lower_bound, upper_bound = zero(μ), oneunit(μ)
-    return sample_by_pdf(
-        bell_distribution(μ, β, npoints_scale), μ, (lower_bound, upper_bound)
-    )
-end
-
-dist = LogUniform(100, 200)
-
-H = hamiltonian(dist, 512)
-β = 1.25  # Physical
-μ = 150  # Physical
-H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
-β′ = rescale_beta(β, (εₘᵢₙ, εₘₐₓ))
-μ′ = rescale_mu(μ, (εₘᵢₙ, εₘₐₓ))
+β′ = 100
+μ′ = 0.4
 
 𝐱′ = reverse(chebyshevnodes_1st(400, (0, 1)))  # Have to reverse since β′ is negative
 𝐲̂ = fermi_dirac.(𝐱′, μ′, β′)
 
 layers = 10:21
-max_iters = [1_000, 10_000, 100_000]
+max_iters = [1_000, 10_000, 100_000, 1_000_000, 10_000_000]
 
 results = map(max_iters) do max_iter
     println("fitting for max_iter = $max_iter")
