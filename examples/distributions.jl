@@ -107,61 +107,6 @@ E = eigen(H)
 𝐲̂ = fermi_dirac.(𝐱′, μ′, β′)
 𝐱′_inv = sort(inv(rescale_one_zero(εₘᵢₙ, εₘₐₓ)).(𝐱′))
 
-layers = 10:21
-max_iters = [1_000, 10_000, 100_000]
-
-results = map(max_iters) do max_iter
-    println("fitting for max_iter = $max_iter")
-    timed_results = @showprogress map(layers) do nlayers
-        @timed fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter)
-    end
-    𝚯 = map(timed_results) do timed_result
-        first(timed_result.value)
-    end
-    times = map(timed_results) do timed_result
-        timed_result.time
-    end
-    𝐲_fitted = map(𝚯) do 𝛉
-        fermi_dirac_model(𝐱′, 𝛉)
-    end
-    rmse = map(𝚯, 𝐲_fitted) do 𝛉, 𝐲
-        residuals = 𝐲 - 𝐲̂
-        sqrt(mean(abs2, residuals))
-    end
-    (rmse=rmse, times=times)
-end
-
-time_matrix = hcat([result.times for result in results]...)
-rmse_matrix = hcat([result.rmse for result in results]...)
-
-layout = (1, 2)
-plot(; layout=layout, PLOT_DEFAULTS..., size=(3200 / 3, 400))
-plot!(
-    layers,
-    rmse_matrix;
-    subplot=1,
-    label=hcat(("max iter=$max_iter" for max_iter in max_iters)...),
-    yscale=:log10,
-    xticks=layers,
-    xlabel=raw"number of layers $L$",
-    ylabel="RMSE of fitting",
-    PLOT_DEFAULTS...,
-    legend_position=:topright,
-)
-plot!(
-    layers,
-    time_matrix;
-    subplot=2,
-    label=hcat(("max iter=$max_iter" for max_iter in max_iters)...),
-    yscale=:log10,
-    xticks=layers,
-    xlabel=raw"number of layers $L$",
-    ylabel="time (s)",
-    PLOT_DEFAULTS...,
-    legend_position=:topleft,
-)
-savefig("$(dist_name)_$(β)_$(μ)_time.png")
-
 max_iter = 1_000_000
 layers = 18:21
 println("fitting for max_iter = $max_iter")
