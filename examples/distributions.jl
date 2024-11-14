@@ -2,13 +2,13 @@ using Distributions
 using GershgorinDiscs
 using GeneralizedSP2
 using GeneralizedSP2: fermi_dirac_prime, transform_fermi_dirac_derivative
-using LinearAlgebra
+using LinearAlgebra: Eigen, eigvals
 using Roots: Newton, find_zero
 using Plots
-using ProgressMeter
+using ProgressMeter: @showprogress
 using Statistics: mean
 using StatsPlots
-using ToyHamiltonians
+using ToyHamiltonians: Hamiltonian, EigvalsSampler, EigvecsSampler, set_isapprox_rtol
 
 PLOT_DEFAULTS = Dict(
     :dpi => 400,
