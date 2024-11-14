@@ -3,7 +3,15 @@ using LsqFit: curve_fit, coef, stderror, vcov
 export fit_fermi_dirac, fit_entropy
 
 function fit_fermi_dirac(
-    𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN, check_domain=false, show_trace=false
+    𝐱,
+    μ,
+    β,
+    nlayers=20;
+    max_iter=1000,
+    rtol=NaN,
+    check_domain=false,
+    show_trace=false,
+    kwargs...,
 )
     if check_domain
         _checkdomain(𝐱, μ, β)
@@ -18,12 +26,21 @@ function fit_fermi_dirac(
         maxIter=max_iter,
         inplace=true,
         show_trace=show_trace,
+        kwargs...,
     )
     return coef(fitted), stderror(fitted; rtol=rtol), vcov(fitted)
 end
 
 function fit_entropy(
-    𝐱, μ, β, nlayers=20; max_iter=1000, rtol=NaN, check_domain=false, show_trace=false
+    𝐱,
+    μ,
+    β,
+    nlayers=20;
+    max_iter=1000,
+    rtol=NaN,
+    check_domain=false,
+    show_trace=false,
+    kwargs...,
 )
     if check_domain
         _checkdomain(𝐱, μ, β)
@@ -38,6 +55,7 @@ function fit_entropy(
         maxIter=max_iter,
         inplace=true,
         show_trace=show_trace,
+        kwargs...,
     )
     return coef(fitted), stderror(fitted; rtol=rtol), vcov(fitted)
 end
