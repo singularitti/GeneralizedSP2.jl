@@ -9,11 +9,11 @@ function fit_fermi_dirac(
     nlayers=20;
     max_iter=1000,
     rtol=NaN,
-    check_domain=false,
+    is_rescaled=false,
     show_trace=false,
     kwargs...,
 )
-    if check_domain
+    if is_rescaled
         _checkdomain(𝐱, μ, β)
     end
     𝛉 = init_params(μ, nlayers)  # Initialize model with SP2
@@ -38,11 +38,11 @@ function fit_entropy(
     nlayers=20;
     max_iter=1000,
     rtol=NaN,
-    check_domain=false,
+    is_rescaled=false,
     show_trace=false,
     kwargs...,
 )
-    if check_domain
+    if is_rescaled
         _checkdomain(𝐱, μ, β)
     end
     𝛉 = init_params(μ, nlayers)  # Initialize model with SP2
