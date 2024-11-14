@@ -12,7 +12,7 @@ function sample_weights(points)
 end
 
 function sample_by_pdf(pdf, start, (lower_bound, upper_bound))
-    points = [start]
+    points = [float(start)]
 
     # Add points below `start`
     dx = 1 / pdf(start)
