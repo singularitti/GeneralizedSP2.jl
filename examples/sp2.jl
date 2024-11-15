@@ -21,18 +21,18 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-projection1(𝐱) = 𝐱 .^ 2
+f(𝐱) = 𝐱 .^ 2
 
-projection2(𝐱) = 2𝐱 .- 𝐱 .^ 2
+g(𝐱) = 2𝐱 .- 𝐱 .^ 2
 
 𝐱 = 0:0.01:1
 
 plot()
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-plot!(𝐱, projection2(𝐱); label=raw"$g(x) = 2x - x^2$", PLOT_DEFAULTS...)
-plot!(𝐱, (projection1 ∘ projection2)(𝐱); label=raw"$f \circ g$", PLOT_DEFAULTS...)
-plot!(𝐱, (projection2 ∘ projection1)(𝐱); label=raw"$g \circ f$", PLOT_DEFAULTS...)
-plot!(𝐱, projection1(𝐱); label=raw"$f(x) = x^2$", PLOT_DEFAULTS...)
+plot!(𝐱, g(𝐱); label=raw"$g(x) = 2x - x^2$", PLOT_DEFAULTS...)
+plot!(𝐱, (f ∘ g)(𝐱); label=raw"$f \circ g$", PLOT_DEFAULTS...)
+plot!(𝐱, (g ∘ f)(𝐱); label=raw"$g \circ f$", PLOT_DEFAULTS...)
+plot!(𝐱, f(𝐱); label=raw"$f(x) = x^2$", PLOT_DEFAULTS...)
 xlims!(0, 1)
 xlabel!(raw"$x$")
 ylabel!(raw"$y$")
@@ -40,23 +40,13 @@ savefig("projections.pdf")
 
 plot()
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-plot!(𝐱, projection2(𝐱); label=raw"$g(x) = 2x - x^2$", PLOT_DEFAULTS...)
-plot!(𝐱, (projection1 ∘ projection2)(𝐱); label=raw"$f \circ g$", PLOT_DEFAULTS...)
+plot!(𝐱, g(𝐱); label=raw"$g(x) = 2x - x^2$", PLOT_DEFAULTS...)
+plot!(𝐱, (f ∘ g)(𝐱); label=raw"$f \circ g$", PLOT_DEFAULTS...)
+plot!(𝐱, (g ∘ f ∘ g)(𝐱); label=raw"$g \circ f \circ g$", PLOT_DEFAULTS...)
+plot!(𝐱, (f ∘ g ∘ f ∘ g)(𝐱); label=raw"$f \circ g \circ f \circ g$", PLOT_DEFAULTS...)
 plot!(
     𝐱,
-    (projection2 ∘ projection1 ∘ projection2)(𝐱);
-    label=raw"$g \circ f \circ g$",
-    PLOT_DEFAULTS...,
-)
-plot!(
-    𝐱,
-    (projection1 ∘ projection2 ∘ projection1 ∘ projection2)(𝐱);
-    label=raw"$f \circ g \circ f \circ g$",
-    PLOT_DEFAULTS...,
-)
-plot!(
-    𝐱,
-    (projection2 ∘ projection1 ∘ projection2 ∘ projection1 ∘ projection2)(𝐱);
+    (g ∘ f ∘ g ∘ f ∘ g)(𝐱);
     label=raw"$g \circ f \circ g \circ f \circ g$",
     PLOT_DEFAULTS...,
 )
