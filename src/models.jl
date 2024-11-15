@@ -1,7 +1,8 @@
 using LinearAlgebra: I, checksquare
 # using Enzyme: Reverse, Const, Duplicated, autodiff
 
-export apply_model!,
+export model_basis,
+    apply_model!,
     apply_model,
     autodiff_model!,
     autodiff_model,
@@ -18,6 +19,21 @@ end
 
 Base.showerror(io::IO, e::DimensionError) =
     print(io, "DimensionError: $(e.x) and $(e.y) are not dimensionally compatible.")
+
+function model_basis(Θ::AbstractMatrix)
+    _checkshape(Θ)
+    function _get(x)
+        y = x  # `x` and `y` are 2 numbers
+        collector = Vector{typeof(oneunit(x) * oneunit(eltype(Θ)))}(undef, size(Θ, 2) + 1)
+        for (i, 𝛉) in enumerate(eachcol(Θ))
+            collector[i] = 𝛉[4] * y
+            y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3] * oneunit(y)
+        end
+        collector[end] = oneunit(eltype(Θ)) * y
+        return collector
+    end
+    return _get
+end
 
 function apply_model(x, Θ::AbstractMatrix{T}) where {T}
     _checkshape(Θ)
