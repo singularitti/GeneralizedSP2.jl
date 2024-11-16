@@ -2,14 +2,14 @@ using StaticArrays: MArray, MMatrix, Size
 
 export Model, numlayers, eachlayer
 
-struct Model{N,T} <: AbstractMatrix{T}
+struct Model{T,N} <: AbstractMatrix{T}
     data::MMatrix{LAYER_WIDTH,N,T}
     function Model(data::AbstractMatrix)
         if size(data, 1) != LAYER_WIDTH
             throw(DimensionMismatch("model matrix must have $LAYER_WIDTH rows!"))  # See https://discourse.julialang.org/t/120556/2
         end
-        N = size(data, 2)
-        return new{N,eltype(data)}(MMatrix{LAYER_WIDTH,N,eltype(data)}(data))
+        N, T = size(data, 2), eltype(data)
+        return new{T,N}(MMatrix{LAYER_WIDTH,N,T}(data))
     end
 end
 Model(data::AbstractVector) = Model(reshape(data, LAYER_WIDTH, :))
@@ -38,9 +38,9 @@ function Base.similar(M::Model, ::Type{T}, dims::Dims) where {T}
     end
 end
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta1/base/abstractarray.jl#L874
-function Base.similar(::Type{Model{N,T}}, dims::Dims) where {N,T}
+function Base.similar(::Type{<:Model{T}}, dims::Dims) where {T}
     if length(dims) == 2
-        return Model(MMatrix{LAYER_WIDTH,N,T}(undef))
+        return Model(MMatrix{dims...,T}(undef))
     else
         return throw(DimensionMismatch("invalid dimensions `$dims` for `Model`!"))
     end
