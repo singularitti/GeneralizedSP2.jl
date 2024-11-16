@@ -1,8 +1,10 @@
-using StaticArrays: MArray, MMatrix, Size
+using StaticArrays: MArray, MMatrix, MVector
 
-export Model, numlayers, eachlayer
+export Model, FlattendModel, numlayers, eachlayer
 
-struct Model{T,N} <: AbstractMatrix{T}
+abstract type AbstractModel{T,N} <: AbstractArray{T,N} end
+
+struct Model{T,N} <: AbstractModel{T,2}
     data::MMatrix{LAYER_WIDTH,N,T}
     function Model(data::AbstractMatrix)
         if size(data, 1) != LAYER_WIDTH
@@ -12,41 +14,59 @@ struct Model{T,N} <: AbstractMatrix{T}
         return new{T,N}(MMatrix{LAYER_WIDTH,N,T}(data))
     end
 end
-Model(data::AbstractVector) = Model(reshape(data, LAYER_WIDTH, :))
 Model(M::Model) = M
 
+struct FlattendModel{T,N} <: AbstractModel{T,1}
+    data::MVector{N,T}
+    function FlattendModel(data::AbstractVector)
+        if !iszero(length(data) % LAYER_WIDTH)
+            throw(DimensionMismatch("flattend model must have 4N elements!"))
+        end
+        N, T = length(data), eltype(data)
+        return new{T,N}(MVector{N,T}(data))
+    end
+end
+FlattendModel(M::Model) = FlattendModel(vec(M))
+FlattendModel(M::FlattendModel) = M
+
+Model(M::FlattendModel) = Model(reshape(parent(M), LAYER_WIDTH, :))
+
 numlayers(M::Model) = size(M, 2)
+numlayers(M::FlattendModel) = size(Model(M))
 
 eachlayer(M::Model) = eachcol(M)
+eachlayer(M::FlattendModel) = eachcol(Model(M))
 
-Base.parent(M::Model) = M.data
+Base.parent(M::AbstractModel) = M.data
 
-Base.size(M::Model) = size(parent(M))
+Base.size(M::AbstractModel) = size(parent(M))
 
-Base.getindex(M::Model, i::Int) = getindex(parent(M), i)
+Base.getindex(M::AbstractModel, i::Int) = getindex(parent(M), i)
 
-Base.setindex!(M::Model, v, i::Int) = setindex!(parent(M), v, i)
+Base.setindex!(M::AbstractModel, v, i::Int) = setindex!(parent(M), v, i)
 
-Base.IndexStyle(::Type{<:Model}) = IndexLinear()
+Base.IndexStyle(::Type{<:AbstractModel}) = IndexLinear()
 
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta2/base/abstractarray.jl#L839
-function Base.similar(M::Model, ::Type{T}, dims::Dims) where {T}
-    if 1 <= length(dims) <= 2
+function Base.similar(M::AbstractModel, ::Type{T}, dims::Dims) where {T}
+    if length(dims) == 1
+        return FlattendModel(similar(parent(M), T, dims))
+    elseif length(dims) == 2
         return Model(similar(parent(M), T, dims))
     else
         return throw(DimensionMismatch("invalid dimensions `$dims` for `Model`!"))
     end
 end
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta1/base/abstractarray.jl#L874
-function Base.similar(::Type{<:Model{T}}, dims::Dims) where {T}
-    if 1 <= length(dims) <= 2
+function Base.similar(::Type{<:AbstractModel{T}}, dims::Dims) where {T}
+    if length(dims) == 1
+        return FlattendModel(MVector{dims...,T}(undef))
+    elseif length(dims) == 2
         return Model(MMatrix{dims...,T}(undef))
     else
         return throw(DimensionMismatch("invalid dimensions `$dims` for `Model`!"))
     end
 end
 
-Base.convert(::Type{Vector{T}}, M::Model{T}) where {T} = convert(Vector{T}, vec(M))
-Base.convert(::Type{Model{T}}, A::AbstractVector{T}) where {T} = Model(A)
-Base.convert(::Type{Model{T,N}}, A::AbstractVector{T}) where {T,N} =
-    Model(reshape(A, LAYER_WIDTH, N))
+Base.convert(::Type{<:FlattendModel{T}}, M::Model{T}) where {T} = FlattendModel(M)
+Base.convert(::Type{<:Model{T}}, M::FlattendModel{T}) where {T} = Model(M)
