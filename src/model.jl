@@ -31,7 +31,7 @@ Base.IndexStyle(::Type{<:Model}) = IndexLinear()
 
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta2/base/abstractarray.jl#L839
 function Base.similar(M::Model, ::Type{T}, dims::Dims) where {T}
-    if length(dims) == 2
+    if 1 <= length(dims) <= 2
         return Model(similar(parent(M), T, dims))
     else
         return throw(DimensionMismatch("invalid dimensions `$dims` for `Model`!"))
@@ -39,7 +39,7 @@ function Base.similar(M::Model, ::Type{T}, dims::Dims) where {T}
 end
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta1/base/abstractarray.jl#L874
 function Base.similar(::Type{<:Model{T}}, dims::Dims) where {T}
-    if length(dims) == 2
+    if 1 <= length(dims) <= 2
         return Model(MMatrix{dims...,T}(undef))
     else
         return throw(DimensionMismatch("invalid dimensions `$dims` for `Model`!"))
