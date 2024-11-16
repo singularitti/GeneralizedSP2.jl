@@ -54,3 +54,19 @@ xlims!(0, 1)
 xlabel!(raw"$x$")
 ylabel!(raw"$y$")
 savefig("projections_more.pdf")
+
+plot()
+xlims!(0, 1)
+xlabel!(raw"$x$")
+ylabel!(raw"$y$")
+projections = Iterators.accumulate(∘, map(i -> iseven(i) ? f : g, 1:6))
+animation = @animate for projection in projections
+    plot!(
+        𝐱,
+        projection.(𝐱);
+        label=string(projection),
+        PLOT_DEFAULTS...,
+        legend_position=:bottomright,
+    )
+end
+gif(animation, "animation.gif"; fps=2)
