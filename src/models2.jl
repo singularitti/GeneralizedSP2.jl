@@ -1,0 +1,155 @@
+using LinearAlgebra: I, checksquare
+# using Enzyme: Reverse, Const, Duplicated, autodiff
+
+export basis, manualdiff_model, entropy
+
+# See https://github.com/PainterQubits/Unitful.jl/blob/6bf6f99/src/utils.jl#L241-L247
+struct DimensionError{X,Y} <: Exception
+    x::X
+    y::Y
+end
+
+Base.showerror(io::IO, e::DimensionError) =
+    print(io, "DimensionError: $(e.x) and $(e.y) are not dimensionally compatible.")
+
+function basis(M::AbstractModel)
+    function _get(x)
+        y = x  # `x` and `y` are 2 numbers
+        collector = Vector{typeof(oneunit(x) * oneunit(eltype(M)))}(undef, numlayers(M) + 1)
+        for (i, 𝐦) in enumerate(eachlayer(M))
+            collector[i] = 𝐦[4] * y
+            y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
+        end
+        collector[end] = oneunit(eltype(M)) * y
+        return collector
+    end
+    return _get
+end
+
+function (M::AbstractModel)(x)
+    𝟏 = oneunit(eltype(M))
+    accumulator = zero(x * 𝟏)  # Accumulator of the summation
+    y = x  # `x` and `y` are 2 numbers
+    for 𝐦 in eachlayer(M)
+        accumulator += 𝐦[4] * y
+        y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
+    end
+    accumulator += 𝟏 * y
+    return accumulator
+end
+function (M::AbstractModel)(X::AbstractMatrix)
+    checksquare(X)  # See https://discourse.julialang.org/t/120556/2
+    𝟏 = oneunit(eltype(M))
+    accumulator = zeros(typeof(oneunit(eltype(X)) * 𝟏), size(X))
+    Y = X
+    for 𝐦 in eachlayer(M)
+        accumulator += 𝐦[4] * Y
+        Y = 𝐦[1] * Y^2 + 𝐦[2] * Y + 𝐦[3] * oneunit(Y)  # Note this is not element-wise!
+    end
+    accumulator += 𝟏 * Y
+    return accumulator
+end
+function (M::AbstractModel{T})(
+    result::AbstractMatrix{R}, X::AbstractMatrix{S}
+) where {R,S,T}
+    checksquare(X)  # See https://discourse.julialang.org/t/120556/2
+    _checkdimension(R, S, T)
+    map!(zero, result, result)
+    Y = X
+    for 𝐦 in eachlayer(M)
+        result += 𝐦[4] * Y
+        Y = 𝐦[1] * Y^2 + 𝐦[2] * Y + 𝐦[3] * oneunit(Y)  # Note this is not element-wise!
+    end
+    result += oneunit(T) * Y
+    return result
+end
+
+function Base.map!(
+    M::AbstractModel{T}, result::AbstractVector{R}, 𝐱::AbstractVector{S}
+) where {R,S,T}
+    _checkdimension(R, S, T)
+    map!(result, 𝐱) do x
+        y = x  # `x` and `y` are 2 numbers
+        accumulator = zero(eltype(result))  # Accumulator of the summation
+        for 𝐦 in eachlayer(M)
+            accumulator += 𝐦[4] * y
+            y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
+        end
+        accumulator += oneunit(T) * y
+    end
+    return result
+end
+
+_finalize_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
+
+fermi_dirac(M::AbstractModel) = _finalize_fermi_dirac ∘ M
+# _fermi_dirac(X::AbstractVector, A) = begin
+#     @show size(X), size(A)
+#     Z = fermi_dirac(Model(A)).(X)  # Only for fitting
+#     @show size(Z)
+#     Z
+# end
+
+fermi_dirac!(M::AbstractModel, result::AbstractVector, 𝐱::AbstractVector) =
+    map!(fermi_dirac(M), result, 𝐱)
+fermi_dirac!(M::AbstractModel, result::AbstractMatrix, X::AbstractMatrix) =
+    copy!(result, fermi_dirac(M)(X))  # Note this is not element-wise!
+# _fermi_dirac!(result, X, A) = begin
+#     @show size(result), size(X), size(A)
+#     Z = fermi_dirac!(Model(A), result, X)  # Only for fitting
+#     @show size(Z)
+#     Z
+# end
+
+_finalize_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
+
+entropy(M::AbstractModel) = _finalize_entropy ∘ M
+
+entropy!(M::AbstractModel, result::AbstractVector, 𝐱::AbstractVector) =
+    map!(entropy(M), result, 𝐱)
+entropy!(M::AbstractModel, result::AbstractMatrix, X::AbstractMatrix) =
+    copy!(result, entropy(M)(X))  # Note this is not element-wise!
+
+function manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
+    npoints = length(𝐱)
+    nlayers = numlayers(𝝷)
+    𝝝̄ = reshape(𝝝̄, size(𝐱)..., size(𝝷)...)
+    𝐲 = zeros(eltype(𝐱), nlayers + 1)
+    for j in 1:npoints
+        # Forward calculation
+        𝐲[1] = 𝐱[j]
+        Y = zero(eltype(𝐲))
+        for i in 1:nlayers
+            Y += 𝝷[4, i] * 𝐲[i]
+            𝐲[i + 1] = 𝝷[1, i] * 𝐲[i]^2 + 𝝷[2, i] * 𝐲[i] + 𝝷[3, i] * oneunit(𝐲[i])
+        end
+        Y += 𝐲[nlayers + 1]
+        α = f′(Y)
+        # Backward calculation
+        z = one(eltype(𝝷)) # zₗₐₛₜ
+        for i in nlayers:-1:1
+            # zᵢ₊₁
+            𝝝̄[j, 1, i] = α * z * 𝐲[i]^2
+            𝝝̄[j, 2, i] = α * z * 𝐲[i]
+            𝝝̄[j, 3, i] = α * z
+            𝝝̄[j, 4, i] = α * 𝐲[i]
+            z = 𝝷[4, i] * oneunit(𝐲[i]) + z * (2𝝷[1, i] * 𝐲[i] + 𝝷[2, i] * oneunit(𝐲[i]))  # zᵢ
+        end
+    end
+    return 𝝝̄
+end
+
+_finalize_fermi_dirac_derivative(Y) = -one(Y)  # Applies to 1 number at a time
+
+_finalize_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
+
+fermi_dirac_derivatives!(𝝝̄, 𝐱, 𝝷) =
+    manualdiff_model!(_finalize_fermi_dirac_derivative, 𝝝̄, 𝐱, 𝝷)
+
+entropy_derivatives!(𝝝̄, 𝐱, 𝝷) = manualdiff_model!(_finalize_entropy_derivative, 𝝝̄, 𝐱, 𝝷)
+
+function _checkdimension(R, S, T)
+    if !isa(oneunit(S) * oneunit(T), R)
+        throw(DimensionError(oneunit(S) * oneunit(T), oneunit(R)))
+    end
+end
