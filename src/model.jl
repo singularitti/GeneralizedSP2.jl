@@ -46,10 +46,7 @@ function Base.similar(::Type{<:Model{T}}, dims::Dims) where {T}
     end
 end
 
-# Base.convert(::Type{T}, m::Model) where {T<:AbstractVector} = convert(T, vec(m))
-# Base.convert(::Type{<:Model}, A::AbstractVector) = Model(A)
-# Base.convert(::Type{<:Model{N}}, A::AbstractVector) where {N} =
-#     Model(reshape(A, LAYER_WIDTH, N))
-# Base.convert(::Type{<:Model{N}}, m::Model{N}) where {N} = m
-# Base.convert(::Type{<:Model{N,T}}, m::Model{M,T}) where {N,M,T} =
-#     throw(DimensionMismatch(""))
+Base.convert(::Type{Vector{T}}, M::Model{T}) where {T} = convert(Vector{T}, vec(M))
+Base.convert(::Type{Model{T}}, A::AbstractVector{T}) where {T} = Model(A)
+Base.convert(::Type{Model{T,N}}, A::AbstractVector{T}) where {T,N} =
+    Model(reshape(A, LAYER_WIDTH, N))
