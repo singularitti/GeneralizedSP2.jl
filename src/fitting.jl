@@ -16,7 +16,7 @@ function fit_fermi_dirac(
     if is_rescaled
         _checkdomain(𝐱, μ, β)
     end
-    𝛉 = init_params(μ, nlayers)  # Initialize model with SP2
+    𝛉 = init_model(μ, nlayers)  # Initialize model with SP2
     fitted = curve_fit(
         fermi_dirac_model!,
         fermi_dirac_derivatives!,
@@ -45,7 +45,7 @@ function fit_entropy(
     if is_rescaled
         _checkdomain(𝐱, μ, β)
     end
-    𝛉 = init_params(μ, nlayers)  # Initialize model with SP2
+    𝛉 = init_model(μ, nlayers)  # Initialize model with SP2
     fitted = curve_fit(
         entropy_model!,
         entropy_derivatives!,
