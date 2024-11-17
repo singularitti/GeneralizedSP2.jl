@@ -2,6 +2,11 @@ using LsqFit: curve_fit, coef, stderror, vcov
 
 export fit_fermi_dirac, fit_entropy
 
+# See https://github.com/JuliaMath/Roots.jl/blob/bf0da62/src/utils.jl#L9-L11
+struct ConvergenceFailed
+    msg::String
+end
+
 function fit_fermi_dirac(
     𝐱,
     μ,
