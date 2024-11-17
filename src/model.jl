@@ -8,7 +8,7 @@ struct Model{T} <: AbstractModel{T,2}
         if size(data, 1) != LAYER_WIDTH
             throw(DimensionMismatch("model matrix must have $LAYER_WIDTH rows!"))  # See https://discourse.julialang.org/t/120556/2
         end
-        return new{eltype(data)}(collect(data))
+        return new{eltype(data)}(data)
     end
 end
 Model(M::Model) = M
@@ -19,8 +19,7 @@ struct FlattendModel{T} <: AbstractModel{T,1}
         if !iszero(length(data) % LAYER_WIDTH)
             throw(DimensionMismatch("flattend model must have 4N elements!"))
         end
-        T = eltype(data)
-        return new{T}(collect(data))
+        return new{eltype(data)}(data)
     end
 end
 FlattendModel(M::Model) = FlattendModel(vec(M))
