@@ -1,9 +1,6 @@
-using GershgorinDiscs
 using GeneralizedSP2
-using GeneralizedSP2: fermi_dirac_prime, rescaled_fermi_dirac
 using LinearAlgebra
 using Plots
-using Roots: Newton, find_zero
 using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
@@ -27,26 +24,6 @@ PLOT_DEFAULTS = Dict(
     :background_color_inside => nothing,
     :color_palette => :tab10,
 )
-
-function estimate_mu(H, nocc)
-    nocc = floor(Int, nocc)
-    diagonal = sort(diag(H))
-    HOMO, LUMO = diagonal[nocc], diagonal[nocc + 1]
-    μ₀ = (HOMO + LUMO) / 2
-    g(μ) = nocc - sum(fermi_dirac.(diagonal, μ, β))
-    g′(μ) = sum(fermi_dirac_prime.(diagonal, μ, β))
-    return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=true)
-end
-
-function compute_mu(H, nocc)
-    nocc = floor(Int, nocc)
-    evals = eigvals(H)
-    HOMO, LUMO = evals[nocc], evals[nocc + 1]
-    μ₀ = (HOMO + LUMO) / 2
-    g(μ) = nocc - sum(fermi_dirac.(evals, μ, β))
-    g′(μ) = sum(fermi_dirac_prime.(evals, μ, β))
-    return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=true)
-end
 
 β = 1.25
 μ = 100
