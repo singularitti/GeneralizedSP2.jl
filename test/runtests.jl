@@ -4,6 +4,6 @@ using Test
 @testset "GeneralizedSP2.jl" begin
     # Write your tests here.
     include("primals.jl")
-    include("gradients.jl")
+    include("tangents.jl")
     include("rescaling.jl")
 end
