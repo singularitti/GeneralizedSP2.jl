@@ -26,7 +26,7 @@ function fit_fermi_dirac(
     if is_rescaled
         _checkdomain(𝐱, μ, β)
     end
-    𝛉 = init_model(μ, nlayers)  # Initialize model with SP2
+    𝛉 = FlattendModel(init_model(μ, nlayers))  # Initialize model with SP2
     result = curve_fit(
         fermi_dirac!,
         fermi_dirac_grad!,
@@ -43,7 +43,7 @@ function fit_fermi_dirac(
     )
     if isconverged(result)
         return (
-            params=coef(result),
+            model=FlattendModel(coef(result)),
             jac=result.jacobian,
             resid=residuals(result),
             rmse=sqrt(mse(result)),
@@ -71,7 +71,7 @@ function fit_entropy(
     if is_rescaled
         _checkdomain(𝐱, μ, β)
     end
-    𝛉 = init_model(μ, nlayers)  # Initialize model with SP2
+    𝛉 = FlattendModel(init_model(μ, nlayers))  # Initialize model with SP2
     result = curve_fit(
         electronic_entropy!,
         electronic_entropy_grad!,
@@ -88,7 +88,7 @@ function fit_entropy(
     )
     if isconverged(result)
         return (
-            params=coef(result),
+            model=FlattendModel(coef(result)),
             jac=result.jacobian,
             resid=residuals(result),
             rmse=sqrt(mse(result)),
