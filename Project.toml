@@ -8,14 +8,12 @@ IsApprox = "28f27b66-4bd8-47e7-9110-e2746eb8bed7"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LsqFit = "2fda8390-95c7-5789-9bda-21331edee243"
 NPZ = "15e1cf62-19b3-5cfa-8e77-841668bca605"
-StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 IsApprox = "2.0.0"
 LinearAlgebra = "1.6"
 LsqFit = "0.15"
 NPZ = "0.4"
-StaticArrays = "1.9.8"
 julia = "1.6"
 
 [extras]
