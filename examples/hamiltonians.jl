@@ -36,9 +36,13 @@ H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 
 lower_bound, upper_bound = 0, 1
 𝐱′ = chebyshevnodes_1st(1000, (lower_bound, upper_bound))
-𝛉 = fit_fermi_dirac(𝐱′, μ′, β′, 18; max_iter=1_000_000).model
+fitted = fit_fermi_dirac(𝐱′, μ′, β′, 18; max_iter=10_000_000, x_tol=1e-64, g_tol=1e-64)
+M = fitted.model
+M̄ = fitted.jac
 
-dm = fermi_dirac(𝛉)(H_scaled)
+@show norm(M̄)
+
+dm = fermi_dirac(M)(H_scaled)
 N = tr(dm)
 
 @assert rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ)) ≈ fermi_dirac(H_scaled, μ′, β′)
