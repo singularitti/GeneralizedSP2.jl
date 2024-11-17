@@ -1,5 +1,7 @@
 using LsqFit: curve_fit, isconverged, coef, residuals, mse, stderror, vcov
 
+import LsqFit: LMResults
+
 export fit_fermi_dirac, fit_entropy
 
 # See https://github.com/JuliaMath/Roots.jl/blob/bf0da62/src/utils.jl#L9-L11
@@ -108,3 +110,6 @@ function _checkdomain(𝐱, μ, β)
         throw(DomainError("rescaled β must be negative!"))
     end
 end
+
+LMResults(method, initial_x::AbstractModel, minimizer::AbstractModel, args...) =
+    LMResults(method, convert(Vector, initial_x), convert(Vector, minimizer), args...)
