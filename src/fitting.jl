@@ -27,7 +27,7 @@ function fit_fermi_dirac(
     𝛉 = init_model(μ, nlayers)  # Initialize model with SP2
     result = curve_fit(
         fermi_dirac!,
-        fermi_dirac_derivatives!,
+        fermi_dirac_grad!,
         𝐱,  # xdata
         fermi_dirac.(𝐱, μ, β),  # ydata
         𝛉;  # p0
@@ -71,8 +71,8 @@ function fit_entropy(
     end
     𝛉 = init_model(μ, nlayers)  # Initialize model with SP2
     result = curve_fit(
-        entropy!,
-        entropy_derivatives!,
+        electronic_entropy!,
+        electronic_entropy_grad!,
         𝐱,
         electronic_entropy.(𝐱, μ, β),
         𝛉;

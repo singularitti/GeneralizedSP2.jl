@@ -1,7 +1,7 @@
 using LinearAlgebra: I, checksquare
 # using Enzyme: Reverse, Const, Duplicated, autodiff
 
-export basis, manualdiff_model, entropy
+export basis, manualdiff_model, electronic_entropy
 
 # See https://github.com/PainterQubits/Unitful.jl/blob/6bf6f99/src/utils.jl#L241-L247
 struct DimensionError{X,Y} <: Exception
@@ -101,14 +101,14 @@ fermi_dirac!(M::AbstractModel, result::AbstractMatrix, X::AbstractMatrix) =
 #     Z
 # end
 
-_finalize_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
+_finalize_electronic_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
 
-entropy(M::AbstractModel) = _finalize_entropy ∘ M
+electronic_entropy(M::AbstractModel) = _finalize_electronic_entropy ∘ M
 
-entropy!(M::AbstractModel, result::AbstractVector, 𝐱::AbstractVector) =
-    map!(entropy(M), result, 𝐱)
-entropy!(M::AbstractModel, result::AbstractMatrix, X::AbstractMatrix) =
-    copy!(result, entropy(M)(X))  # Note this is not element-wise!
+electronic_entropy!(M::AbstractModel, result::AbstractVector, 𝐱::AbstractVector) =
+    map!(electronic_entropy(M), result, 𝐱)
+electronic_entropy!(M::AbstractModel, result::AbstractMatrix, X::AbstractMatrix) =
+    copy!(result, electronic_entropy(M)(X))  # Note this is not element-wise!
 
 function manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
     npoints = length(𝐱)
@@ -139,14 +139,14 @@ function manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
     return 𝝝̄
 end
 
-_finalize_fermi_dirac_derivative(Y) = -one(Y)  # Applies to 1 number at a time
+_finalize_fermi_dirac_grad(Y) = -one(Y)  # Applies to 1 number at a time
 
-_finalize_entropy_derivative(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
+_finalize_electronic_entropy_grad(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
-fermi_dirac_derivatives!(𝝝̄, 𝐱, 𝝷) =
-    manualdiff_model!(_finalize_fermi_dirac_derivative, 𝝝̄, 𝐱, 𝝷)
+fermi_dirac_grad!(𝝝̄, 𝐱, 𝝷) = manualdiff_model!(_finalize_fermi_dirac_grad, 𝝝̄, 𝐱, 𝝷)
 
-entropy_derivatives!(𝝝̄, 𝐱, 𝝷) = manualdiff_model!(_finalize_entropy_derivative, 𝝝̄, 𝐱, 𝝷)
+electronic_entropy_grad!(𝝝̄, 𝐱, 𝝷) =
+    manualdiff_model!(_finalize_electronic_entropy_grad, 𝝝̄, 𝐱, 𝝷)
 
 function _checkdimension(R, S, T)
     if !isa(oneunit(S) * oneunit(T), R)
