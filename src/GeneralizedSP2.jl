@@ -4,7 +4,7 @@ const LAYER_WIDTH = 4
 
 include("rescaler.jl")
 include("stat_mech.jl")
-include("model.jl")
+include("types.jl")
 include("models.jl")
 include("diff.jl")
 include("fitting.jl")
