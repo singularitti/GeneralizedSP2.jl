@@ -4,11 +4,6 @@ import LsqFit: LMResults
 
 export fit_fermi_dirac, fit_electronic_entropy
 
-# See https://github.com/JuliaMath/Roots.jl/blob/bf0da62/src/utils.jl#L9-L11
-struct ConvergenceFailed
-    msg::String
-end
-
 function fit_fermi_dirac(
     𝐱,
     μ,
@@ -41,17 +36,17 @@ function fit_fermi_dirac(
         show_trace=show_trace,
         kwargs...,
     )
-    if isconverged(result)
-        return (
-            model=FlattendModel(coef(result)),
-            jac=result.jacobian,
-            resid=residuals(result),
-            rmse=sqrt(mse(result)),
-            sigma=stderror(result; rtol=neg_rtol),
-            covar=vcov(result),
-        )
+    if !isconverged(result)
+        @warn "the curve fitting did not converge!"
     end
-    throw(ConvergenceFailed("the curve fitting did not converge!"))
+    return (
+        model=FlattendModel(coef(result)),
+        jac=result.jacobian,
+        resid=residuals(result),
+        rmse=sqrt(mse(result)),
+        sigma=stderror(result; rtol=neg_rtol),
+        covar=vcov(result),
+    )
 end
 
 function fit_electronic_entropy(
@@ -86,17 +81,17 @@ function fit_electronic_entropy(
         show_trace=show_trace,
         kwargs...,
     )
-    if isconverged(result)
-        return (
-            model=FlattendModel(coef(result)),
-            jac=result.jacobian,
-            resid=residuals(result),
-            rmse=sqrt(mse(result)),
-            sigma=stderror(result; rtol=neg_rtol),
-            covar=vcov(result),
-        )
+    if !isconverged(result)
+        @warn "the curve fitting did not converge!"
     end
-    throw(ConvergenceFailed("the curve fitting did not converge!"))
+    return (
+        model=FlattendModel(coef(result)),
+        jac=result.jacobian,
+        resid=residuals(result),
+        rmse=sqrt(mse(result)),
+        # sigma=stderror(result; rtol=neg_rtol),
+        # covar=vcov(result),
+    )
 end
 
 function _checkdomain(𝐱, μ, β)
