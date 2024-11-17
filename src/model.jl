@@ -56,9 +56,9 @@ end
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta1/base/abstractarray.jl#L874
 function Base.similar(::Type{<:AbstractModel{T}}, dims::Dims) where {T}
     if length(dims) == 1
-        return FlattendModel(MVector{dims...,T}(undef))
+        return FlattendModel(Vector{T}(undef, dims))
     elseif length(dims) == 2
-        return Model(MMatrix{dims...,T}(undef))
+        return Model(Matrix{T}(undef, dims))
     else
         return throw(DimensionMismatch("invalid dimensions `$dims` for `Model`!"))
     end
