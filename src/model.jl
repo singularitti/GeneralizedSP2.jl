@@ -68,5 +68,6 @@ function Base.similar(::Type{<:AbstractModel{T}}, dims::Dims) where {T}
     end
 end
 
+# See https://docs.julialang.org/en/v1/manual/conversion-and-promotion/#When-is-convert-called?
 Base.convert(::Type{<:FlattendModel{T}}, M::Model{T}) where {T} = FlattendModel(M)
 Base.convert(::Type{<:Model{T}}, M::FlattendModel{T}) where {T} = Model(M)
