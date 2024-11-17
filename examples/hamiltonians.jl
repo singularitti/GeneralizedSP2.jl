@@ -59,7 +59,7 @@ H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 
 lower_bound, upper_bound = 0, 1
 𝐱′ = chebyshevnodes_1st(1000, (lower_bound, upper_bound))
-𝛉 = fit_fermi_dirac(𝐱′, μ′, β′, 18; max_iter=10_000_00).model
+𝛉 = fit_fermi_dirac(𝐱′, μ′, β′, 18; max_iter=1_000_000).model
 
 dm = fermi_dirac(𝛉)(H_scaled)
 N = tr(dm)
