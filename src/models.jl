@@ -7,7 +7,6 @@ export model_basis,
     autodiff_model!,
     autodiff_model,
     manualdiff_model!,
-    manualdiff_model,
     fermi_dirac_model,
     entropy_model
 
@@ -20,42 +19,44 @@ end
 Base.showerror(io::IO, e::DimensionError) =
     print(io, "DimensionError: $(e.x) and $(e.y) are not dimensionally compatible.")
 
-function model_basis(Θ::AbstractMatrix)
-    _checkshape(Θ)
+function model_basis(M::AbstractMatrix)
+    _checkshape(M)
     function _get(x)
         y = x  # `x` and `y` are 2 numbers
-        collector = Vector{typeof(oneunit(x) * oneunit(eltype(Θ)))}(undef, size(Θ, 2) + 1)
-        for (i, 𝛉) in enumerate(eachcol(Θ))
-            collector[i] = 𝛉[4] * y
-            y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3] * oneunit(y)
+        collector = Vector{typeof(oneunit(x) * oneunit(eltype(M)))}(undef, size(M, 2) + 1)
+        for (i, 𝐦) in enumerate(eachcol(M))
+            collector[i] = 𝐦[4] * y
+            y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
         end
-        collector[end] = oneunit(eltype(Θ)) * y
+        collector[end] = oneunit(eltype(M)) * y
         return collector
     end
     return _get
 end
 
-function apply_model(x, Θ::AbstractMatrix{T}) where {T}
-    _checkshape(Θ)
-    accumulator = zero(x * oneunit(T))  # Accumulator of the summation
+function apply_model(x, M::AbstractMatrix)
+    _checkshape(M)
+    𝟏 = oneunit(eltype(M))
+    accumulator = zero(x * 𝟏)  # Accumulator of the summation
     y = x  # `x` and `y` are 2 numbers
-    for 𝛉 in eachcol(Θ)
-        accumulator += 𝛉[4] * y
-        y = 𝛉[1] * y^2 + 𝛉[2] * y + 𝛉[3] * oneunit(y)
+    for 𝐦 in eachcol(M)
+        accumulator += 𝐦[4] * y
+        y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
     end
-    accumulator += oneunit(T) * y
+    accumulator += 𝟏 * y
     return accumulator
 end
-function apply_model(X::AbstractMatrix{S}, Θ::AbstractMatrix{T}) where {S,T}
+function apply_model(X::AbstractMatrix, M::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
-    _checkshape(Θ)
-    accumulator = zeros(typeof(oneunit(S) * oneunit(T)), size(X))
+    _checkshape(M)
+    𝟏 = oneunit(eltype(M))
+    accumulator = zeros(typeof(oneunit(eltype(X)) * 𝟏), size(X))
     Y = X
-    for 𝛉 in eachcol(Θ)
+    for 𝛉 in eachcol(M)
         accumulator += 𝛉[4] * Y
         Y = 𝛉[1] * Y^2 + 𝛉[2] * Y + 𝛉[3] * oneunit(Y)  # Note this is not element-wise!
     end
-    accumulator += oneunit(T) * Y
+    accumulator += 𝟏 * Y
     return accumulator
 end
 apply_model(𝐱, 𝛉::AbstractVector) = apply_model(𝐱, reshape(𝛉, LAYER_WIDTH, :))
@@ -159,12 +160,6 @@ function autodiff_model!(f, 𝝝̄, 𝐱, Θ)
         𝝝̄[i, :, :] = Θ̄
     end
     return 𝝝̄
-end
-
-function manualdiff_model(f′, 𝐱, 𝝷)
-    𝝷 = reshape(𝝷, LAYER_WIDTH, :)
-    𝝝̄ = Array{Float64}(undef, size(𝐱)..., size(𝝷)...)
-    return manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
 end
 
 function manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
