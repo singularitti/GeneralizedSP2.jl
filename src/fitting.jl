@@ -93,8 +93,8 @@ function fit_electronic_entropy(
         jac=result.jacobian,
         resid=residuals(result),
         rmse=sqrt(mse(result)),
-        # sigma=stderror(result; rtol=neg_rtol),
-        # covar=vcov(result),
+        sigma=stderror(result; rtol=neg_rtol),
+        covar=vcov(result),
     )
 end
 
