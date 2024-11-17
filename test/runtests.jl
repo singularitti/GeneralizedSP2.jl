@@ -3,7 +3,7 @@ using Test
 
 @testset "GeneralizedSP2.jl" begin
     # Write your tests here.
-    include("inference.jl")
+    include("primals.jl")
     include("gradients.jl")
     include("rescaling.jl")
 end
