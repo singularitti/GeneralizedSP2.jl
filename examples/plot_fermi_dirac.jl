@@ -24,8 +24,8 @@ PLOT_DEFAULTS = Dict(
 )
 
 function plot_fermi_dirac(β=9.423, μ=0.568)
-    minlayers = 2
-    maxlayers = 4
+    minlayers = 12
+    maxlayers = 14
     lower_bound, upper_bound = 0, 1
 
     branches = determine_branches(μ, maxlayers)
@@ -67,10 +67,10 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
         PLOT_DEFAULTS...,
     )
     for nlayers in minlayers:maxlayers
-        𝛉, _, _ = fit_fermi_dirac(𝐱, μ, β, nlayers)
+        𝛉 = fit_fermi_dirac(𝐱, μ, β, nlayers; max_iter=10000).model
         plot!(
             𝐱,
-            fermi_dirac_model(𝐱, 𝛉);
+            fermi_dirac(𝛉).(𝐱);
             subplot=1,
             label="MLSP2 with $nlayers layers",
             linestyle=:dot,
@@ -78,7 +78,7 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
         )
         plot!(
             𝐱,
-            fermi_dirac.(𝐱, μ, β) - fermi_dirac_model(𝐱, 𝛉);
+            fermi_dirac.(𝐱, μ, β) - fermi_dirac(𝛉).(𝐱);
             subplot=2,
             label="MLSP2 with $nlayers layers",
             linestyle=:dot,
@@ -87,8 +87,8 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
     end
     for nlayers in minlayers:maxlayers
         𝐱′ = chebyshevnodes_1st(length(𝐱), (lower_bound, upper_bound))
-        𝛉, _, _ = fit_fermi_dirac(𝐱′, μ, β, nlayers)
-        𝐲′ = fermi_dirac_model(𝐱′, 𝛉)
+        𝛉 = fit_fermi_dirac(𝐱′, μ, β, nlayers; max_iter=10000).model
+        𝐲′ = fermi_dirac(𝛉).(𝐱′)
         plot!(
             𝐱′,
             𝐲′;
