@@ -89,8 +89,6 @@ fermi_dirac!(M::AbstractModel, result::AbstractVector, 𝐱::AbstractVector) =
 fermi_dirac!(M::AbstractModel, result::AbstractMatrix, X::AbstractMatrix) =
     copy!(result, fermi_dirac(M)(X))  # Note this is not element-wise!
 
-_fermi_dirac!(result, X, A) = fermi_dirac!(FlattendModel(A), result, X)  # Only used for fitting
-
 _finalize_electronic_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
 
 electronic_entropy(M::AbstractModel) = _finalize_electronic_entropy ∘ M

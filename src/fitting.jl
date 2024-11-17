@@ -4,6 +4,10 @@ import LsqFit: LMResults
 
 export fit_fermi_dirac, fit_electronic_entropy
 
+_fermi_dirac!(result, X, A) = fermi_dirac!(FlattendModel(A), result, X)  # Only used for fitting
+
+_electronic_entropy!(result, X, A) = electronic_entropy!(FlattendModel(A), result, X)  # Only used for fitting
+
 function fit_fermi_dirac(
     𝐱,
     μ,
@@ -23,7 +27,7 @@ function fit_fermi_dirac(
     end
     𝛉 = FlattendModel(init_model(μ, nlayers))  # Initialize model with SP2
     result = curve_fit(
-        fermi_dirac!,
+        _fermi_dirac!,
         fermi_dirac_grad!,
         𝐱,  # xdata
         fermi_dirac.(𝐱, μ, β),  # ydata
@@ -68,7 +72,7 @@ function fit_electronic_entropy(
     end
     𝛉 = FlattendModel(init_model(μ, nlayers))  # Initialize model with SP2
     result = curve_fit(
-        electronic_entropy!,
+        _electronic_entropy!,
         electronic_entropy_grad!,
         𝐱,
         electronic_entropy.(𝐱, μ, β),
