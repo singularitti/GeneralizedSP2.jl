@@ -1,7 +1,7 @@
 using Distributions
 using GershgorinDiscs
 using GeneralizedSP2
-using GeneralizedSP2: fermi_dirac_prime, transform_fermi_dirac_derivative
+using GeneralizedSP2: fermi_dirac_prime, _finalize_fermi_dirac_grad
 using LinearAlgebra: Eigen, eigvals
 using Roots: Newton, find_zero
 using Plots
@@ -107,26 +107,25 @@ E = eigen(H)
 𝐲̂ = fermi_dirac.(𝐱′, μ′, β′)
 𝐱′_inv = sort(inv(rescale_one_zero(εₘᵢₙ, εₘₐₓ)).(𝐱′))
 
-max_iter = 1_000_000
+max_iter = 10_000_000
 layers = 18:21
 println("fitting for max_iter = $max_iter")
 𝚯 = @showprogress map(layers) do nlayers
-    𝛉, _, _ = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter)
-    𝛉
+    𝛉 = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter).model
 end
 𝐲_fitted = map(𝚯) do 𝛉
-    fermi_dirac_model(𝐱′, 𝛉)
+    fermi_dirac(𝛉).(𝐱′)
 end
 rmse = map(𝚯, 𝐲_fitted) do 𝛉, 𝐲
     residuals = 𝐲 - 𝐲̂
     sqrt(mean(abs2, residuals))
 end
 derivative_norms = map(𝚯) do 𝛉
-    𝝝̄ = manualdiff_model(transform_fermi_dirac_derivative, 𝐱′, 𝛉)
+    𝝝̄ = manualdiff_model(_finalize_fermi_dirac_grad, 𝐱′, 𝛉)
     norm(𝝝̄, Inf)
 end
 densitymatrices = map(𝚯) do 𝛉
-    fermi_dirac_model(H_scaled, 𝛉)
+    fermi_dirac(𝛉)(H_scaled)
 end
 diff_norms = map(densitymatrices) do densitymatrix
     norm(densitymatrix - exact_densitymatrix, Inf)
