@@ -1,7 +1,7 @@
 using LinearAlgebra: I, checksquare
 # using Enzyme: Reverse, Const, Duplicated, autodiff
 
-export basis, manualdiff_model, electronic_entropy
+export basis, electronic_entropy
 
 # See https://github.com/PainterQubits/Unitful.jl/blob/6bf6f99/src/utils.jl#L241-L247
 struct DimensionError{X,Y} <: Exception
@@ -100,43 +100,44 @@ electronic_entropy!(M::AbstractModel, result::AbstractVector, 𝐱::AbstractVect
 electronic_entropy!(M::AbstractModel, result::AbstractMatrix, X::AbstractMatrix) =
     copy!(result, electronic_entropy(M)(X))  # Note this is not element-wise!
 
-function manualdiff_model!(f′, 𝝝̄, 𝐱, 𝝷)
+function manualdiff_model!(f′, 𝐌̄, 𝐱, M::FlattendModel)
     npoints = length(𝐱)
-    nlayers = numlayers(𝝷)
-    𝝝̄ = reshape(𝝝̄, size(𝐱)..., size(𝝷)...)
+    M = Model(M)
+    nlayers = numlayers(M)
+    𝐌̄ = reshape(𝐌̄, size(𝐱)..., size(M)...)
     𝐲 = zeros(eltype(𝐱), nlayers + 1)
     for j in 1:npoints
         # Forward calculation
         𝐲[1] = 𝐱[j]
         Y = zero(eltype(𝐲))
         for i in 1:nlayers
-            Y += 𝝷[4, i] * 𝐲[i]
-            𝐲[i + 1] = 𝝷[1, i] * 𝐲[i]^2 + 𝝷[2, i] * 𝐲[i] + 𝝷[3, i] * oneunit(𝐲[i])
+            Y += M[4, i] * 𝐲[i]
+            𝐲[i + 1] = M[1, i] * 𝐲[i]^2 + M[2, i] * 𝐲[i] + M[3, i] * oneunit(𝐲[i])
         end
         Y += 𝐲[nlayers + 1]
         α = f′(Y)
         # Backward calculation
-        z = one(eltype(𝝷)) # zₗₐₛₜ
+        z = one(eltype(M)) # zₗₐₛₜ
         for i in nlayers:-1:1
             # zᵢ₊₁
-            𝝝̄[j, 1, i] = α * z * 𝐲[i]^2
-            𝝝̄[j, 2, i] = α * z * 𝐲[i]
-            𝝝̄[j, 3, i] = α * z
-            𝝝̄[j, 4, i] = α * 𝐲[i]
-            z = 𝝷[4, i] * oneunit(𝐲[i]) + z * (2𝝷[1, i] * 𝐲[i] + 𝝷[2, i] * oneunit(𝐲[i]))  # zᵢ
+            𝐌̄[j, 1, i] = α * z * 𝐲[i]^2
+            𝐌̄[j, 2, i] = α * z * 𝐲[i]
+            𝐌̄[j, 3, i] = α * z
+            𝐌̄[j, 4, i] = α * 𝐲[i]
+            z = M[4, i] * oneunit(𝐲[i]) + z * (2M[1, i] * 𝐲[i] + M[2, i] * oneunit(𝐲[i]))  # zᵢ
         end
     end
-    return 𝝝̄
+    return 𝐌̄
 end
 
 _finalize_fermi_dirac_grad(Y) = -one(Y)  # Applies to 1 number at a time
 
 _finalize_electronic_entropy_grad(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
-fermi_dirac_grad!(𝝝̄, 𝐱, 𝝷) = manualdiff_model!(_finalize_fermi_dirac_grad, 𝝝̄, 𝐱, 𝝷)
+fermi_dirac_grad!(𝐌̄, 𝐱, M) = manualdiff_model!(_finalize_fermi_dirac_grad, 𝐌̄, 𝐱, M)
 
-electronic_entropy_grad!(𝝝̄, 𝐱, 𝝷) =
-    manualdiff_model!(_finalize_electronic_entropy_grad, 𝝝̄, 𝐱, 𝝷)
+electronic_entropy_grad!(𝐌̄, 𝐱, M) =
+    manualdiff_model!(_finalize_electronic_entropy_grad, 𝐌̄, 𝐱, M)
 
 function _checkdimension(R, S, T)
     if !isa(oneunit(S) * oneunit(T), R)
