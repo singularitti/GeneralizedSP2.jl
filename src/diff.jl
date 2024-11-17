@@ -1,3 +1,11 @@
+export manualdiff_model
+
+function manualdiff_model(f′, 𝐱, M)
+    M = Model(FlattendModel(M))
+    𝐌̄ = Array{Float64}(undef, size(𝐱)..., size(M)...)
+    return manualdiff_model!(f′, 𝐌̄, 𝐱, M)
+end
+
 function manualdiff_model!(f′, 𝐌̄, 𝐱, M::Model)
     npoints = length(𝐱)
     nlayers = numlayers(M)
