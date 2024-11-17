@@ -24,8 +24,8 @@ PLOT_DEFAULTS = Dict(
 )
 
 function plot_entropy(β, μ=0.568)
-    minlayers = 2
-    maxlayers = 4
+    minlayers = 12
+    maxlayers = 14
     lower_bound, upper_bound = 0, 1
 
     𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
@@ -48,10 +48,10 @@ function plot_entropy(β, μ=0.568)
         PLOT_DEFAULTS...,
     )
     for nlayers in minlayers:maxlayers
-        𝛉 = fit_entropy(𝐱, μ, β, nlayers)
+        𝛉 = fit_electronic_entropy(𝐱, μ, β, nlayers; max_iter=100000).model
         plot!(
             𝐱,
-            entropy_model(𝐱, 𝛉);
+            electronic_entropy(𝛉).(𝐱);
             subplot=1,
             label="MLSP2 with $nlayers layers",
             linestyle=:dot,
@@ -59,7 +59,7 @@ function plot_entropy(β, μ=0.568)
         )
         plot!(
             𝐱,
-            electronic_entropy.(𝐱, μ, β) - entropy_model(𝐱, 𝛉);
+            electronic_entropy.(𝐱, μ, β) - electronic_entropy(𝛉).(𝐱);
             subplot=2,
             label="MLSP2 with $nlayers layers",
             linestyle=:dot,
