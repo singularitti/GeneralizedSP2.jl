@@ -2,7 +2,7 @@ using LsqFit: curve_fit, isconverged, coef, residuals, mse, stderror, vcov
 
 import LsqFit: LMResults
 
-export fit_fermi_dirac, fit_entropy
+export fit_fermi_dirac, fit_electronic_entropy
 
 # See https://github.com/JuliaMath/Roots.jl/blob/bf0da62/src/utils.jl#L9-L11
 struct ConvergenceFailed
@@ -54,7 +54,7 @@ function fit_fermi_dirac(
     throw(ConvergenceFailed("the curve fitting did not converge!"))
 end
 
-function fit_entropy(
+function fit_electronic_entropy(
     𝐱,
     μ,
     β,
