@@ -1,29 +1,26 @@
-using StaticArrays: MArray, MMatrix, MVector
-
 export Model, FlattendModel, numlayers, eachlayer
 
 abstract type AbstractModel{T,N} <: AbstractArray{T,N} end
 
-struct Model{T,N} <: AbstractModel{T,2}
-    data::MMatrix{LAYER_WIDTH,N,T}
+struct Model{T} <: AbstractModel{T,2}
+    data::Matrix{T}
     function Model(data::AbstractMatrix)
         if size(data, 1) != LAYER_WIDTH
             throw(DimensionMismatch("model matrix must have $LAYER_WIDTH rows!"))  # See https://discourse.julialang.org/t/120556/2
         end
-        N, T = size(data, 2), eltype(data)
-        return new{T,N}(MMatrix{LAYER_WIDTH,N,T}(data))
+        return new{eltype(data)}(collect(data))
     end
 end
 Model(M::Model) = M
 
-struct FlattendModel{T,N} <: AbstractModel{T,1}
-    data::MVector{N,T}
+struct FlattendModel{T} <: AbstractModel{T,1}
+    data::Vector{T}
     function FlattendModel(data::AbstractVector)
         if !iszero(length(data) % LAYER_WIDTH)
             throw(DimensionMismatch("flattend model must have 4N elements!"))
         end
-        N, T = length(data), eltype(data)
-        return new{T,N}(MVector{N,T}(data))
+        T = eltype(data)
+        return new{T}(collect(data))
     end
 end
 FlattendModel(M::Model) = FlattendModel(vec(M))
