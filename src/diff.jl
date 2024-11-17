@@ -1,6 +1,5 @@
-function manualdiff_model!(f′, 𝐌̄, 𝐱, M::FlattendModel)
+function manualdiff_model!(f′, 𝐌̄, 𝐱, M::Model)
     npoints = length(𝐱)
-    M = Model(M)
     nlayers = numlayers(M)
     𝐌̄ = reshape(𝐌̄, size(𝐱)..., size(M)...)
     𝐲 = zeros(eltype(𝐱), nlayers + 1)
@@ -27,6 +26,7 @@ function manualdiff_model!(f′, 𝐌̄, 𝐱, M::FlattendModel)
     end
     return 𝐌̄
 end
+manualdiff_model!(f′, 𝐌̄, 𝐱, M) = manualdiff_model!(f′, 𝐌̄, 𝐱, Model(FlattendModel(M)))
 
 _finalize_fermi_dirac_grad(Y) = -one(Y)  # Applies to 1 number at a time
 
