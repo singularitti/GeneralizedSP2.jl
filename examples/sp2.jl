@@ -1,3 +1,4 @@
+using GeneralizedSP2
 using Plots
 
 PLOT_DEFAULTS = Dict(
@@ -25,7 +26,7 @@ f(𝐱) = 𝐱 .^ 2
 
 g(𝐱) = 2𝐱 .- 𝐱 .^ 2
 
-𝐱 = 0:0.01:1
+𝐱 = chebyshevnodes_1st(1000, (0, 1))
 
 plot()
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
