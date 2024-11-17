@@ -1,4 +1,3 @@
-using GershgorinDiscs: eigvals_extrema
 using LinearAlgebra: Diagonal, eigen, eigvals
 using IsApprox: isunitary
 
