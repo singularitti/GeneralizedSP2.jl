@@ -83,23 +83,13 @@ end
 _finalize_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
 
 fermi_dirac(M::AbstractModel) = _finalize_fermi_dirac ∘ M
-# _fermi_dirac(X::AbstractVector, A) = begin
-#     @show size(X), size(A)
-#     Z = fermi_dirac(Model(A)).(X)  # Only for fitting
-#     @show size(Z)
-#     Z
-# end
 
 fermi_dirac!(M::AbstractModel, result::AbstractVector, 𝐱::AbstractVector) =
     map!(fermi_dirac(M), result, 𝐱)
 fermi_dirac!(M::AbstractModel, result::AbstractMatrix, X::AbstractMatrix) =
     copy!(result, fermi_dirac(M)(X))  # Note this is not element-wise!
-# _fermi_dirac!(result, X, A) = begin
-#     @show size(result), size(X), size(A)
-#     Z = fermi_dirac!(Model(A), result, X)  # Only for fitting
-#     @show size(Z)
-#     Z
-# end
+
+_fermi_dirac!(result, X, A) = fermi_dirac!(FlattendModel(A), result, X)  # Only used for fitting
 
 _finalize_electronic_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
 
