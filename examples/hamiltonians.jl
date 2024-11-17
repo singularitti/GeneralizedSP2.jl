@@ -48,25 +48,25 @@ function compute_mu(H, nocc)
     return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=true)
 end
 
-β = 10
-μ = 0.45
+β = 1.25
+μ = 100
 H = diagonalhamil(1000, 235)
+𝚲 = eigvals(H)  # Must be all reals
+εₘᵢₙ, εₘₐₓ = floor(minimum(𝚲)), ceil(maximum(𝚲))
+β′ = rescale_beta(β, (εₘᵢₙ, εₘₐₓ))
+μ′ = rescale_mu(μ, (εₘᵢₙ, εₘₐₓ))
+H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 
-emin, emax = eigvals_extrema(H)
 lower_bound, upper_bound = 0, 1
-𝐱 = sample_by_pdf(bell_distribution(μ, β, 10), μ, (lower_bound, upper_bound))
-𝛉, _, _ = fit_fermi_dirac(𝐱, μ, β, 10)
-H_scaled = rescale_one_zero(emin, emax)(H)
+𝐱′ = chebyshevnodes_1st(1000, (lower_bound, upper_bound))
+𝛉 = fit_fermi_dirac(𝐱′, μ′, β′, 18; max_iter=10_000_00).model
 
-dm = fermi_dirac_model(H_scaled, 𝛉)
+dm = fermi_dirac(𝛉)(H_scaled)
 N = tr(dm)
 
-rescaled_fermi_dirac(H, μ, β) ≈ fermi_dirac(H_scaled, μ, β)
-dm_exact = rescaled_fermi_dirac(H, μ, β)
+@assert rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ)) ≈ fermi_dirac(H_scaled, μ′, β′)
+dm_exact = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
 N_exact = tr(dm_exact)
-
-@show estimate_mu(H_scaled, N)
-@show compute_mu(H_scaled, N)
 
 scatter(eigvals(H), eigvals(dm_exact); label="target Fermi–Dirac", PLOT_DEFAULTS...)
 scatter!(eigvals(H), eigvals(dm); label="MLSP2 model", PLOT_DEFAULTS...)
