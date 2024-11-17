@@ -1,4 +1,4 @@
-using LsqFit: curve_fit, coef, stderror, vcov
+using LsqFit: curve_fit, isconverged, coef, residuals, mse, stderror, vcov
 
 export fit_fermi_dirac, fit_entropy
 
@@ -13,7 +13,10 @@ function fit_fermi_dirac(
     β,
     nlayers=20;
     max_iter=1000,
-    rtol=NaN,
+    max_time=Inf,
+    x_tol=1e-8,
+    grad_tol=1e-12,
+    neg_rtol=NaN,
     is_rescaled=false,
     show_trace=false,
     kwargs...,
@@ -22,18 +25,31 @@ function fit_fermi_dirac(
         _checkdomain(𝐱, μ, β)
     end
     𝛉 = init_model(μ, nlayers)  # Initialize model with SP2
-    fitted = curve_fit(
-        fermi_dirac_model!,
+    result = curve_fit(
+        fermi_dirac!,
         fermi_dirac_derivatives!,
         𝐱,  # xdata
         fermi_dirac.(𝐱, μ, β),  # ydata
         𝛉;  # p0
         maxIter=max_iter,
+        maxTime=max_time,
+        x_tol=x_tol,
+        g_tol=grad_tol,
         inplace=true,
         show_trace=show_trace,
         kwargs...,
     )
-    return coef(fitted), stderror(fitted; rtol=rtol), vcov(fitted)
+    if isconverged(result)
+        return (
+            params=coef(result),
+            jac=result.jacobian,
+            resid=residuals(result),
+            rmse=sqrt(mse(result)),
+            sigma=stderror(result; rtol=neg_rtol),
+            covar=vcov(result),
+        )
+    end
+    throw(ConvergenceFailed("the curve fitting did not converge!"))
 end
 
 function fit_entropy(
@@ -42,7 +58,10 @@ function fit_entropy(
     β,
     nlayers=20;
     max_iter=1000,
-    rtol=NaN,
+    max_time=Inf,
+    x_tol=1e-8,
+    grad_tol=1e-12,
+    neg_rtol=NaN,
     is_rescaled=false,
     show_trace=false,
     kwargs...,
@@ -51,18 +70,31 @@ function fit_entropy(
         _checkdomain(𝐱, μ, β)
     end
     𝛉 = init_model(μ, nlayers)  # Initialize model with SP2
-    fitted = curve_fit(
-        entropy_model!,
+    result = curve_fit(
+        entropy!,
         entropy_derivatives!,
         𝐱,
         electronic_entropy.(𝐱, μ, β),
         𝛉;
         maxIter=max_iter,
+        maxTime=max_time,
+        x_tol=x_tol,
+        g_tol=grad_tol,
         inplace=true,
         show_trace=show_trace,
         kwargs...,
     )
-    return coef(fitted), stderror(fitted; rtol=rtol), vcov(fitted)
+    if isconverged(result)
+        return (
+            params=coef(result),
+            jac=result.jacobian,
+            resid=residuals(result),
+            rmse=sqrt(mse(result)),
+            sigma=stderror(result; rtol=neg_rtol),
+            covar=vcov(result),
+        )
+    end
+    throw(ConvergenceFailed("the curve fitting did not converge!"))
 end
 
 function _checkdomain(𝐱, μ, β)
