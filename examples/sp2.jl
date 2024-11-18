@@ -65,7 +65,7 @@ animation = @animate for projection in projections
     plot!(
         𝐱,
         projection.(𝐱);
-        label=string(projection),
+        label=string(repr(projection; context=:module => Main)),  # See https://discourse.julialang.org/t/122702/2
         PLOT_DEFAULTS...,
         legend_position=:bottomright,
     )
