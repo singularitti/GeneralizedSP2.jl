@@ -20,6 +20,7 @@ function fit_fermi_dirac(
     neg_rtol=NaN,
     is_rescaled=false,
     show_trace=false,
+    store_trace=true,
     kwargs...,
 )
     if is_rescaled
@@ -38,6 +39,7 @@ function fit_fermi_dirac(
         g_tol=grad_tol,
         inplace=true,
         show_trace=show_trace,
+        store_trace=store_trace,
         kwargs...,
     )
     if !isconverged(result)
@@ -50,6 +52,7 @@ function fit_fermi_dirac(
         rmse=sqrt(mse(result)),
         sigma=stderror(result; rtol=neg_rtol),
         covar=vcov(result),
+        trace=result.trace,
     )
 end
 
@@ -65,6 +68,7 @@ function fit_electronic_entropy(
     neg_rtol=NaN,
     is_rescaled=false,
     show_trace=false,
+    store_trace=true,
     kwargs...,
 )
     if is_rescaled
@@ -83,6 +87,7 @@ function fit_electronic_entropy(
         g_tol=grad_tol,
         inplace=true,
         show_trace=show_trace,
+        store_trace=store_trace,
         kwargs...,
     )
     if !isconverged(result)
@@ -95,6 +100,7 @@ function fit_electronic_entropy(
         rmse=sqrt(mse(result)),
         sigma=stderror(result; rtol=neg_rtol),
         covar=vcov(result),
+        trace=result.trace,
     )
 end
 
