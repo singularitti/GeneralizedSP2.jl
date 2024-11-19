@@ -2,7 +2,7 @@ using Distributions
 using GershgorinDiscs
 using GeneralizedSP2
 using GeneralizedSP2: fermi_dirac_prime, _finalize_fermi_dirac_grad
-using LinearAlgebra: Eigen, eigvals
+using LinearAlgebra: Eigen, diag, eigen, eigvals, norm, tr
 using Roots: Newton, find_zero
 using Plots
 using ProgressMeter: @showprogress
