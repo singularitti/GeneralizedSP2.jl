@@ -68,4 +68,6 @@ end
 
 # See https://docs.julialang.org/en/v1/manual/conversion-and-promotion/#When-is-convert-called?
 Base.convert(::Type{<:FlattendModel{T}}, M::Model{T}) where {T} = FlattendModel(M)
-Base.convert(::Type{<:Model{T}}, M::FlattendModel{T}) where {T} = Model(M)
+Base.convert(::Type{Model{T}}, M::FlattendModel{T}) where {T} = Model(M)
+Base.convert(::Type{Model{S}}, M::Model{T}) where {S,T} = Model(convert(Matrix{S}, M))
+Base.convert(::Type{Model}, M::Model{T}) where {T} = convert(Model{eltype(M)}, M)
