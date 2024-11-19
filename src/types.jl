@@ -4,24 +4,26 @@ abstract type AbstractModel{T,N} <: AbstractArray{T,N} end
 
 struct Model{T} <: AbstractModel{T,2}
     data::Matrix{T}
-    function Model(data::AbstractMatrix)
+    function Model{T}(data::AbstractMatrix{S}) where {T,S}
         if size(data, 1) != LAYER_WIDTH
             throw(DimensionMismatch("model matrix must have $LAYER_WIDTH rows!"))  # See https://discourse.julialang.org/t/120556/2
         end
-        return new{eltype(data)}(data)
+        return S <: T ? new{S}(data) : new(convert(Matrix{T}, data))  # Reduce allocations
     end
 end
+Model(data::AbstractMatrix) = Model{eltype(data)}(data)
 Model(M::Model) = M
 
 struct FlattendModel{T} <: AbstractModel{T,1}
     data::Vector{T}
-    function FlattendModel(data::AbstractVector)
+    function FlattendModel{T}(data::AbstractVector{S}) where {T,S}
         if !iszero(length(data) % LAYER_WIDTH)
             throw(DimensionMismatch("flattend model must have 4N elements!"))
         end
-        return new{eltype(data)}(data)
+        return S <: T ? new{S}(data) : new(convert(Vector{T}, data))  # Reduce allocations
     end
 end
+FlattendModel(data::AbstractVector) = FlattendModel{eltype(data)}(data)
 FlattendModel(M::Model) = FlattendModel(vec(M))
 FlattendModel(M::FlattendModel) = M
 
