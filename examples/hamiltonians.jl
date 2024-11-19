@@ -53,3 +53,15 @@ scatter(eigvals(H), eigvals(dm_exact); label="target Fermi–Dirac", PLOT_DEFAUL
 scatter!(eigvals(H), eigvals(dm); label="MLSP2 model", PLOT_DEFAULTS...)
 xlabel!("eigenvalues of H")
 ylabel!("Fermi–Dirac distribution")
+
+manifolds = eachcol(transpose(hcat(basis(M).(𝐱′)...))[:, (end - 5):end])
+plot(𝐱′, manifolds[1]; linestyle=:dot, label="basis", PLOT_DEFAULTS...)
+plot!(𝐱′, manifolds[1]; linestyle=:solid, label="accumulated curve", PLOT_DEFAULTS...)
+animation = @animate for (manifold, summed) in zip(manifolds, cumsum(manifolds))
+    plot!(𝐱′, manifold; linestyle=:dot, label="", PLOT_DEFAULTS...)
+    plot!(𝐱′, summed; linestyle=:solid, label="", PLOT_DEFAULTS...)
+end
+xlims!(0, 1)
+xlabel!(raw"$x$")
+ylabel!(raw"$y$")
+gif(animation, "animation.gif"; fps=0.8)
