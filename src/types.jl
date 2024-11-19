@@ -30,7 +30,7 @@ FlattendModel(M::FlattendModel) = M
 Model(M::FlattendModel) = Model(reshape(parent(M), LAYER_WIDTH, :))
 
 numlayers(M::Model) = size(M, 2)
-numlayers(M::FlattendModel) = size(Model(M))
+numlayers(M::FlattendModel) = numlayers(Model(M))
 
 eachlayer(M::Model) = eachcol(M)
 eachlayer(M::FlattendModel) = eachcol(Model(M))
