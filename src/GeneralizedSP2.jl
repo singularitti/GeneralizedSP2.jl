@@ -2,7 +2,7 @@ module GeneralizedSP2
 
 const LAYER_WIDTH = 4
 
-include("rescaler.jl")
+include("rescaling.jl")
 include("stat_mech.jl")
 include("types.jl")
 include("primals.jl")
