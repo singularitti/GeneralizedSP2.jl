@@ -2,7 +2,12 @@ using LinearAlgebra: Diagonal, eigen, eigvals
 using IsApprox: isunitary
 
 export fermi_dirac,
-    rescaled_fermi_dirac, electronic_energy, electronic_entropy, rescale_mu, rescale_beta
+    rescaled_fermi_dirac,
+    fermi_dirac_deriv,
+    electronic_energy,
+    electronic_entropy,
+    rescale_mu,
+    rescale_beta
 
 function fermi_dirac(ε, μ, β)
     η = exp((ε - μ) * β)
@@ -20,7 +25,7 @@ function rescaled_fermi_dirac(H::AbstractMatrix, μ, β, 𝛆=extrema(H))
     end
 end
 
-function fermi_dirac_prime(ε, μ, β)
+function fermi_dirac_deriv(ε, μ, β)
     fd = fermi_dirac(ε, μ, β)
     return -β * fd * (oneunit(fd) - fd)
 end

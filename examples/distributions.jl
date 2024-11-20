@@ -1,8 +1,8 @@
 using Distributions
 using GershgorinDiscs
 using GeneralizedSP2
-using GeneralizedSP2: fermi_dirac_prime, _finalize_fermi_dirac_grad
-using LinearAlgebra: Eigen, diag, eigen, eigvals, norm, tr
+using GeneralizedSP2: fermi_dirac_deriv, _finalize_fermi_dirac_grad
+using LinearAlgebra: Eigen, Hermitian, diag, eigen, eigvals, norm, tr
 using Roots: Newton, find_zero
 using Plots
 using ProgressMeter: @showprogress
@@ -38,7 +38,7 @@ function estimate_mu(H_scaled, β′, Nocc)
     homo, lumo = diagonal[Nocc], diagonal[Nocc + 1]
     μ₀ = (homo + lumo) / 2
     g(μ) = Nocc - sum(fermi_dirac.(diagonal, μ, β′))
-    g′(μ) = sum(fermi_dirac_prime.(diagonal, μ, β′))
+    g′(μ) = sum(fermi_dirac_deriv.(diagonal, μ, β′))
     return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=false)
 end
 
@@ -48,7 +48,7 @@ function compute_mu(H_scaled, β′, Nocc)
     homo, lumo = evals[Nocc], evals[Nocc + 1]
     μ₀ = (homo + lumo) / 2
     g(μ) = Nocc - sum(fermi_dirac.(evals, μ, β′))
-    g′(μ) = sum(fermi_dirac_prime.(evals, μ, β′))
+    g′(μ) = sum(fermi_dirac_deriv.(evals, μ, β′))
     return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=false)
 end
 
