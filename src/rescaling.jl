@@ -36,10 +36,17 @@ rescale_one_zero(𝐱...) = rescale_one_zero(𝐱)
 
 function Base.show(io::IO, ::MIME"text/plain", r::Rescaler)
     k, b = r.k, r.b
-    if b < zero(b)
-        print(io, "y = $k x - $(abs(b))")
+    if isone(k)
+        k = ""
+    elseif isone(-k)
+        k = "-"
     else
-        print(io, "y = $k x + $b")
+        k = "$k "
+    end
+    if b < zero(b)
+        print(io, "y = $(k)x - $(abs(b))")
+    else
+        print(io, "y = $(k)x + $b")
     end
     return nothing
 end
