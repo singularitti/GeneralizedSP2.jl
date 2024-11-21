@@ -26,8 +26,8 @@ function rescaled_fermi_dirac(H::AbstractMatrix, μ, β, 𝛆=extrema(H))
 end
 
 function fermi_dirac_deriv(ε, μ, β)
-    fd = fermi_dirac(ε, μ, β)
-    return -β * fd * (oneunit(fd) - fd)
+    ρ = fermi_dirac(ε, μ, β)
+    return -β * ρ * (oneunit(ρ) - ρ)
 end
 fermi_dirac_deriv(DM::AbstractMatrix, β) = -β * DM * (oneunit(DM) - DM)
 
