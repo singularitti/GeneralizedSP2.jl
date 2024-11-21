@@ -29,6 +29,7 @@ function fermi_dirac_deriv(ε, μ, β)
     fd = fermi_dirac(ε, μ, β)
     return -β * fd * (oneunit(fd) - fd)
 end
+fermi_dirac_deriv(DM::AbstractMatrix, β) = -β * DM * (oneunit(DM) - DM)
 
 function electronic_energy(ε, μ, β)
     η = (ε - μ) * β
