@@ -3,8 +3,9 @@ using LinearAlgebra: tr, diag
 export newton_raphson_step, estimate_mu
 
 function newton_raphson_step(DM, β, target_occupation; occ_atol=1e-7)
+    @assert occ_atol >= zero(occ_atol)
     occupation = tr(DM)
-    occupation_error = target_occupation - occupation
+    occupation_error = abs(target_occupation - occupation)
     derivatives = fermi_dirac_deriv(DM, β)
     Δμ′ = occupation_error / tr(derivatives)
     return Δμ′, occupation_error <= occ_atol
