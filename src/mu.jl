@@ -1,8 +1,8 @@
 using LinearAlgebra: tr, diag
 
-export newton_raphson_iteration, estimate_mu
+export newton_raphson_step, estimate_mu
 
-function newton_raphson_iteration(DM, β, target_occupation; occ_atol=1e-7)
+function newton_raphson_step(DM, β, target_occupation; occ_atol=1e-7)
     occupation = tr(DM)
     occupation_error = target_occupation - occupation
     derivatives = fermi_dirac_deriv(DM, β)
@@ -29,7 +29,7 @@ function estimate_mu(
     while !iszero(Δμ′)
         M = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter, kwargs...).model
         DM = fermi_dirac(M)(H′)
-        Δμ′ = newton_raphson_iteration(DM, β, target_occupation; occ_atol=occ_atol)
+        Δμ′ = newton_raphson_step(DM, β, target_occupation; occ_atol=occ_atol)
         μ′ += Δμ′
     end
     return μ′
