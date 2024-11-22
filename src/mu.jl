@@ -7,7 +7,7 @@ function newton_raphson_step(DM, β, target_occupation; occ_atol=1e-7)
     occupation_error = target_occupation - occupation
     derivatives = fermi_dirac_deriv(DM, β)
     Δμ′ = occupation_error / tr(derivatives)
-    return occupation_error > occ_atol ? Δμ′ : zero(Δμ′)
+    return Δμ′, occupation_error > occ_atol
 end
 
 function estimate_mu(
@@ -25,11 +25,11 @@ function estimate_mu(
     H′ = rescale_one_zero(𝛆)(H)
     β′ = rescale_beta(β, 𝛆)
     μ′ = rescale_mu(μ_init, 𝛆)
-    Δμ′ = oneunit(μ′)  # Initialize with a non-zero value
-    while !iszero(Δμ′)
-        M = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter, kwargs...).model
-        DM = fermi_dirac(M)(H′)
-        Δμ′ = newton_raphson_step(DM, β, target_occupation; occ_atol=occ_atol)
+    converged = false
+    while !converged
+        fitted = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter, kwargs...)
+        DM = fermi_dirac(fitted.model)(H′)
+        Δμ′, converged = newton_raphson_step(DM, β, target_occupation; occ_atol=occ_atol)
         μ′ += Δμ′
     end
     return μ′
