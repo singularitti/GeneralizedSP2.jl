@@ -1,4 +1,4 @@
-using LinearAlgebra: tr
+using LinearAlgebra: tr, diag
 
 export newton_raphson_iteration, estimate_mu
 
@@ -15,7 +15,7 @@ function estimate_mu(
     𝐱′,
     β,
     target_occupation,
-    μ_init=sum(extrema(H)) / 2,
+    μ_init=sum(extrema(diag(H))) / 2,
     𝛆=extrema(H),
     nlayers=20;
     max_iter=1000,
