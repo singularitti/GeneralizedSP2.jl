@@ -10,6 +10,7 @@ include("tangents.jl")
 include("fitting.jl")
 include("sp2.jl")
 include("sampling.jl")
+include("mu.jl")
 include("io.jl")
 
 end
