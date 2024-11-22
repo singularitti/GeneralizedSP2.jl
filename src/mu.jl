@@ -7,7 +7,7 @@ function newton_raphson_step(DM, β, target_occupation; occ_atol=1e-7)
     occupation_error = target_occupation - occupation
     derivatives = fermi_dirac_deriv(DM, β)
     Δμ′ = occupation_error / tr(derivatives)
-    return Δμ′, occupation_error > occ_atol
+    return Δμ′, occupation_error <= occ_atol
 end
 
 function estimate_mu(
