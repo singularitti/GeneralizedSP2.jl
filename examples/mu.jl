@@ -17,9 +17,10 @@ fitted = fit_fermi_dirac(𝐱′, μ′, β′, 18; max_iter=1_00_000);
 dm = fermi_dirac(fitted.model)(H_scaled)
 N = tr(dm)
 
-target_occupation = N + 30
-μ_init = μ + 10
-μ′_final = estimate_mu(H, 𝐱′, β, target_occupation, μ_init, (εₘᵢₙ, εₘₐₓ); max_iter=10000)
-fitted_final = fit_fermi_dirac(𝐱′, μ′_final, β′, 18; max_iter=1_00_000);
+N_target = N + 100
+μ_init = μ + 50
+μ′_final = estimate_mu(H, 𝐱′, β, N_target, μ_init, (εₘᵢₙ, εₘₐₓ); max_iter=10000)
+fitted_final = fit_fermi_dirac(𝐱′, μ′_final, β′, 18; max_iter=1_000_000);
 dm_final = fermi_dirac(fitted_final.model)(H_scaled)
 N_final = tr(dm_final)
+@show diff = N_final - N_target
