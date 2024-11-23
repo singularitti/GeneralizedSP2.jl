@@ -19,6 +19,7 @@ function estimate_mu(
     μ=sum(extrema(diag(H))) / 2,
     𝛆=extrema(H),
     nlayers=20;
+    is_rescaled=true,
     max_iter=1000,
     occ_atol=1e-4,
     kwargs...,
@@ -35,5 +36,5 @@ function estimate_mu(
         Δμ′ = Δμ * factor
         μ′ -= Δμ′
     end
-    return μ′
+    return is_rescaled ? μ′ : recover_mu(μ′, 𝛆)
 end
