@@ -2,7 +2,7 @@ using LinearAlgebra: tr, diag
 
 export newton_raphson_step, estimate_mu
 
-function newton_raphson_step(DM, β, target_occupation; occ_atol=1e-7)
+function newton_raphson_step(DM, β, target_occupation; occ_atol=1e-4)
     @assert occ_atol >= zero(occ_atol)
     occupation = tr(DM)
     occupation_error = target_occupation - occupation
@@ -20,7 +20,7 @@ function estimate_mu(
     𝛆=extrema(H),
     nlayers=20;
     max_iter=1000,
-    occ_atol=1e-7,
+    occ_atol=1e-4,
     kwargs...,
 )
     H′ = rescale_one_zero(𝛆)(H)
