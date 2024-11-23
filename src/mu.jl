@@ -26,13 +26,14 @@ function estimate_mu(
     H′ = rescale_one_zero(𝛆)(H)
     β′ = rescale_beta(β, 𝛆)
     μ′ = rescale_mu(μ, 𝛆)
-    εₘᵢₙ, εₘₐₓ = extrema(𝛆)
+    factor = inv(minimum(𝛆) - maximum(𝛆))
     converged = false
     while !converged
         fitted = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter, kwargs...)
         DM = fermi_dirac(fitted.model)(H′)
         Δμ, converged = newton_raphson_step(DM, β, target_occupation; occ_atol=occ_atol)
-        μ′ -= Δμ / (εₘᵢₙ - εₘₐₓ)
+        Δμ′ = Δμ * factor
+        μ′ -= Δμ′
     end
     return μ′
 end
