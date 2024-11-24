@@ -58,12 +58,12 @@ end
 @testset "Test `eigvals` will return a random order of eigenvalues" begin
     H, 𝛌 = rand_hamiltonian(1024, 0.54)
     @assert ishermitian(H)
-    @test !≈(eigvals(H), 𝛌)  # Not sorted
+    @test eigvals(H) ≉ 𝛌  # Not sorted
     @test sort(eigvals(H)) ≈ sort(𝛌)
     @testset "Test on the Fermi–Dirac function" begin
         μ, β = 0.35, 4
         D = fermi_dirac(H, μ, β)
-        @test !≈(eigvals(D), fermi_dirac.(eigvals(H), μ, β))  # Not sorted
+        @test eigvals(D) ≉ fermi_dirac.(eigvals(H), μ, β)  # Not sorted
         @test sort(eigvals(D)) ≈ fermi_dirac.(reverse(sort(eigvals(H))), μ, β)  # We need to reverse it since it is Fermi–Dirac
     end
     @testset "Test on the rescaled Fermi–Dirac function" begin
