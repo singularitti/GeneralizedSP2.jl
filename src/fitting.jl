@@ -4,10 +4,6 @@ import LsqFit: LMResults
 
 export init_model, fit_fermi_dirac, fit_electronic_entropy
 
-_fermi_dirac!(result, X, A) = fermi_dirac!(FlattendModel(A), result, X)  # Only used for fitting
-
-_electronic_entropy!(result, X, A) = electronic_entropy!(FlattendModel(A), result, X)  # Only used for fitting
-
 function fit_fermi_dirac(
     𝛆′,
     μ′,
@@ -130,6 +126,10 @@ function _checkdomain(𝐱, μ, β)
         throw(DomainError("rescaled β must be negative!"))
     end
 end
+
+_fermi_dirac!(result, X, A) = fermi_dirac!(FlattendModel(A), result, X)  # Only used for fitting
+
+_electronic_entropy!(result, X, A) = electronic_entropy!(FlattendModel(A), result, X)  # Only used for fitting
 
 LMResults(method, initial_x::AbstractModel, minimizer::AbstractModel, args...) =
     LMResults(method, convert(Vector, initial_x), convert(Vector, minimizer), args...)
