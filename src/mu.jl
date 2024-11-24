@@ -2,13 +2,14 @@ using LinearAlgebra: tr, diag
 
 export newton_raphson_step, estimate_mu
 
-function newton_raphson_step(DM, β, target_occupation; occ_atol=1e-4)
-    @assert occ_atol >= zero(occ_atol)
+function newton_raphson_step(DM, β, target_occupation; occ_tol=1e-4)
+    @assert occ_tol >= zero(occ_tol) "occupation tolerance must be non-negative!"
     occupation = tr(DM)
     occupation_error = target_occupation - occupation
     derivative = tr(fermi_dirac_deriv(DM, β))
     Δμ = occupation_error / derivative
-    return Δμ, abs(occupation_error) <= occ_atol
+    converged = abs(occupation_error) <= occ_tol
+    return Δμ, converged
 end
 
 function estimate_mu(
@@ -32,7 +33,7 @@ function estimate_mu(
     while !converged
         fitted = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter, kwargs...)
         DM = fermi_dirac(fitted.model)(H′)
-        Δμ, converged = newton_raphson_step(DM, β, target_occupation; occ_atol=occ_atol)
+        Δμ, converged = newton_raphson_step(DM, β, target_occupation; occ_tol=occ_tol)
         Δμ′ = Δμ * factor
         μ′ -= Δμ′
     end
