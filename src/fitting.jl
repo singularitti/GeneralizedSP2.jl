@@ -2,7 +2,7 @@ using LsqFit: curve_fit, isconverged, coef, residuals, mse, stderror, vcov
 
 import LsqFit: LMResults
 
-export fit_fermi_dirac, fit_electronic_entropy
+export init_model, fit_fermi_dirac, fit_electronic_entropy
 
 _fermi_dirac!(result, X, A) = fermi_dirac!(FlattendModel(A), result, X)  # Only used for fitting
 
@@ -104,6 +104,19 @@ function fit_electronic_entropy(
         covar=vcov(result),
         trace=result.trace,
     )
+end
+
+function init_model(μ, nlayers)
+    M = similar(Model{eltype(μ)}, LAYER_WIDTH, nlayers)
+    branches = determine_branches(μ, nlayers)
+    for (i, branch) in zip(1:nlayers, branches)
+        if branch  # μᵢ < μ
+            M[:, i] = [1, 0, 0, 0] # x' = x^2, increase μᵢ
+        else
+            M[:, i] = [-1, 2, 0, 0] # x' = 2x - x^2, decrease μᵢ
+        end
+    end
+    return FlattendModel(M)
 end
 
 function _checkdomain(𝐱, μ, β)

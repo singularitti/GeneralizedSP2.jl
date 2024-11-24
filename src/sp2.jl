@@ -1,4 +1,4 @@
-export determine_branches, backward_pass, forward_pass, init_model
+export determine_branches, backward_pass, forward_pass
 
 function determine_branches(μ, nlayers)
     branches = Bool[]
@@ -39,17 +39,4 @@ function forward_pass(branches, 𝐱)
         end
         throw(ArgumentError("$x is not in the interval (0, 1)!"))
     end
-end
-
-function init_model(μ, nlayers)
-    M = similar(Model{eltype(μ)}, LAYER_WIDTH, nlayers)
-    branches = determine_branches(μ, nlayers)
-    for (i, branch) in zip(1:nlayers, branches)
-        if branch  # μᵢ < μ
-            M[:, i] = [1, 0, 0, 0] # x' = x^2, increase μᵢ
-        else
-            M[:, i] = [-1, 2, 0, 0] # x' = 2x - x^2, decrease μᵢ
-        end
-    end
-    return FlattendModel(M)
 end
