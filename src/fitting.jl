@@ -14,14 +14,11 @@ function fit_fermi_dirac(
     x_tol=1e-8,
     grad_tol=1e-12,
     neg_rtol=NaN,
-    is_rescaled=false,
     show_trace=false,
     store_trace=true,
     kwargs...,
 )
-    if is_rescaled
-        _checkdomain(𝛆′, μ′, β′)
-    end
+    _checkdomain(𝛆′, μ′, β′)
     model = init_model(μ′, nlayers)  # Initialize model with SP2
     fd = fermi_dirac.(𝛆′, μ′, β′)
     result = curve_fit(
@@ -63,14 +60,11 @@ function fit_electronic_entropy(
     x_tol=1e-8,
     grad_tol=1e-12,
     neg_rtol=NaN,
-    is_rescaled=false,
     show_trace=false,
     store_trace=true,
     kwargs...,
 )
-    if is_rescaled
-        _checkdomain(𝛆′, μ′, β′)
-    end
+    _checkdomain(𝛆′, μ′, β′)
     model = init_model(μ′, nlayers)  # Initialize model with SP2
     𝐬 = electronic_entropy.(𝛆′, μ′, β′)
     result = curve_fit(
