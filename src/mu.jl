@@ -13,29 +13,29 @@ function newton_raphson_step(target_occupation, DM, β; occ_tol=1e-4)
 end
 
 function estimate_mu(
-    H,
-    𝐱′,
-    β,
     target_occupation,
+    H,
+    β,
+    𝛆′,
+    𝛜=extrema(H),
     μ=sum(extrema(diag(H))) / 2,
-    𝛆=extrema(H),
     nlayers=20;
     is_rescaled=true,
-    max_iter=1000,
+    fitting_max_iter=1000,
     occ_tol=1e-4,
     kwargs...,
 )
-    H′ = rescale_one_zero(𝛆)(H)
-    β′ = rescale_beta(β, 𝛆)
-    μ′ = rescale_mu(μ, 𝛆)
-    factor = inv(minimum(𝛆) - maximum(𝛆))
+    H′ = rescale_one_zero(𝛜)(H)
+    μ′ = rescale_mu(μ, 𝛜)
+    β′ = rescale_beta(β, 𝛜)
+    factor = inv(minimum(𝛜) - maximum(𝛜))
     converged = false
     while !converged
-        fitted = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter, kwargs...)
+        fitted = fit_fermi_dirac(𝛆′, μ′, β′, nlayers; max_iter=fitting_max_iter, kwargs...)
         DM = fermi_dirac(fitted.model)(H′)
         Δμ, converged = newton_raphson_step(target_occupation, DM, β; occ_tol=occ_tol)
         Δμ′ = Δμ * factor
         μ′ -= Δμ′
     end
-    return is_rescaled ? μ′ : recover_mu(μ′, 𝛆)
+    return is_rescaled ? μ′ : recover_mu(μ′, 𝛜)
 end
