@@ -9,9 +9,9 @@ _fermi_dirac!(result, X, A) = fermi_dirac!(FlattendModel(A), result, X)  # Only 
 _electronic_entropy!(result, X, A) = electronic_entropy!(FlattendModel(A), result, X)  # Only used for fitting
 
 function fit_fermi_dirac(
-    𝐱,
-    μ,
-    β,
+    𝛆′,
+    μ′,
+    β′,
     nlayers=20;
     max_iter=1000,
     max_time=Inf,
@@ -24,15 +24,16 @@ function fit_fermi_dirac(
     kwargs...,
 )
     if is_rescaled
-        _checkdomain(𝐱, μ, β)
+        _checkdomain(𝛆′, μ′, β′)
     end
-    𝛉 = init_model(μ, nlayers)  # Initialize model with SP2
+    model = init_model(μ′, nlayers)  # Initialize model with SP2
+    fd = fermi_dirac.(𝛆′, μ′, β′)
     result = curve_fit(
         _fermi_dirac!,
         fermi_dirac_grad!,
-        𝐱,  # xdata
-        fermi_dirac.(𝐱, μ, β),  # ydata
-        𝛉;  # p0
+        𝛆′,  # xdata
+        fd,  # ydata
+        model;  # p0
         maxIter=max_iter,
         maxTime=max_time,
         x_tol=x_tol,
@@ -57,9 +58,9 @@ function fit_fermi_dirac(
 end
 
 function fit_electronic_entropy(
-    𝐱,
-    μ,
-    β,
+    𝛆′,
+    μ′,
+    β′,
     nlayers=20;
     max_iter=1000,
     max_time=Inf,
@@ -72,15 +73,16 @@ function fit_electronic_entropy(
     kwargs...,
 )
     if is_rescaled
-        _checkdomain(𝐱, μ, β)
+        _checkdomain(𝛆′, μ′, β′)
     end
-    𝛉 = init_model(μ, nlayers)  # Initialize model with SP2
+    model = init_model(μ′, nlayers)  # Initialize model with SP2
+    𝐬 = electronic_entropy.(𝛆′, μ′, β′)
     result = curve_fit(
         _electronic_entropy!,
         electronic_entropy_grad!,
-        𝐱,
-        electronic_entropy.(𝐱, μ, β),
-        𝛉;
+        𝛆′,  # xdata
+        𝐬,  # ydata
+        model;  # p0
         maxIter=max_iter,
         maxTime=max_time,
         x_tol=x_tol,
