@@ -51,5 +51,5 @@ function init_model(μ, nlayers)
             M[:, i] = [-1, 2, 0, 0] # x' = 2x - x^2, decrease μᵢ
         end
     end
-    return M
+    return FlattendModel(M)
 end
