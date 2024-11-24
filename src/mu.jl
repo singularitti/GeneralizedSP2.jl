@@ -22,7 +22,7 @@ function estimate_mu(
     nlayers=20;
     is_rescaled=true,
     max_iter=1000,
-    occ_atol=1e-4,
+    occ_tol=1e-4,
     kwargs...,
 )
     H′ = rescale_one_zero(𝛆)(H)
