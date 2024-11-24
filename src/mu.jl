@@ -29,6 +29,7 @@ function estimate_mu(
     μ′ = rescale_mu(μ, 𝛜)
     β′ = rescale_beta(β, 𝛜)
     factor = inv(minimum(𝛜) - maximum(𝛜))
+    history = [float(μ′)]
     converged = false
     while !converged
         fitted = fit_fermi_dirac(𝛆′, μ′, β′, nlayers; max_iter=fitting_max_iter, kwargs...)
@@ -36,6 +37,7 @@ function estimate_mu(
         Δμ, converged = newton_raphson_step(target_occupation, DM, β; occ_tol=occ_tol)
         Δμ′ = Δμ * factor
         μ′ -= Δμ′
+        push!(history, μ′)
     end
-    return is_rescaled ? μ′ : recover_mu(μ′, 𝛜)
+    return is_rescaled ? history : map(Base.Fix2(recover_mu, 𝛜), history)
 end
