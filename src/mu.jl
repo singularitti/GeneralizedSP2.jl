@@ -44,3 +44,24 @@ function estimate_mu(
     end
     return is_rescaled ? history : map(Base.Fix2(recover_mu, 𝛜), history)
 end
+
+function bisection(D::AbstractMatrix, lower, upper; tol=1e-6, max_iter=100)
+    if ojbective(D, lower) * ojbective(D, upper) >= 0
+        throw(DomainError("ojbective(a) and ojbective(b) must have opposite signs"))
+    end
+    left, right = lower, upper
+    mid = (left + right) / 2
+    for iter in 1:max_iter
+        mid = (left + right) / 2
+        g_mid = ojbective(D, mid)
+        if abs(g_mid) < tol || (right - left) / 2.0 < tol
+            return mid
+        end
+        if ojbective(D, left) * g_mid < 0
+            right = mid
+        else
+            left = mid
+        end
+    end
+    return error("Bisection method did not converge within max_iter iterations")
+end
