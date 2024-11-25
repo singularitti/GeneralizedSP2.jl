@@ -2,11 +2,14 @@ using LinearAlgebra: tr, diag
 
 export newton_raphson_step, estimate_mu
 
-function newton_raphson_step(target_occupation, DM, β; occ_tol=1e-4)
+ojbective(D::AbstractMatrix, target_occupation) = target_occupation - tr(D)
+
+ojbective_deriv(D::AbstractMatrix, β) = tr(fermi_dirac_deriv(D, β))
+
+function newton_raphson_step(target_occupation, D::AbstractMatrix, β; occ_tol=1e-4)
     @assert occ_tol >= zero(occ_tol) "occupation tolerance must be non-negative!"
-    occupation = tr(DM)
-    occupation_error = target_occupation - occupation
-    derivative = tr(fermi_dirac_deriv(DM, β))
+    occupation_error = ojbective(D, target_occupation)
+    derivative = ojbective_deriv(D, β)
     Δμ = occupation_error / derivative
     converged = abs(occupation_error) <= occ_tol
     return Δμ, converged
