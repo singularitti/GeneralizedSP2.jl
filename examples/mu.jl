@@ -2,6 +2,7 @@ using GeneralizedSP2
 using GershgorinDiscs
 using LinearAlgebra
 using Plots
+using Printf
 using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
@@ -16,19 +17,19 @@ PLOT_DEFAULTS = Dict(
     :guidefontsize => 7,
     :tickfontsize => 6,
     :legendfontsize => 6,
-    :left_margin => (8, :mm),
-    :bottom_margin => (6, :mm),
+    :left_margin => (1, :mm),
+    :bottom_margin => (1, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
-    :legend_position => :bottomleft,
+    :legend_position => :topright,
     :background_color_inside => nothing,
     :color_palette => :tab10,
 )
 
 β = 1.25
 μ = 100
-H = tridiagonalhamil(1000, 235, 400)
+H = diagonalhamil(1000, 235)
 εₘᵢₙ, εₘₐₓ = eigvals_extrema(H)
 β′ = rescale_beta(β, (εₘᵢₙ, εₘₐₓ))
 μ′ = rescale_mu(μ, (εₘᵢₙ, εₘₐₓ))
@@ -43,8 +44,9 @@ N = tr(dm)
 N_target = N + 50
 
 plot(; PLOT_DEFAULTS..., size=(1600 / 3, 400))
-emin, emax = extrema(eigvals(H))
-for μ_init in (emin + 10):100:(emax - 10)
+ϵₘᵢₙ, ϵₘₐₓ = extrema(eigvals(H))
+μ′_histories = []
+for μ_init in (ϵₘᵢₙ + 10):50:(ϵₘₐₓ - 10)
     μ′_history = estimate_mu(
         N_target,
         H,
@@ -53,15 +55,26 @@ for μ_init in (emin + 10):100:(emax - 10)
         (εₘᵢₙ, εₘₐₓ),
         μ_init,
         nlayers;
-        # occ_tol=1e-4,
+        occ_tol=1e-4,
         fitting_max_iter=10000,
     )
     μ′_final = μ′_history[end]
-    fitted_final = fit_fermi_dirac(𝛆′, μ′_final, β′, nlayers; max_iter=1_000_000)
+    fitted_final = fit_fermi_dirac(𝛆′, μ′_final, β′, nlayers; fitting_max_iter=1_000_000)
     dm_final = fermi_dirac(fitted_final.model)(H_scaled)
     N_final = tr(dm_final)
     @show diff = N_final - N_target
 
-    hline!([μ]; seriescolor=:black, primary=false, PLOT_DEFAULTS...)
-    plot!(μ′_history; label="μ₀=$μ_init", PLOT_DEFAULTS...)
+    push!(μ′_histories, μ′_history)
 end
+max_iter = maximum(map(length, μ′_histories))
+for (μ′_history, μ_init) in zip(μ′_histories, (ϵₘᵢₙ + 10):50:(ϵₘₐₓ - 10))
+    plot!(
+        map(Base.Fix2(recover_mu, (εₘᵢₙ, εₘₐₓ)), μ′_history);
+        xticks=Base.OneTo(length(μ′_history)),
+        label="μ₀=" * Printf.format(Printf.Format("%.4f"), μ_init),
+        PLOT_DEFAULTS...,
+    )
+end
+plot!(; xticks=Base.OneTo(max_iter))
+xlabel!("iteration")
+ylabel!(raw"$\mu$")
