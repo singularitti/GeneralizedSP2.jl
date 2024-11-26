@@ -59,7 +59,7 @@ for μ_init in (ϵₘᵢₙ + 10):50:(ϵₘₐₓ - 10)
         fitting_max_iter=10000,
     )
     μ′_final = μ′_history[end]
-    fitted_final = fit_fermi_dirac(𝛆′, μ′_final, β′, nlayers; fitting_max_iter=1_000_000)
+    fitted_final = fit_fermi_dirac(𝛆′, μ′_final, β′, nlayers; max_iter=1_000_000)
     dm_final = fermi_dirac(fitted_final.model)(H_scaled)
     N_final = tr(dm_final)
     @show diff = N_final - N_target
