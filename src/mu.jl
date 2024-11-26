@@ -24,7 +24,7 @@ function estimate_mu(
     μ=sum(extrema(diag(H))) / 2,
     nlayers=20;
     is_rescaled=true,
-    fitting_max_iter=1000,
+    fit_max_iter=1000,
     occ_tol=1e-4,
     kwargs...,
 )
@@ -35,7 +35,7 @@ function estimate_mu(
     history = [float(μ′)]
     converged = false
     while !converged
-        fitted = fit_fermi_dirac(𝛆′, μ′, β′, nlayers; max_iter=fitting_max_iter, kwargs...)
+        fitted = fit_fermi_dirac(𝛆′, μ′, β′, nlayers; max_iter=fit_max_iter, kwargs...)
         DM = fermi_dirac(fitted.model)(H′)
         Δμ, converged = newton_raphson_step(target_occupation, DM, β; occ_tol=occ_tol)
         Δμ′ = Δμ * factor
