@@ -93,8 +93,8 @@ H = hamiltonian(dist, 512)
 β = 1.25  # Physical
 μ = 150  # Physical
 H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
-β′ = rescale_beta(β, (εₘᵢₙ, εₘₐₓ))
-μ′ = rescale_mu(μ, (εₘᵢₙ, εₘₐₓ))
+β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
+μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 
 exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
 exact_densitymatrix_norm = norm(exact_densitymatrix, Inf)

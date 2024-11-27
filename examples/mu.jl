@@ -30,10 +30,10 @@ PLOT_DEFAULTS = Dict(
 β = 1.25
 μ = 100
 H = diagonalhamil(1000, 235)
-εₘᵢₙ, εₘₐₓ = eigvals_extrema(H)
-β′ = rescale_beta(β, (εₘᵢₙ, εₘₐₓ))
-μ′ = rescale_mu(μ, (εₘᵢₙ, εₘₐₓ))
-H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
+𝛜 = eigvals_extrema(H)
+β′ = rescale_beta(𝛜)(β)
+μ′ = rescale_mu(𝛜)(μ)
+H_scaled = rescale_one_zero𝛜(H)
 nlayers = 18
 
 lower_bound, upper_bound = 0, 1
@@ -69,7 +69,7 @@ end
 max_iter = maximum(map(length, μ′_histories))
 for (μ′_history, μ_init) in zip(μ′_histories, (ϵₘᵢₙ + 10):50:(ϵₘₐₓ - 10))
     plot!(
-        map(Base.Fix2(recover_mu, (εₘᵢₙ, εₘₐₓ)), μ′_history);
+        map(rescale_mu(𝛜), μ′_history);
         xticks=Base.OneTo(length(μ′_history)),
         label="μ₀=" * Printf.format(Printf.Format("%.4f"), μ_init),
         PLOT_DEFAULTS...,
