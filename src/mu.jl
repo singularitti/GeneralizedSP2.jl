@@ -24,25 +24,27 @@ function estimate_mu(
     μ=sum(extrema(diag(H))) / 2,
     nlayers=20;
     is_rescaled=true,
+    max_iter=100,
     fit_max_iter=1000,
     occ_tol=1e-4,
     kwargs...,
 )
-    H′ = rescale_one_zero(spectral_bounds)(H)
-    μ′ = rescale_mu(spectral_bounds)(μ)
-    β′ = rescale_beta(spectral_bounds)(β)
-    factor = inv(minimum(spectral_bounds) - maximum(spectral_bounds))
-    history = [float(μ′)]
-    converged = false
-    while !converged
+    history = map(1:max_iter) do _
+        H′ = rescale_one_zero(spectral_bounds)(H)
+        μ′ = rescale_mu(spectral_bounds)(μ)
+        β′ = rescale_beta(spectral_bounds)(β)
         fitted = fit_fermi_dirac(𝛆′, μ′, β′, nlayers; max_iter=fit_max_iter, kwargs...)
-        DM = fermi_dirac(fitted.model)(H′)
-        Δμ, converged = newton_raphson_step(target_occupation, DM, β; occ_tol=occ_tol)
-        Δμ′ = Δμ * factor
-        μ′ -= Δμ′
-        push!(history, μ′)
+        D = fermi_dirac(fitted.model)(H′)
+        Δμ, converged = newton_raphson_step(target_occupation, D, β; occ_tol=occ_tol)
+        μ -= Δμ
+        if μ < minimum(spectral_bounds)
+            spectral_bounds = (floor(μ), maximum(spectral_bounds))
+        elseif μ > maximum(spectral_bounds)
+            spectral_bounds = (minimum(spectral_bounds), ceil(μ))
+        end
+        is_rescaled ? μ′ : inv(rescale_mu(spectral_bounds))(μ′)
     end
-    return is_rescaled ? history : map(inv(rescale_mu(spectral_bounds)), history)
+    return history, spectral_bounds
 end
 
 function bisection(D::AbstractMatrix, lower, upper; tol=1e-6, max_iter=100)
