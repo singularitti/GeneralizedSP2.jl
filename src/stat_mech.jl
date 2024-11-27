@@ -8,9 +8,7 @@ export fermi_dirac,
     electronic_energy,
     electronic_entropy,
     rescale_mu,
-    recover_mu,
-    rescale_beta,
-    recover_beta
+    rescale_beta
 
 function fermi_dirac(ε, μ, β)
     η = exp((ε - μ) * β)
@@ -54,25 +52,12 @@ function rescale_mu(spectral_bounds)
     return Scaler(k, b)
 end
 
-function recover_mu(μ′, spectral_bounds)
-    ϵₘᵢₙ, ϵₘₐₓ = extrema(spectral_bounds)
-    @assert ϵₘₐₓ > ϵₘᵢₙ
-    @assert zero(μ′) <= μ′ <= oneunit(μ′) "rescaled μ must be in the range [0, 1]!"
-    return (oneunit(μ′) - μ′) * ϵₘₐₓ + μ′ * ϵₘᵢₙ
-end
-
 function rescale_beta(spectral_bounds)
     ϵₘᵢₙ, ϵₘₐₓ = extrema(spectral_bounds)
     @assert ϵₘₐₓ > ϵₘᵢₙ
     k = ϵₘᵢₙ - ϵₘₐₓ
     b = zero(k)
     return Scaler(k, b)
-end
-
-function recover_beta(β′, spectral_bounds)
-    ϵₘᵢₙ, ϵₘₐₓ = extrema(spectral_bounds)
-    @assert ϵₘₐₓ > ϵₘᵢₙ
-    return β′ / (ϵₘᵢₙ - ϵₘₐₓ)
 end
 
 """
