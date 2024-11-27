@@ -1,6 +1,6 @@
 using LinearAlgebra: tr, diag
 
-export newton_raphson_step, estimate_mu
+export newton_raphson_step, estimate_mu, update_spectral_bounds, recover_mu_history
 
 ojbective(D::AbstractMatrix, target_occupation) = target_occupation - tr(D)
 
@@ -47,24 +47,32 @@ function estimate_mu(
         D = fermi_dirac(fitted.model)(H′)
         Δμ, converged = newton_raphson_step(target_occupation, D, β; occ_tol=occ_tol)
         μ -= Δμ
-        spectral_bounds = if μ < minimum(spectral_bounds)
-            (floor(μ), maximum(spectral_bounds))
-        elseif μ > maximum(spectral_bounds)
-            (minimum(spectral_bounds), ceil(μ))
-        else
-            extrema(spectral_bounds)
-        end
+        spectral_bounds = update_spectral_bounds(μ, spectral_bounds)
         push!(spectral_bounds_history, spectral_bounds)
     end
     return if is_rescaled
         μ′_history
     else
-        collect(
-            inv(rescale_mu(spectral_bounds))(μ′) for
-            (spectral_bounds, μ′) in zip(spectral_bounds_history, μ′_history)
-        )
+        recover_mu_history(μ′_history, spectral_bounds_history)
     end,
     spectral_bounds_history
+end
+
+function update_spectral_bounds(μ, spectral_bounds)
+    if μ < minimum(spectral_bounds)
+        return (floor(μ), maximum(spectral_bounds))
+    elseif μ > maximum(spectral_bounds)
+        return (minimum(spectral_bounds), ceil(μ))
+    else
+        return extrema(spectral_bounds)
+    end
+end
+
+function recover_mu_history(μ′_history, spectral_bounds_history)
+    return collect(
+        inv(rescale_mu(spectral_bounds))(μ′) for
+        (spectral_bounds, μ′) in zip(spectral_bounds_history, μ′_history)
+    )
 end
 
 function bisection(D::AbstractMatrix, lower, upper; tol=1e-6, max_iter=100)
