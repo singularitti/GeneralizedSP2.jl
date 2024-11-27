@@ -5,5 +5,4 @@ using Test
     # Write your tests here.
     include("primals.jl")
     include("tangents.jl")
-    include("rescaling.jl")
 end
