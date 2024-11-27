@@ -30,8 +30,8 @@ PLOT_DEFAULTS = Dict(
 H = diagonalhamil(1000, 235)
 𝚲 = eigvals(H)  # Must be all reals
 εₘᵢₙ, εₘₐₓ = floor(minimum(𝚲)), ceil(maximum(𝚲))
-β′ = rescale_beta(β, (εₘᵢₙ, εₘₐₓ))
-μ′ = rescale_mu(μ, (εₘᵢₙ, εₘₐₓ))
+β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
+μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 
 lower_bound, upper_bound = 0, 1

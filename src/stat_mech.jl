@@ -1,4 +1,4 @@
-using AffineScaler: rescale_one_zero
+using AffineScaler: Scaler, rescale_one_zero
 using LinearAlgebra: Diagonal, eigen, eigvals
 using IsApprox: isunitary
 
@@ -8,9 +8,7 @@ export fermi_dirac,
     electronic_energy,
     electronic_entropy,
     rescale_mu,
-    recover_mu,
-    rescale_beta,
-    recover_beta
+    rescale_beta
 
 function fermi_dirac(ε, μ, β)
     η = exp((ε - μ) * β)
@@ -18,10 +16,10 @@ function fermi_dirac(ε, μ, β)
 end
 fermi_dirac(H::AbstractMatrix, μ, β) = matrix_function(ε -> fermi_dirac(ε, μ, β), H)
 
-function rescaled_fermi_dirac(H::AbstractMatrix, μ, β, 𝛜=extrema(H))
-    μ′ = rescale_mu(μ, 𝛜)
-    β′ = rescale_beta(β, 𝛜)
-    f = rescale_one_zero(𝛜)
+function rescaled_fermi_dirac(H::AbstractMatrix, μ, β, spectral_bounds=extrema(H))
+    μ′ = rescale_mu(spectral_bounds)(μ)
+    β′ = rescale_beta(spectral_bounds)(β)
+    f = rescale_one_zero(spectral_bounds)
     return matrix_function(H) do ε
         ε′ = f(ε)
         fermi_dirac(ε′, μ′, β′)
@@ -46,30 +44,20 @@ end
 electronic_entropy(ε, μ, β) =
     (fermi_dirac(ε, μ, β) * (ε - μ) - electronic_energy(ε, μ, β)) * β
 
-function rescale_mu(μ, 𝛜)
-    ϵₘᵢₙ, ϵₘₐₓ = extrema(𝛜)
+function rescale_mu(spectral_bounds)
+    ϵₘᵢₙ, ϵₘₐₓ = extrema(spectral_bounds)
     @assert ϵₘₐₓ > ϵₘᵢₙ
-    @assert ϵₘᵢₙ <= μ <= ϵₘₐₓ "μ must be in the range [εₘₐₓ, εₘᵢₙ]!"
-    return (μ - ϵₘₐₓ) / (ϵₘᵢₙ - ϵₘₐₓ)
+    k = inv(ϵₘᵢₙ - ϵₘₐₓ)
+    b = -ϵₘₐₓ * k
+    return Scaler(k, b)
 end
 
-function recover_mu(μ′, 𝛜)
-    ϵₘᵢₙ, ϵₘₐₓ = extrema(𝛜)
+function rescale_beta(spectral_bounds)
+    ϵₘᵢₙ, ϵₘₐₓ = extrema(spectral_bounds)
     @assert ϵₘₐₓ > ϵₘᵢₙ
-    @assert zero(μ′) <= μ′ <= oneunit(μ′) "rescaled μ must be in the range [0, 1]!"
-    return (oneunit(μ′) - μ′) * ϵₘₐₓ + μ′ * ϵₘᵢₙ
-end
-
-function rescale_beta(β, 𝛜)
-    ϵₘᵢₙ, ϵₘₐₓ = extrema(𝛜)
-    @assert ϵₘₐₓ > ϵₘᵢₙ
-    return β * (ϵₘᵢₙ - ϵₘₐₓ)
-end
-
-function recover_beta(β′, 𝛜)
-    ϵₘᵢₙ, ϵₘₐₓ = extrema(𝛜)
-    @assert ϵₘₐₓ > ϵₘᵢₙ
-    return β′ / (ϵₘᵢₙ - ϵₘₐₓ)
+    k = ϵₘᵢₙ - ϵₘₐₓ
+    b = zero(k)
+    return Scaler(k, b)
 end
 
 """
