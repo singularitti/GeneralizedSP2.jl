@@ -1,3 +1,4 @@
+using AffineScaler: rescale_one_zero
 using GeneralizedSP2
 using GershgorinDiscs
 using LinearAlgebra
@@ -30,10 +31,10 @@ PLOT_DEFAULTS = Dict(
 β = 1.25
 μ = 100
 H = diagonalhamil(1000, 235)
-𝛜 = eigvals_extrema(H)
-β′ = rescale_beta(𝛜)(β)
-μ′ = rescale_mu(𝛜)(μ)
-H_scaled = rescale_one_zero𝛜(H)
+spectral_bounds = eigvals_extrema(H)
+β′ = rescale_beta(spectral_bounds)(β)
+μ′ = rescale_mu(spectral_bounds)(μ)
+H_scaled = rescale_one_zero(spectral_bounds)(H)
 nlayers = 18
 
 lower_bound, upper_bound = 0, 1
@@ -46,35 +47,35 @@ N_target = N + 50
 plot(; PLOT_DEFAULTS..., size=(1600 / 3, 400))
 ϵₘᵢₙ, ϵₘₐₓ = extrema(eigvals(H))
 μ′_histories = []
+spectral_bounds_histories = []
 for μ_init in (ϵₘᵢₙ + 10):50:(ϵₘₐₓ - 10)
-    μ′_history = estimate_mu(
+    μ′_history, spectral_bounds_history = estimate_mu(
         N_target,
         H,
         β,
         𝛆′,
-        (εₘᵢₙ, εₘₐₓ),
+        spectral_bounds,
         μ_init,
         nlayers;
         occ_tol=1e-4,
-        fitting_max_iter=10000,
+        fit_max_iter=10000,
     )
-    μ′_final = μ′_history[end]
-    fitted_final = fit_fermi_dirac(𝛆′, μ′_final, β′, nlayers; max_iter=1_000_000)
+    μ′_final, spectral_bounds_final = μ′_history[end], spectral_bounds_history[end]
+    fitted_final = fit_fermi_dirac(𝛆′, μ′_final, β′, nlayers; max_iter=100_000)
+    H_scaled = rescale_one_zero(spectral_bounds_final)(H)  # Calculate the final H′
     dm_final = fermi_dirac(fitted_final.model)(H_scaled)
     N_final = tr(dm_final)
     @show diff = N_final - N_target
-
     push!(μ′_histories, μ′_history)
-end
-max_iter = maximum(map(length, μ′_histories))
-for (μ′_history, μ_init) in zip(μ′_histories, (ϵₘᵢₙ + 10):50:(ϵₘₐₓ - 10))
+    push!(spectral_bounds_histories, spectral_bounds_history)
+
     plot!(
-        map(rescale_mu(𝛜), μ′_history);
-        xticks=Base.OneTo(length(μ′_history)),
+        recover_mu_history(μ′_history, spectral_bounds_history);
         label="μ₀=" * Printf.format(Printf.Format("%.4f"), μ_init),
         PLOT_DEFAULTS...,
     )
 end
+max_iter = maximum(map(length, μ′_histories))
 plot!(; xticks=Base.OneTo(max_iter))
 xlabel!("iteration")
 ylabel!(raw"$\mu$")
