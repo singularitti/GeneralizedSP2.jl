@@ -32,11 +32,12 @@ function estimate_mu(
     if max_iter <= zero(max_iter)
         throw(ArgumentError("`max_iter` must be positive!"))
     end
-    history = is_rescaled ? typeof(one(μ))[] : typeof(μ)[]  # Store μ′ or μ
+    μ′_history = typeof(one(μ))[]  # Store μ′
+    spectral_bounds_history = [extrema(spectral_bounds)]
     converged = false
     for _ in 1:max_iter
         μ′ = rescale_mu(spectral_bounds)(μ)
-        push!(history, is_rescaled ? μ′ : μ)
+        push!(μ′_history, μ′)
         if converged
             break  # This order is important since I want to store the final μ′ or μ without doing unnecessary calculations!
         end
@@ -46,13 +47,24 @@ function estimate_mu(
         D = fermi_dirac(fitted.model)(H′)
         Δμ, converged = newton_raphson_step(target_occupation, D, β; occ_tol=occ_tol)
         μ -= Δμ
-        if μ < minimum(spectral_bounds)
-            spectral_bounds = (floor(μ), maximum(spectral_bounds))
+        spectral_bounds = if μ < minimum(spectral_bounds)
+            (floor(μ), maximum(spectral_bounds))
         elseif μ > maximum(spectral_bounds)
-            spectral_bounds = (minimum(spectral_bounds), ceil(μ))
+            (minimum(spectral_bounds), ceil(μ))
+        else
+            extrema(spectral_bounds)
         end
+        push!(spectral_bounds_history, spectral_bounds)
     end
-    return history, spectral_bounds
+    return if is_rescaled
+        μ′_history
+    else
+        collect(
+            inv(rescale_mu(spectral_bounds))(μ′) for
+            (spectral_bounds, μ′) in zip(spectral_bounds_history, μ′_history)
+        )
+    end,
+    spectral_bounds_history
 end
 
 function bisection(D::AbstractMatrix, lower, upper; tol=1e-6, max_iter=100)
