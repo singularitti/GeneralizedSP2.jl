@@ -1,4 +1,4 @@
-using AffineScaler: rescale_one_zero
+using AffineScaler: Scaler, rescale_one_zero
 using LinearAlgebra: Diagonal, eigen, eigvals
 using IsApprox: isunitary
 
@@ -19,8 +19,8 @@ end
 fermi_dirac(H::AbstractMatrix, μ, β) = matrix_function(ε -> fermi_dirac(ε, μ, β), H)
 
 function rescaled_fermi_dirac(H::AbstractMatrix, μ, β, spectral_bounds=extrema(H))
-    μ′ = rescale_mu(μ, spectral_bounds)
-    β′ = rescale_beta(β, spectral_bounds)
+    μ′ = rescale_mu(spectral_bounds)(μ)
+    β′ = rescale_beta(spectral_bounds)(β)
     f = rescale_one_zero(spectral_bounds)
     return matrix_function(H) do ε
         ε′ = f(ε)
@@ -46,11 +46,12 @@ end
 electronic_entropy(ε, μ, β) =
     (fermi_dirac(ε, μ, β) * (ε - μ) - electronic_energy(ε, μ, β)) * β
 
-function rescale_mu(μ, spectral_bounds)
+function rescale_mu(spectral_bounds)
     ϵₘᵢₙ, ϵₘₐₓ = extrema(spectral_bounds)
     @assert ϵₘₐₓ > ϵₘᵢₙ
-    @assert ϵₘᵢₙ <= μ <= ϵₘₐₓ "μ must be in the range [εₘₐₓ, εₘᵢₙ]!"
-    return (μ - ϵₘₐₓ) / (ϵₘᵢₙ - ϵₘₐₓ)
+    k = inv(ϵₘᵢₙ - ϵₘₐₓ)
+    b = -ϵₘₐₓ * k
+    return Scaler(k, b)
 end
 
 function recover_mu(μ′, spectral_bounds)
@@ -60,10 +61,12 @@ function recover_mu(μ′, spectral_bounds)
     return (oneunit(μ′) - μ′) * ϵₘₐₓ + μ′ * ϵₘᵢₙ
 end
 
-function rescale_beta(β, spectral_bounds)
+function rescale_beta(spectral_bounds)
     ϵₘᵢₙ, ϵₘₐₓ = extrema(spectral_bounds)
     @assert ϵₘₐₓ > ϵₘᵢₙ
-    return β * (ϵₘᵢₙ - ϵₘₐₓ)
+    k = ϵₘᵢₙ - ϵₘₐₓ
+    b = zero(k)
+    return Scaler(k, b)
 end
 
 function recover_beta(β′, spectral_bounds)
