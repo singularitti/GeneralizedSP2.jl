@@ -29,8 +29,8 @@ function estimate_mu(
     kwargs...,
 )
     H′ = rescale_one_zero(spectral_bounds)(H)
-    μ′ = rescale_mu(μ, spectral_bounds)
-    β′ = rescale_beta(β, spectral_bounds)
+    μ′ = rescale_mu(spectral_bounds)(μ)
+    β′ = rescale_beta(spectral_bounds)(β)
     factor = inv(minimum(spectral_bounds) - maximum(spectral_bounds))
     history = [float(μ′)]
     converged = false
@@ -42,7 +42,7 @@ function estimate_mu(
         μ′ -= Δμ′
         push!(history, μ′)
     end
-    return is_rescaled ? history : map(Base.Fix2(recover_mu, spectral_bounds), history)
+    return is_rescaled ? history : map(inv(rescale_mu(spectral_bounds)), history)
 end
 
 function bisection(D::AbstractMatrix, lower, upper; tol=1e-6, max_iter=100)
