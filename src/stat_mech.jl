@@ -1,3 +1,4 @@
+using AffineScaler: rescale_one_zero
 using LinearAlgebra: Diagonal, eigen, eigvals
 using IsApprox: isunitary
 
