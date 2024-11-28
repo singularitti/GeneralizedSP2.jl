@@ -32,7 +32,7 @@ function estimate_mu(
     if max_iter <= zero(max_iter)
         throw(ArgumentError("`max_iter` must be positive!"))
     end
-    μ′_history = typeof(one(μ))[]  # Store μ′
+    μ′_history = typeof(one(float(μ)))[]  # Store μ′
     spectral_bounds_history = [extrema(spectral_bounds)]
     converged = false
     for _ in 1:max_iter
@@ -60,9 +60,9 @@ end
 
 function update_spectral_bounds(μ, spectral_bounds)
     if μ < minimum(spectral_bounds)
-        return (floor(μ), maximum(spectral_bounds))
+        return (floor(typeof(μ), μ), maximum(spectral_bounds))
     elseif μ > maximum(spectral_bounds)
-        return (minimum(spectral_bounds), ceil(μ))
+        return (minimum(spectral_bounds), ceil(typeof(μ), μ))
     else
         return extrema(spectral_bounds)
     end
