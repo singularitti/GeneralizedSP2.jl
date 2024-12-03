@@ -67,7 +67,7 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
         PLOT_DEFAULTS...,
     )
     for nlayers in minlayers:maxlayers
-        𝛉 = fit_fermi_dirac(𝐱, μ, β, nlayers; max_iter=10000).model
+        𝛉 = fit_fermi_dirac(𝐱, μ, β, init_model(μ, nlayers); max_iter=10000).model
         plot!(
             𝐱,
             fermi_dirac(𝛉).(𝐱);
@@ -87,7 +87,7 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
     end
     for nlayers in minlayers:maxlayers
         𝐱′ = chebyshevnodes_1st(length(𝐱), (lower_bound, upper_bound))
-        𝛉 = fit_fermi_dirac(𝐱′, μ, β, nlayers; max_iter=10000).model
+        𝛉 = fit_fermi_dirac(𝐱′, μ, β, init_model(μ, nlayers); max_iter=10000).model
         𝐲′ = fermi_dirac(𝛉).(𝐱′)
         plot!(
             𝐱′,
