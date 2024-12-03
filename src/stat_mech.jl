@@ -1,6 +1,6 @@
 using AffineScaler: Scaler, rescale_one_zero
 using LinearAlgebra: Diagonal, eigen, eigvals
-using IsApprox: isunitary
+using IsApprox: Approx, isunitary
 
 export fermi_dirac,
     rescaled_fermi_dirac,
@@ -75,8 +75,14 @@ and then reconstructing the matrix. Specifically, it performs the following step
 function matrix_function(f, A)
     E = eigen(A)
     Λ, V = E.values, E.vectors
-    if isunitary(V)
+    if isunitary(V, Approx(; rtol=isapprox_rtol()))
         return V * Diagonal(f.(Λ)) * V'
     end
     return V * Diagonal(f.(Λ)) * inv(V)  # `Diagonal` is faster than `diagm`
 end
+
+const ISAPPROX_RTOL = Ref(√eps())
+
+isapprox_rtol() = ISAPPROX_RTOL[]
+# See https://github.com/KristofferC/OhMyREPL.jl/blob/8b0fc53/src/BracketInserter.jl#L44-L45
+set_isapprox_rtol(rtol) = ISAPPROX_RTOL[] = rtol
