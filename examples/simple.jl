@@ -1,3 +1,4 @@
+using AffineScaler: rescale_one_zero
 using GeneralizedSP2
 using LinearAlgebra
 using Plots
