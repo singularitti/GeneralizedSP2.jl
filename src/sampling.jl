@@ -41,8 +41,8 @@ end
 
 # Sample points more densely near x=μ
 function bell_distribution(μ, β, npoints_scale=1.0)
-    npoints = npoints_scale * 80log(β)
-    w = sqrt(β)
+    npoints = npoints_scale * 80log(abs(β))
+    w = sqrt(abs(β))
     return ε -> npoints / 2 + npoints * w / 4 * sech(w * (ε - μ))^2
 end
 
