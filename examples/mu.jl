@@ -42,7 +42,7 @@ lower_bound, upper_bound = 0, 1
 fitted = fit_fermi_dirac(𝛆′, μ′, β′, init_model(μ′, nlayers); max_iter=100_000);
 dm = fermi_dirac(fitted.model)(H_scaled)
 N = tr(dm)
-N_target = N + 50
+N_target = N + 75
 
 plot(; PLOT_DEFAULTS..., size=(1600 / 3, 400))
 ϵₘᵢₙ, ϵₘₐₓ = extrema(eigvals(H))
@@ -81,3 +81,7 @@ max_iter = maximum(map(length, μ′_histories))
 plot!(; xticks=Base.OneTo(max_iter))
 xlabel!("iteration")
 ylabel!(raw"$\mu$")
+title!(
+    raw"Convergence of the estimated $\mu$ starting from different $\mu_0$ given an $N_{\textnormal{target}}$",
+)
+savefig("mu_convergence.pdf")
