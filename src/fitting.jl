@@ -8,7 +8,7 @@ function fit_fermi_dirac(
     𝛆′,
     μ′,
     β′,
-    nlayers=20;
+    model_init=init_model(μ′, 20);
     max_iter=1000,
     max_time=Inf,
     x_tol=1e-8,
@@ -19,14 +19,13 @@ function fit_fermi_dirac(
     kwargs...,
 )
     _checkdomain(𝛆′, μ′, β′)
-    model = init_model(μ′, nlayers)  # Initialize model with SP2
     fd = fermi_dirac.(𝛆′, μ′, β′)
     result = curve_fit(
         _fermi_dirac!,
         fermi_dirac_grad!,
         𝛆′,  # xdata
         fd,  # ydata
-        model;  # p0
+        model_init;  # p0
         maxIter=max_iter,
         maxTime=max_time,
         x_tol=x_tol,
@@ -54,7 +53,7 @@ function fit_electronic_entropy(
     𝛆′,
     μ′,
     β′,
-    nlayers=20;
+    model_init=init_model(μ′, 20);
     max_iter=1000,
     max_time=Inf,
     x_tol=1e-8,
@@ -65,14 +64,13 @@ function fit_electronic_entropy(
     kwargs...,
 )
     _checkdomain(𝛆′, μ′, β′)
-    model = init_model(μ′, nlayers)  # Initialize model with SP2
     𝐬 = electronic_entropy.(𝛆′, μ′, β′)
     result = curve_fit(
         _electronic_entropy!,
         electronic_entropy_grad!,
         𝛆′,  # xdata
         𝐬,  # ydata
-        model;  # p0
+        model_init;  # p0
         maxIter=max_iter,
         maxTime=max_time,
         x_tol=x_tol,

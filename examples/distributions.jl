@@ -111,7 +111,7 @@ max_iter = 10_000_000
 layers = 18:21
 println("fitting for max_iter = $max_iter")
 𝚯 = @showprogress map(layers) do nlayers
-    𝛉 = fit_fermi_dirac(𝐱′, μ′, β′, nlayers; max_iter=max_iter).model
+    𝛉 = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, nlayers); max_iter=max_iter).model
 end
 𝐲_fitted = map(𝚯) do 𝛉
     fermi_dirac(𝛉).(𝐱′)

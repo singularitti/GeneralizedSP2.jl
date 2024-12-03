@@ -39,7 +39,7 @@ nlayers = 18
 
 lower_bound, upper_bound = 0, 1
 𝛆′ = chebyshevnodes_1st(500, (lower_bound, upper_bound))
-fitted = fit_fermi_dirac(𝛆′, μ′, β′, nlayers; max_iter=100_000);
+fitted = fit_fermi_dirac(𝛆′, μ′, β′, init_model(μ′, nlayers); max_iter=100_000);
 dm = fermi_dirac(fitted.model)(H_scaled)
 N = tr(dm)
 N_target = N + 50
@@ -61,7 +61,9 @@ for μ_init in (ϵₘᵢₙ + 10):50:(ϵₘₐₓ - 10)
         fit_max_iter=10000,
     )
     μ′_final, spectral_bounds_final = μ′_history[end], spectral_bounds_history[end]
-    fitted_final = fit_fermi_dirac(𝛆′, μ′_final, β′, nlayers; max_iter=100_000)
+    fitted_final = fit_fermi_dirac(
+        𝛆′, μ′_final, β′, init_model(μ′_final, nlayers); max_iter=100_000
+    )
     H_scaled = rescale_one_zero(spectral_bounds_final)(H)  # Calculate the final H′
     dm_final = fermi_dirac(fitted_final.model)(H_scaled)
     N_final = tr(dm_final)

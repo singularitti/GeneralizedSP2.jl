@@ -48,7 +48,7 @@ function plot_entropy(β, μ=0.568)
         PLOT_DEFAULTS...,
     )
     for nlayers in minlayers:maxlayers
-        𝛉 = fit_electronic_entropy(𝐱, μ, β, nlayers; max_iter=100000).model
+        𝛉 = fit_electronic_entropy(𝐱, μ, β, init_model(μ, nlayers); max_iter=100000).model
         plot!(
             𝐱,
             electronic_entropy(𝛉).(𝐱);

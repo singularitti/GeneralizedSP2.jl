@@ -42,7 +42,9 @@ function estimate_mu(
             break  # This order is important since I want to store the final μ′ or μ without doing unnecessary calculations!
         end
         β′ = rescale_beta(spectral_bounds)(β)
-        fitted = fit_fermi_dirac(𝛆′, μ′, β′, nlayers; max_iter=fit_max_iter, kwargs...)
+        fitted = fit_fermi_dirac(
+            𝛆′, μ′, β′, init_model(μ′, nlayers); max_iter=fit_max_iter, kwargs...
+        )
         H′ = rescale_one_zero(spectral_bounds)(H)
         D = fermi_dirac(fitted.model)(H′)
         Δμ, converged = newton_raphson_step(target_occupation, D, β; occ_tol=occ_tol)
