@@ -10,6 +10,12 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LsqFit = "2fda8390-95c7-5789-9bda-21331edee243"
 NPZ = "15e1cf62-19b3-5cfa-8e77-841668bca605"
 
+[weakdeps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+
+[extensions]
+CUDAExt = "CUDA"
+
 [compat]
 AffineScaler = "0.1"
 IsApprox = "2"
