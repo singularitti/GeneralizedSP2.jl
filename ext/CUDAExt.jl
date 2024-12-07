@@ -15,7 +15,9 @@ using GeneralizedSP2: CUDAError
 
 import GeneralizedSP2: fermi_dirac
 
-function diagonalize!(E::Eigen, H::CuMatrix{Cdouble})
+function diagonalize!(
+    E::Eigen{Cdouble,Cdouble,CuMatrix{Cdouble},CuVector{Cdouble}}, H::CuMatrix{Cdouble}
+)
     checksquare(H)
     N = size(H, 1)
     evals, evecs = E  # Destructuring via iteration
