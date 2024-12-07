@@ -37,10 +37,10 @@ function diagonalize!(
     # Diagonalize the matrix
     cusolverDnDsyevd(cusolver_handle[], jobz, uplo, N, H, N, evals, work, lwork[], devInfo)
     # Handle errors
-    retcode = only(devInfo)
-    if devInfo[1] < 0
+    retcode = only(Vector(devInfo))  # Copy memory from the GPU
+    if retcode < 0
         throw(CUDAError(:cusolverDnDsyevd, "$(-retcode)th parameter is invalid!"))
-    elseif devInfo[1] > 0
+    elseif retcode > 0
         throw(
             CUDAError(
                 :cusolverDnDsyevd, "($retcode)th off-diagonal elements did not converge!"
