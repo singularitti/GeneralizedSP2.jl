@@ -13,7 +13,7 @@ using LinearAlgebra: Eigen, checksquare
 
 using GeneralizedSP2: CUDAError
 
-import GeneralizedSP2: fermi_dirac
+import GeneralizedSP2: diagonalize, diagonalize!, fermi_dirac
 
 function diagonalize!(
     E::Eigen{Cdouble,Cdouble,CuMatrix{Cdouble},CuVector{Cdouble}}, H::CuMatrix{Cdouble}
