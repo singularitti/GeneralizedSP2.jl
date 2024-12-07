@@ -53,9 +53,9 @@ function diagonalize!(
     return Eigen(evals, evecs)
 end
 function diagonalize(H::CuMatrix)
-    dim = size(H, 1)
-    evals = CuVector{Cdouble}(undef, dim)
-    evecs = CuMatrix{Cdouble}(undef, dim, dim)
+    N = size(H, 1)
+    evals = CuVector{Cdouble}(undef, N)
+    evecs = CuMatrix{Cdouble}(undef, N, N)
     return diagonalize!(Eigen(evals, evecs), H)
 end
 
