@@ -9,19 +9,18 @@ using CUDA.CUSOLVER:
     CUSOLVER_EIG_MODE_VECTOR,
     cublasFillMode_t,
     cusolverDnHandle_t
-using LinearAlgebra: Eigen, checksquare
 
 using GeneralizedSP2: CUDAError
 
-import GeneralizedSP2: diagonalize, diagonalize!, fermi_dirac
-
 function diagonalize!(
-    E::Eigen{Cdouble,Cdouble,CuMatrix{Cdouble,DeviceMemory},CuVector{Cdouble,DeviceMemory}},
+    evals::CuVector{Cdouble,DeviceMemory},
+    evecs::CuMatrix{Cdouble,DeviceMemory},
     H::CuMatrix{Cdouble},
 )
-    checksquare(H)
-    N = size(H, 1)
-    evals, evecs = E  # Destructuring via iteration
+    M, N = size(H)
+    if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
+        throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
+    end
     # Create cuSOLVER handle
     cusolver_handle = Ref{cusolverDnHandle_t}(C_NULL)
     cusolverDnCreate(cusolver_handle)
@@ -51,13 +50,13 @@ function diagonalize!(
     copyto!(evecs, H)
     # Clean up resources
     cusolverDnDestroy(cusolver_handle[])
-    return Eigen(evals, evecs)
+    return evals, evecs
 end
 function diagonalize(H::CuMatrix)
     N = size(H, 1)
     evals = CuVector{eltype(H)}(undef, N)
     evecs = CuMatrix{eltype(H)}(undef, N, N)
-    return diagonalize!(Eigen(evals, evecs), H)
+    return diagonalize!(evals, evecs, H)
 end
 
 function fermi_dirac(H::CuMatrix, μ, β) end
