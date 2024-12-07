@@ -8,7 +8,9 @@ using CUDA.CUSOLVER:
     cusolverDnDestroy,
     cusolverDnDsyevd,
     cusolverDnDsyevd_bufferSize,
-    cusolverDnHandle_t
+    cusolverDnHandle_t,
+    cusolverDnSsyevd,
+    cusolverDnSsyevd_bufferSize
 
 using GeneralizedSP2: CUDAError
 
