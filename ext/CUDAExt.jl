@@ -2,12 +2,12 @@ module CUDAExt
 
 using CUDA: CuMatrix, CuVector, DeviceMemory
 using CUDA.CUSOLVER:
-    cusolverDnCreate,
-    cusolverDnDsyevd_bufferSize,
-    cusolverDnDsyevd,
-    cusolverDnDestroy,
     CUSOLVER_EIG_MODE_VECTOR,
     cublasFillMode_t,
+    cusolverDnCreate,
+    cusolverDnDestroy,
+    cusolverDnDsyevd,
+    cusolverDnDsyevd_bufferSize,
     cusolverDnHandle_t
 
 using GeneralizedSP2: CUDAError
@@ -46,7 +46,7 @@ function diagonalize!(
     elseif retcode > 0
         throw(
             CUDAError(
-                :cusolverDnDsyevd, "($retcode)th off-diagonal elements did not converge!"
+                :cusolverDnDsyevd, "$(retcode)th off-diagonal elements did not converge!"
             ),
         )
     end
