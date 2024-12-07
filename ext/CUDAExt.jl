@@ -1,6 +1,6 @@
 module CUDAExt
 
-using CUDA: CuMatrix, CuVector
+using CUDA: CuMatrix, CuVector, DeviceMemory
 using CUDA.CUSOLVER:
     cusolverDnCreate,
     cusolverDnDsyevd_bufferSize,
@@ -16,7 +16,8 @@ using GeneralizedSP2: CUDAError
 import GeneralizedSP2: diagonalize, diagonalize!, fermi_dirac
 
 function diagonalize!(
-    E::Eigen{Cdouble,Cdouble,CuMatrix{Cdouble},CuVector{Cdouble}}, H::CuMatrix{Cdouble}
+    E::Eigen{Cdouble,Cdouble,CuMatrix{Cdouble,DeviceMemory},CuVector{Cdouble,DeviceMemory}},
+    H::CuMatrix{Cdouble},
 )
     checksquare(H)
     N = size(H, 1)
@@ -54,8 +55,8 @@ function diagonalize!(
 end
 function diagonalize(H::CuMatrix)
     N = size(H, 1)
-    evals = CuVector{Cdouble}(undef, N)
-    evecs = CuMatrix{Cdouble}(undef, N, N)
+    evals = CuVector{eltype(H)}(undef, N)
+    evecs = CuMatrix{eltype(H)}(undef, N, N)
     return diagonalize!(Eigen(evals, evecs), H)
 end
 
