@@ -12,6 +12,8 @@ using CUDA.CUSOLVER:
 
 using GeneralizedSP2: CUDAError
 
+import GeneralizedSP2: diagonalize, diagonalize!, fermi_dirac
+
 function diagonalize!(
     evals::CuVector{Cdouble,DeviceMemory},
     evecs::CuMatrix{Cdouble,DeviceMemory},
