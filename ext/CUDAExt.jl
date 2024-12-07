@@ -23,14 +23,14 @@ function diagonalize!(
     if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
         throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
     end
-    H′ = similar(H)        # Allocate a new CuMatrix on the device
-    copyto!(H′, H)         # Efficiently copy data from H to H_copy on the device
+    H′ = similar(H)  # Allocate a new `CuMatrix` on the GPU
+    copyto!(H′, H)  # Efficiently copy data from `H` to `H′` on the GPU
     # Create cuSOLVER handle
     cusolver_handle = Ref{cusolverDnHandle_t}(C_NULL)
     cusolverDnCreate(cusolver_handle)
     # Specify cuSOLVER diag flags
     jobz = CUSOLVER_EIG_MODE_VECTOR  # Compute both singular values and singular vectors
-    uplo = convert(cublasFillMode_t, 'L')  # CUBLAS_FILL_MODE_LOWER, see https://github.com/JuliaGPU/CUDA.jl/blob/45571e9/lib/cublas/util.jl#L49-L57
+    uplo = convert(cublasFillMode_t, 'L')  # `CUBLAS_FILL_MODE_LOWER`, see https://github.com/JuliaGPU/CUDA.jl/blob/45571e9/lib/cublas/util.jl#L49-L57
     # Determine the buffer size required
     lwork = Ref{Cint}(0)
     cusolverDnDsyevd_bufferSize(cusolver_handle[], jobz, uplo, N, H′, N, evals, lwork)
@@ -50,10 +50,8 @@ function diagonalize!(
             ),
         )
     end
-    # Copy the eigenvectors to GPU_eigvecs
-    copyto!(evecs, H′)
-    # Clean up resources
-    cusolverDnDestroy(cusolver_handle[])
+    copyto!(evecs, H′)  # Copy the eigenvectors to `evecs`
+    cusolverDnDestroy(cusolver_handle[])  # Clean up resources
     return evals, evecs
 end
 function diagonalize(H::CuMatrix)
