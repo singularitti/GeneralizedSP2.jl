@@ -11,6 +11,8 @@ using CUDA.CUSOLVER:
     cusolverDnHandle_t
 using LinearAlgebra: Eigen, checksquare
 
+using GeneralizedSP2: CUDAError
+
 import GeneralizedSP2: fermi_dirac
 
 function diagonalize!(E::Eigen, H::CuMatrix{Cdouble})
@@ -31,6 +33,17 @@ function diagonalize!(E::Eigen, H::CuMatrix{Cdouble})
     devInfo = CuVector{Cint}(undef, 1)
     # Diagonalize the matrix
     cusolverDnDsyevd(cusolver_handle[], jobz, uplo, N, H, N, evals, work, lwork[], devInfo)
+    # Handle errors
+    retcode = only(devInfo)
+    if devInfo[1] < 0
+        throw(CUDAError(:cusolverDnDsyevd, "$(-retcode)th parameter is invalid!"))
+    elseif devInfo[1] > 0
+        throw(
+            CUDAError(
+                :cusolverDnDsyevd, "($retcode)th off-diagonal elements did not converge!"
+            ),
+        )
+    end
     # Copy the eigenvectors to GPU_eigvecs
     copyto!(evecs, H)
     # Clean up resources
