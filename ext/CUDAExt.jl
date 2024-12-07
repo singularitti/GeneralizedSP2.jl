@@ -32,7 +32,7 @@ function diagonalize!(
     lwork = Ref{Cint}(0)
     cusolverDnDsyevd_bufferSize(cusolver_handle[], jobz, uplo, N, H, N, evals, lwork)
     # Allocate temporary workspace and device info array
-    work = CuMatrix{Cdouble}(undef, lwork[])
+    work = CuVector{Cdouble}(undef, lwork[])
     devInfo = CuVector{Cint}(undef, 1)
     # Diagonalize the matrix
     cusolverDnDsyevd(cusolver_handle[], jobz, uplo, N, H, N, evals, work, lwork[], devInfo)
