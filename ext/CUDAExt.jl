@@ -26,7 +26,7 @@ function diagonalize!(
     cusolverDnCreate(cusolver_handle)
     # Specify cuSOLVER diag flags
     jobz = CUSOLVER_EIG_MODE_VECTOR  # Compute both singular values and singular vectors
-    uplo = cublasFillMode_t(0)      # CUBLAS_FILL_MODE_LOWER
+    uplo = convert(cublasFillMode_t, 'L')  # CUBLAS_FILL_MODE_LOWER, see https://github.com/JuliaGPU/CUDA.jl/blob/45571e9/lib/cublas/util.jl#L49-L57
     # Determine the buffer size required
     lwork = Ref{Cint}(0)
     cusolverDnDsyevd_bufferSize(cusolver_handle[], jobz, uplo, N, H, N, evals, lwork)
@@ -59,8 +59,6 @@ function diagonalize(H::CuMatrix)
     return diagonalize!(Eigen(evals, evecs), H)
 end
 
-function fermi_dirac(H::CuMatrix, μ, β)
-    
-end
+function fermi_dirac(H::CuMatrix, μ, β) end
 
 end
