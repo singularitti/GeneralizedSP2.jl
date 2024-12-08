@@ -2,6 +2,7 @@ module CUDAExt
 
 using CUDA:
     CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
+    CUDA,
     CuMatrix,
     CuVector,
     CuDeviceMatrix,
@@ -9,12 +10,10 @@ using CUDA:
     DeviceMemory,
     blockIdx,
     blockDim,
-    device,
     threadIdx,
     @cuda
 using CUDA.CUSOLVER:
     CUSOLVER_EIG_MODE_VECTOR,
-    attribute,
     cublasFillMode_t,
     cusolverDnCreate,
     cusolverDnDestroy,
@@ -132,8 +131,8 @@ function _fill_diagonal!(A::CuDeviceVector{T}, D::CuDeviceVector{T}, N) where {T
 end
 function fill_diagonal!(A::CuMatrix{T}, D::CuVector{T}) where {T}
     N = size(A, 1)
-    props = device()  # Get the device properties
-    threads_per_block = attribute(props, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK)
+    props = CUDA.device()  # Get the device properties
+    threads_per_block = CUDA.attribute(props, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK)
     num_blocks = cld(N^2, threads_per_block)  # Set grid and block dimensions dynamically
     flat_matrix = reshape(A, :)  # Flatten the matrix
     # Launch the kernel
