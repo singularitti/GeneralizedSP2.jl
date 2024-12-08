@@ -1,8 +1,20 @@
 module CUDAExt
 
-using CUDA: CuMatrix, CuVector, DeviceMemory
+using CUDA:
+    CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
+    CuMatrix,
+    CuVector,
+    CuDeviceMatrix,
+    CuDeviceVector,
+    DeviceMemory,
+    blockIdx,
+    blockDim,
+    device,
+    threadIdx,
+    @cuda
 using CUDA.CUSOLVER:
     CUSOLVER_EIG_MODE_VECTOR,
+    attribute,
     cublasFillMode_t,
     cusolverDnCreate,
     cusolverDnDestroy,
@@ -14,7 +26,7 @@ using CUDA.CUSOLVER:
 
 using GeneralizedSP2: CUDAError
 
-import GeneralizedSP2: diagonalize, diagonalize!, fermi_dirac
+import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac
 
 function diagonalize!(
     evals::CuVector{Cdouble,DeviceMemory},
@@ -101,6 +113,32 @@ function diagonalize(H::CuMatrix)
     evals = CuVector{eltype(H)}(undef, N)
     evecs = CuMatrix{eltype(H)}(undef, N, N)
     return diagonalize!(evals, evecs, H)
+end
+
+# Kernel to fill diagonal elements of a square matrix
+function _fill_diagonal!(A::CuDeviceVector{T}, D::CuDeviceVector{T}, N) where {T}
+    # Get thread index
+    i = (threadIdx().x - 1) + (blockIdx().x - 1) * blockDim().x + 1
+    if i <= N^2
+        if mod(i - 1, N + 1) == 0
+            # Along the diagonal
+            A[i] = D[div(i - 1, N + 1) + 1]
+        else
+            # Off-diagonal entries
+            A[i] = zero(T)
+        end
+    end
+    return nothing
+end
+function fill_diagonal!(A::CuMatrix{T}, D::CuVector{T}) where {T}
+    N = size(A, 1)
+    props = device()  # Get the device properties
+    threads_per_block = attribute(props, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK)
+    num_blocks = cld(N^2, threads_per_block)  # Set grid and block dimensions dynamically
+    flat_matrix = reshape(A, :)  # Flatten the matrix
+    # Launch the kernel
+    @cuda threads = threads_per_block blocks = num_blocks _fill_diagonal!(flat_matrix, D, N)
+    return A
 end
 
 function fermi_dirac(H::CuMatrix, μ, β) end

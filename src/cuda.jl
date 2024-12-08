@@ -26,6 +26,10 @@ function fill_diagonal!(A::AbstractMatrix{T}, D::AbstractVector{T}) where {T}
     A[diag_indices] .= D  # Fill diagonal
     return A
 end
+function fill_diagonal!(A::AbstractMatrix, D::AbstractVector)
+    D′ = convert.(eltype(A), D)
+    return fill_diagonal!(A, D′)
+end
 function fill_diagonal(D::AbstractVector)
     A = similar(D, length(D), length(D))
     return fill_diagonal!(A, D)
