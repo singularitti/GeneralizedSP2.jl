@@ -118,7 +118,7 @@ end
 # Kernel to fill diagonal elements of a square matrix
 function _fill_diagonal!(A::CuDeviceVector{T}, D::CuDeviceVector{T}, N) where {T}
     # Get thread index
-    i = (threadIdx().x - 1) + (blockIdx().x - 1) * blockDim().x + 1
+    i = (blockIdx().x - 1) * blockDim().x + threadIdx().x  # See https://cuda.juliagpu.org/stable/tutorials/introduction/#Writing-a-parallel-GPU-kernel
     if i <= N^2
         if mod(i - 1, N + 1) == 0
             # Along the diagonal
