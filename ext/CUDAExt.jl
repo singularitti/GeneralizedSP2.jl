@@ -11,6 +11,7 @@ using CUDA:
     blockIdx,
     blockDim,
     threadIdx,
+    launch_configuration,
     @cuda
 using CUDA.CUSOLVER:
     CUSOLVER_EIG_MODE_VECTOR,
@@ -115,31 +116,24 @@ function diagonalize(H::CuMatrix)
 end
 
 # Kernel to fill diagonal elements of a square matrix
-function _fill_diagonal!(A::CuDeviceVector{T}, D::CuDeviceVector{T}, N) where {T}
-    # Get thread index
-    i = (blockIdx().x - 1) * blockDim().x + threadIdx().x  # See https://cuda.juliagpu.org/stable/tutorials/introduction/#Writing-a-parallel-GPU-kernel
-    if i <= N^2
-        if mod(i - 1, N + 1) == 0
-            # Along the diagonal
-            A[i] = D[div(i - 1, N + 1) + 1]
-        else
-            # Off-diagonal entries
-            A[i] = zero(T)
-        end
+function _fill_diagonal!(A::CuDeviceMatrix{T}, D::CuDeviceVector{T}, N) where {T}
+    index = (blockIdx().x - 1) * blockDim().x + threadIdx().x
+    if index <= N
+        @inbounds A[index, index] = D[index]
     end
     return nothing
 end
 function fill_diagonal!(A::CuMatrix{T}, D::CuVector{T}) where {T}
     N = size(A, 1)
-    props = CUDA.device()  # Get the device properties
-    threads_per_block = CUDA.attribute(props, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK)
-    num_blocks = cld(N^2, threads_per_block)  # Set grid and block dimensions dynamically
-    flat_matrix = reshape(A, :)  # Flatten the matrix
-    # Launch the kernel
-    CUDA.@sync begin  # See https://cuda.juliagpu.org/stable/tutorials/introduction/#Writing-a-parallel-GPU-kernel
-        @cuda threads = threads_per_block blocks = num_blocks always_inline = true _fill_diagonal!(
-            flat_matrix, D, N
-        )
+    fill!(A, zero(T))  # Set the entire matrix to zero efficiently
+    # Prepare the kernel without launching it
+    kernel = @cuda launch = false _fill_diagonal!(A, D, N)
+    # Get optimal launch configuration
+    config = launch_configuration(kernel.fun)
+    threads = min(N, config.threads)
+    blocks = cld(N, threads)
+    CUDA.@sync begin
+        kernel(A, D, N; threads=threads, blocks=blocks)  # Launch the kernel with dynamic configuration
     end
     return A
 end
