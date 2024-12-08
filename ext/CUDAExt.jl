@@ -117,23 +117,35 @@ end
 
 # Kernel to fill diagonal elements of a square matrix
 function _fill_diagonal!(A::CuDeviceMatrix{T}, D::CuDeviceVector{T}, N) where {T}
-    index = (blockIdx().x - 1) * blockDim().x + threadIdx().x
-    if index <= N
-        @inbounds A[index, index] = D[index]
+    row = (blockIdx().y - 1) * blockDim().y + threadIdx().y
+    col = (blockIdx().x - 1) * blockDim().x + threadIdx().x
+    if row <= N && col <= N
+        if row == col
+            @inbounds A[row, col] = D[row]
+        else
+            @inbounds A[row, col] = zero(T)
+        end
     end
     return nothing
 end
 function fill_diagonal!(A::CuMatrix{T}, D::CuVector{T}) where {T}
     N = size(A, 1)
-    fill!(A, zero(T))  # Set the entire matrix to zero efficiently
-    # Prepare the kernel without launching it
-    kernel = @cuda launch = false _fill_diagonal!(A, D, N)
-    # Get optimal launch configuration
-    config = launch_configuration(kernel.fun)
-    threads = min(N, config.threads)
-    blocks = cld(N, threads)
+    kernel = @cuda launch = false _fill_diagonal!(A, D, N)  # Prepare the kernel without launching it
+    config = launch_configuration(kernel.fun)  # Get optimal launch configuration
+    max_threads_per_block = config.threads  # Maximum number of threads per block
+    # Determine threads per block in x and y dimensions
+    # Aim for square blocks, so take the square root
+    threads_per_block_dim = min(N, floor(Int, sqrt(max_threads_per_block)))
+    blocks_dim = cld(N, threads_per_block_dim)
+    # Launch the kernel with the calculated threads and blocks
     CUDA.@sync begin
-        kernel(A, D, N; threads=threads, blocks=blocks)  # Launch the kernel with dynamic configuration
+        kernel(
+            A,
+            D,
+            N;
+            threads=(threads_per_block_dim, threads_per_block_dim),  # Threads per block in x and y dimensions
+            blocks=(blocks_dim, blocks_dim),  # The number of blocks needed in each dimension
+        )
     end
     return A
 end
