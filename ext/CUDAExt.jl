@@ -137,7 +137,11 @@ function fill_diagonal!(A::CuMatrix{T}, D::CuVector{T}) where {T}
     num_blocks = cld(N^2, threads_per_block)  # Set grid and block dimensions dynamically
     flat_matrix = reshape(A, :)  # Flatten the matrix
     # Launch the kernel
-    @cuda threads = threads_per_block blocks = num_blocks _fill_diagonal!(flat_matrix, D, N)
+    CUDA.@sync begin  # See https://cuda.juliagpu.org/stable/tutorials/introduction/#Writing-a-parallel-GPU-kernel
+        @cuda threads = threads_per_block blocks = num_blocks always_inline = true _fill_diagonal!(
+            flat_matrix, D, N
+        )
+    end
     return A
 end
 
