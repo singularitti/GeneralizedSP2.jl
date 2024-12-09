@@ -27,10 +27,9 @@ using CUDA.CUSOLVER:
 using LinearAlgebra: Diagonal, checksquare
 using LinearAlgebra.BLAS: axpy!, axpby!, gemm!
 
-using GeneralizedSP2: CUDAError, eachlayer, rescale_one_zero
+using GeneralizedSP2: AbstractModel, CUDAError, eachlayer
 
-import GeneralizedSP2:
-    diagonalize, diagonalize!, fill_diagonal!, fermi_dirac, fermi_dirac!, gensp2!
+import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac, fermi_dirac!
 
 function diagonalize!(
     evals::CuVector{Cdouble,DeviceMemory},
@@ -202,7 +201,7 @@ function fermi_dirac(H::CuMatrix{T}, β::T, μ::T) where {T}
     return density_matrix
 end
 
-function gensp2!(DM::CuMatrix, model::CuMatrix, X::CuMatrix)
+function (model::AbstractModel)(DM::CuMatrix, X::CuMatrix)
     checksquare(X)
     checksquare(DM)
     Y = X  # Affine transformation: Y = k * X + b * I
