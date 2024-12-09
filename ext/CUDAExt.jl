@@ -25,7 +25,7 @@ using CUDA.CUSOLVER:
     cusolverDnSsyevd,
     cusolverDnSsyevd_bufferSize
 using LinearAlgebra: Diagonal, checksquare
-using LinearAlgebra.BLAS: axpy!, gemm!
+using LinearAlgebra.BLAS: axpy!, axpby!, gemm!
 
 using GeneralizedSP2: CUDAError, eachlayer, rescale_one_zero
 
@@ -219,7 +219,7 @@ function gensp2!(DM::CuMatrix, model::CuMatrix, X::CuMatrix)
     # Update the accumulator with: accumulator += Y
     axpy!(one(accumulator), Y, accumulator)  # Add the final layer, `accumulator += Y`
     # Compute density matrix = I - accumulator
-    axpy!(-one(accumulator), accumulator, DM)
+    axpby!(one(I), I, -one(accumulator), accumulator)
     return DM
 end
 
