@@ -1,6 +1,6 @@
 using LinearAlgebra: diagind
 
-export diagonalize, diagonalize!, fill_diagonal, fill_diagonal!
+export diagonalize, diagonalize!, fill_diagonal, fill_diagonal!, gensp2!
 
 struct CUDAError
     at::Symbol
@@ -34,3 +34,5 @@ function fill_diagonal(D::AbstractVector)
     A = similar(D, length(D), length(D))
     return fill_diagonal!(A, D)
 end
+
+function gensp2! end
