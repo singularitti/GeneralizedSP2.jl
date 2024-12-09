@@ -24,10 +24,11 @@ using CUDA.CUSOLVER:
     cusolverDnHandle_t,
     cusolverDnSsyevd,
     cusolverDnSsyevd_bufferSize
+using LinearAlgebra: Diagonal
 
 using GeneralizedSP2: CUDAError
 
-import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac!
+import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac, fermi_dirac!
 
 function diagonalize!(
     evals::CuVector{Cdouble,DeviceMemory},
@@ -179,6 +180,24 @@ function fermi_dirac!(result::CuVector{T}, 𝛆::CuVector{T}, μ::T, β::T) wher
     end
     return result
 end
-function fermi_dirac!(H::CuMatrix, μ, β) end
+
+function fermi_dirac(H::CuMatrix{T}, β::T, μ::T) where {T}
+    M, N = size(H)
+    if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
+        throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
+    end
+    # Allocate eigenvalues and eigenvectors
+    evals = CuVector{T}(undef, N)
+    evecs = CuMatrix{T}(undef, N, N)
+    # Step 1: Diagonalize the Hamiltonian
+    diagonalize!(evals, evecs, H)
+    # Step 2: Apply the Fermi–Dirac function to eigenvalues
+    fermi_vals = CuVector{T}(undef, N)
+    fermi_dirac!(fermi_vals, evals, μ, β)
+    # Step 3: Compute the density matrix
+    # Compute V * Diagonal(f(Λ)) * Vᵀ efficiently
+    density_matrix = evecs * Diagonal(fermi_vals) * evecs'
+    return density_matrix
+end
 
 end
