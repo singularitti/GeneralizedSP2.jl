@@ -204,7 +204,7 @@ end
 function (model::AbstractModel)(DM::CuMatrix, X::CuMatrix)
     checksquare(X)
     checksquare(DM)
-    Y = X  # Affine transformation: Y = k * X + b * I
+    Y = X
     I = oneunit(Y)  # Identity matrix
     accumulator = CUDA.zeros(eltype(Y), size(Y))
     for 𝐦 in eachlayer(model)  # Main loop over each layer
