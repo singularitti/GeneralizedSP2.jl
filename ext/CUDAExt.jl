@@ -24,11 +24,13 @@ using CUDA.CUSOLVER:
     cusolverDnHandle_t,
     cusolverDnSsyevd,
     cusolverDnSsyevd_bufferSize
-using LinearAlgebra: Diagonal
+using LinearAlgebra: Diagonal, checksquare
+using LinearAlgebra.BLAS: axpy!, gemm!
 
-using GeneralizedSP2: CUDAError
+using GeneralizedSP2: CUDAError, eachlayer, rescale_one_zero
 
-import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac, fermi_dirac!
+import GeneralizedSP2:
+    diagonalize, diagonalize!, fill_diagonal!, fermi_dirac, fermi_dirac!, gensp2!
 
 function diagonalize!(
     evals::CuVector{Cdouble,DeviceMemory},
@@ -198,6 +200,27 @@ function fermi_dirac(H::CuMatrix{T}, β::T, μ::T) where {T}
     # Compute V * Diagonal(f(Λ)) * Vᵀ efficiently
     density_matrix = evecs * Diagonal(fermi_vals) * evecs'
     return density_matrix
+end
+
+function gensp2!(DM::CuMatrix, model::CuMatrix, X::CuMatrix)
+    checksquare(X)
+    checksquare(DM)
+    Y = X  # Affine transformation: Y = k * X + b * I
+    I = oneunit(Y)  # Identity matrix
+    accumulator = CUDA.zeros(eltype(Y), size(Y))
+    for 𝐦 in eachlayer(model)  # Main loop over each layer
+        # Update the accumulator with: accumulator += 𝐦[4] * Y
+        axpy!(𝐦[4], Y, accumulator)
+        # Compute Y .= 𝐦[1] * Y^2 + 𝐦[2] * Y
+        gemm!('N', 'N', 𝐦[1], Y, Y, 𝐦[2], Y)
+        # Add 𝐦[3] * I to Y
+        axpy!(𝐦[3], I, Y)
+    end
+    # Update the accumulator with: accumulator += Y
+    axpy!(one(accumulator), Y, accumulator)  # Add the final layer, `accumulator += Y`
+    # Compute density matrix = I - accumulator
+    axpy!(-one(accumulator), accumulator, DM)
+    return DM
 end
 
 end
