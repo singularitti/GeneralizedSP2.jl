@@ -118,8 +118,8 @@ end
 
 # Kernel to fill diagonal elements of a square matrix
 function _fill_diagonal!(A::CuDeviceMatrix{T}, D::CuDeviceVector{T}, N) where {T}
-    row = (blockIdx().y - 1) * blockDim().y + threadIdx().y
-    col = (blockIdx().x - 1) * blockDim().x + threadIdx().x
+    row = (blockIdx().y - Int32(1)) * blockDim().y + threadIdx().y
+    col = (blockIdx().x - Int32(1)) * blockDim().x + threadIdx().x
     if row <= N && col <= N
         if row == col
             @inbounds A[row, col] = D[row]
