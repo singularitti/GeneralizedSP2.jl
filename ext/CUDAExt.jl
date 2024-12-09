@@ -10,6 +10,7 @@ using CUDA:
     DeviceMemory,
     blockIdx,
     blockDim,
+    gridDim,
     threadIdx,
     launch_configuration,
     @cuda
@@ -26,7 +27,7 @@ using CUDA.CUSOLVER:
 
 using GeneralizedSP2: CUDAError
 
-import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac
+import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac!
 
 function diagonalize!(
     evals::CuVector{Cdouble,DeviceMemory},
