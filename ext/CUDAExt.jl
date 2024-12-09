@@ -150,6 +150,34 @@ function fill_diagonal!(A::CuMatrix{T}, D::CuVector{T}) where {T}
     return A
 end
 
-function fermi_dirac(H::CuMatrix, μ, β) end
+function _fermi_dirac!(result, 𝛆, μ, β)
+    index = (blockIdx().x - Int32(1)) * blockDim().x + threadIdx().x  # Linear thread index
+    stride = gridDim().x * blockDim().x
+    i = index  # Stride-based loop with a while loop, see https://cuda.juliagpu.org/stable/tutorials/performance/#Avoiding-StepRange
+    while i <= length(result)
+        @inbounds begin
+            η = exp((𝛆[i] - μ) * β)
+            result[i] = inv(oneunit(η) + η)
+        end
+        i += stride
+    end
+    return nothing
+end
+function fermi_dirac!(result::CuVector{T}, 𝛆::CuVector{T}, μ::T, β::T) where {T}
+    if size(result) != size(𝛆)
+        throw(DimensionMismatch("result and 𝛆 must have the same size!"))
+    end
+    N = length(result)
+    kernel = @cuda launch = false _fermi_dirac!(result, 𝛆, μ, β)  # Compile kernel without launching
+    config = launch_configuration(kernel.fun)  # Get optimal launch configuration
+    threads = min(N, config.threads)  # Use the maximum allowed threads or size of array
+    blocks = cld(N, threads)  # Compute required blocks to cover all elements
+    # Launch the kernel with dynamic configuration
+    CUDA.@sync begin
+        kernel(result, 𝛆, μ, β; threads=threads, blocks=blocks)
+    end
+    return result
+end
+function fermi_dirac!(H::CuMatrix, μ, β) end
 
 end
