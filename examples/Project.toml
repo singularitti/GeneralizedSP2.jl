@@ -1,5 +1,6 @@
 [deps]
 AffineScaler = "75005516-5893-409d-9e89-87dc6c6330eb"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 GeneralizedSP2 = "5310a9d4-a676-4946-a68d-8e46a0f50a7f"
 GershgorinDiscs = "1acd937f-ba38-4cfb-ac8e-9b470edff748"
