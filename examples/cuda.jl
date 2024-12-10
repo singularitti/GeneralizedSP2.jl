@@ -1,5 +1,6 @@
 using AffineScaler: rescale_one_zero
 using CUDA
+using Distributions: LogUniform
 using GeneralizedSP2
 using LinearAlgebra
 using Plots
@@ -27,9 +28,14 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-β = 1.25
-μ = 10
-H = tridiagonalhamil(1024, 23, 40)
+β = 1.25  # Physical
+μ = 150  # Physical
+sys_size = 2048
+dist = LogUniform(100, 200)
+Λ = rand(EigvalsSampler(dist), sys_size)
+V = rand(EigvecsSampler(dist), sys_size, sys_size)
+set_isapprox_rtol(1e-13)
+H = Hamiltonian(Eigen(Λ, V))
 E = eigen(H)
 𝛌, V = E.values, E.vectors
 εₘᵢₙ, εₘₐₓ = floor(minimum(𝛌)), ceil(maximum(𝛌))
@@ -41,7 +47,6 @@ lower_bound, upper_bound = 0, 1
 𝐱′ = chebyshevnodes_1st(1000, (lower_bound, upper_bound))
 fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=1_000_000)
 M = fitted.model
-M̄ = fitted.jac
 
 @assert rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ)) ≈ fermi_dirac(H_scaled, μ′, β′)
 dm_exact = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
