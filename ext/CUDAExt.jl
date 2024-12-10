@@ -26,6 +26,8 @@ using CUDA.CUSOLVER:
     cusolverDnSsyevd_bufferSize
 using LinearAlgebra: Diagonal, checksquare
 using LinearAlgebra.BLAS: axpy!, axpby!, gemm!
+# using InteractiveUtils: @which
+using NVTX: @range
 
 using GeneralizedSP2: AbstractModel, CUDAError, eachlayer
 
@@ -191,13 +193,19 @@ function fermi_dirac(H::CuMatrix{T}, β::T, μ::T) where {T}
     evals = CuVector{T}(undef, N)
     evecs = CuMatrix{T}(undef, N, N)
     # Step 1: Diagonalize the Hamiltonian
-    diagonalize!(evals, evecs, H)
+    @range "diagonalize!" begin
+        diagonalize!(evals, evecs, H)
+    end
     # Step 2: Apply the Fermi–Dirac function to eigenvalues
     fermi_vals = CuVector{T}(undef, N)
-    fermi_dirac!(fermi_vals, evals, μ, β)
+    @range "fermi_dirac!" begin
+        fermi_dirac!(fermi_vals, evals, μ, β)
+    end
     # Step 3: Compute the density matrix
     # Compute V * Diagonal(f(Λ)) * Vᵀ efficiently
-    density_matrix = evecs * Diagonal(fermi_vals) * evecs'
+    @range "density_matrix" begin
+        density_matrix = evecs * Diagonal(fermi_vals) * evecs'
+    end
     return density_matrix
 end
 
@@ -207,18 +215,30 @@ function (model::AbstractModel)(DM::CuMatrix, X::CuMatrix)
     Y = X  # Affine transformation: Y = k * X + b * I
     I = oneunit(Y)  # Identity matrix
     accumulator = CUDA.zeros(eltype(Y), size(Y))
-    for 𝐦 in eachlayer(model)  # Main loop over each layer
-        # Update the accumulator with: accumulator += 𝐦[4] * Y
-        axpy!(𝐦[4], Y, accumulator)
-        # Compute Y .= 𝐦[1] * Y^2 + 𝐦[2] * Y
-        gemm!('N', 'N', 𝐦[1], Y, Y, 𝐦[2], Y)
-        # Add 𝐦[3] * I to Y
-        axpy!(𝐦[3], I, Y)
+    # for 𝐦 in eachlayer(model)  # Main loop over each layer
+    #     @show typeof(Y), typeof(accumulator)
+    #     @show @which axpy!(𝐦[4], Y, accumulator)
+    #     # Update the accumulator with: accumulator += 𝐦[4] * Y
+    #     axpy!(𝐦[4], Y, accumulator)
+    #     # Compute Y .= 𝐦[1] * Y^2 + 𝐦[2] * Y
+    #     gemm!('N', 'N', 𝐦[1], Y, Y, 𝐦[2], Y)
+    #     # Add 𝐦[3] * I to Y
+    #     axpy!(𝐦[3], I, Y)
+    # end
+    # # Update the accumulator with: accumulator += Y
+    # axpy!(one(eltype(accumulator)), Y, accumulator)  # Add the final layer, `accumulator += Y`
+    # # Compute density matrix = I - accumulator
+    # axpby!(one(eltype(I)), I, -one(eltype(accumulator)), accumulator)
+    # return DM
+    Y = X
+    for (i, 𝐦) in enumerate(eachlayer(model))
+        @range "main loop ith" payload = i begin
+            accumulator += 𝐦[4] * Y
+            Y = 𝐦[1] * Y^2 + 𝐦[2] * Y + 𝐦[3] * oneunit(Y)  # Note this is not element-wise!
+        end
     end
-    # Update the accumulator with: accumulator += Y
-    axpy!(one(eltype(accumulator)), Y, accumulator)  # Add the final layer, `accumulator += Y`
-    # Compute density matrix = I - accumulator
-    axpby!(one(eltype(I)), I, -one(eltype(accumulator)), accumulator)
+    accumulator += Y
+    DM .= I - accumulator
     return DM
 end
 
