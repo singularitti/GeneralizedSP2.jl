@@ -26,7 +26,6 @@ using CUDA.CUSOLVER:
     cusolverDnSsyevd_bufferSize
 using LinearAlgebra: Diagonal, checksquare
 using LinearAlgebra.BLAS: axpy!, axpby!, gemm!
-# using InteractiveUtils: @which
 using NVTX: @range
 
 using GeneralizedSP2: AbstractModel, CUDAError, eachlayer
