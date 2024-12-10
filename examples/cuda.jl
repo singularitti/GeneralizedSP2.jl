@@ -29,7 +29,7 @@ PLOT_DEFAULTS = Dict(
 )
 
 β = 1.25  # Physical
-μ = 150  # Physical
+μ = 150.0  # Physical
 sys_size = 2048
 dist = LogUniform(100, 200)
 Λ = rand(EigvalsSampler(dist), sys_size)
