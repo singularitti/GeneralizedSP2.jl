@@ -216,9 +216,9 @@ function (model::AbstractModel)(DM::CuMatrix, X::CuMatrix)
         axpy!(𝐦[3], I, Y)
     end
     # Update the accumulator with: accumulator += Y
-    axpy!(one(accumulator), Y, accumulator)  # Add the final layer, `accumulator += Y`
+    axpy!(one(eltype(accumulator)), Y, accumulator)  # Add the final layer, `accumulator += Y`
     # Compute density matrix = I - accumulator
-    axpby!(one(I), I, -one(accumulator), accumulator)
+    axpby!(one(eltype(I)), I, -one(eltype(accumulator)), accumulator)
     return DM
 end
 
