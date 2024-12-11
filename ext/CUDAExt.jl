@@ -24,8 +24,8 @@ using CUDA.CUSOLVER:
     cusolverDnHandle_t,
     cusolverDnSsyevd,
     cusolverDnSsyevd_bufferSize
+using CUDA.CUBLAS: axpy!, axpby!, gemm!, mul!
 using LinearAlgebra: Diagonal, checksquare
-using LinearAlgebra.BLAS: axpy!, axpby!, gemm!
 using NVTX: @range
 
 using GeneralizedSP2: AbstractModel, CUDAError, eachlayer
@@ -216,31 +216,22 @@ function (model::AbstractModel)(DM::CuMatrix, X::CuMatrix)
     checksquare(X)
     checksquare(DM)
     Y = X
+    Y² = similar(Y)
     I = oneunit(Y)  # Identity matrix
     accumulator = CUDA.zeros(eltype(Y), size(Y))
-    # for 𝐦 in eachlayer(model)  # Main loop over each layer
-    #     @show typeof(Y), typeof(accumulator)
-    #     @show @which axpy!(𝐦[4], Y, accumulator)
-    #     # Update the accumulator with: accumulator += 𝐦[4] * Y
-    #     axpy!(𝐦[4], Y, accumulator)
-    #     # Compute Y .= 𝐦[1] * Y^2 + 𝐦[2] * Y
-    #     gemm!('N', 'N', 𝐦[1], Y, Y, 𝐦[2], Y)
-    #     # Add 𝐦[3] * I to Y
-    #     axpy!(𝐦[3], I, Y)
-    # end
-    # # Update the accumulator with: accumulator += Y
-    # axpy!(one(eltype(accumulator)), Y, accumulator)  # Add the final layer, `accumulator += Y`
-    # # Compute density matrix = I - accumulator
-    # axpby!(one(eltype(I)), I, -one(eltype(accumulator)), accumulator)
-    # return DM
-    Y = X
-    for (i, 𝐦) in enumerate(eachlayer(model))
-        @range "main loop ith" payload = i begin
-            accumulator += 𝐦[4] * Y
-            Y = 𝐦[1] * Y^2 + 𝐦[2] * Y + 𝐦[3] * oneunit(Y)  # Note this is not element-wise!
-        end
+    for (i, 𝐦) in enumerate(eachlayer(model))  # Main loop over each layer
+        # Update the accumulator with: accumulator += 𝐦[4] * Y
+        axpy!(length(Y), 𝐦[4], Y, accumulator)
+        mul!(Y², Y, Y)
+        # Compute Y .= 𝐦[1] * Y^2 + 𝐦[2] * Y
+        axpby!(length(Y), 𝐦[1], Y², 𝐦[2], Y)
+        # Add 𝐦[3] * I to Y
+        axpy!(length(Y), 𝐦[3], I, Y)
     end
-    accumulator += Y
+    # Update the accumulator with: accumulator += Y
+    axpy!(length(Y), one(eltype(accumulator)), Y, accumulator)  # Add the final layer, `accumulator += Y`
+    # Compute density matrix = I - accumulator
+    axpby!(length(accumulator), one(eltype(I)), I, -one(eltype(accumulator)), accumulator)
     DM .= I - accumulator
     return DM
 end
