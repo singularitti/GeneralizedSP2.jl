@@ -234,5 +234,11 @@ function (model::AbstractModel)(DM::CuMatrix, X::CuMatrix)
     DM .= I - accumulator
     return DM
 end
+function (model::AbstractModel)(DM::AbstractMatrix, X::CuMatrix)
+    DM′ = CuMatrix(DM)
+    model(DM′, X)
+    DM .= DM′
+    return DM
+end
 
 end
