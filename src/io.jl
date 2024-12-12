@@ -5,9 +5,11 @@ export loadmodel, savemodel
 function loadmodel(file)
     ext = lowercase(splitext(file)[2])
     if ext in (".npy", ".npz")
-        model = npzread(file)
-        if model isa AbstractModel
-            return model
+        A = npzread(file)
+        if A isa Vector
+            return FlattendModel(A)
+        elseif A isa Matrix
+            return Model(A)
         else
             error("this is not a model!")
         end
