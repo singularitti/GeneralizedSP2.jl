@@ -215,7 +215,7 @@ end
 function (model::AbstractModel)(DM::CuMatrix, X::CuMatrix)
     checksquare(X)
     checksquare(DM)
-    Y = X
+    Y = copy(X)
     Y² = similar(Y)
     I = oneunit(Y)  # Identity matrix
     accumulator = CUDA.zeros(eltype(Y), size(Y))
