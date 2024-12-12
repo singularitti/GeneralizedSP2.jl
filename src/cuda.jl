@@ -1,6 +1,8 @@
+using CEnum: @cenum
 using LinearAlgebra: diagind
 
-export diagonalize, diagonalize!, fill_diagonal, fill_diagonal!
+export Precision,
+    diagonalize, diagonalize!, fill_diagonal, fill_diagonal!, compute_exact_fermi_dirac!
 
 struct CUDAError
     at::Symbol
@@ -8,6 +10,12 @@ struct CUDAError
 end
 
 Base.showerror(io::IO, e::CUDAError) = print(io, "CUDA error in `$(e.at)`: $(e.msg)")
+
+@cenum Precision begin
+    DOUBLE = 0  # uniform double precision
+    SINGLE = 1  # uniform single precision
+    MIXED = 2   # accumulate in single, compute in half
+end
 
 function diagonalize end
 
