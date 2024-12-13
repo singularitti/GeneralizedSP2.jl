@@ -1,7 +1,7 @@
 using LinearAlgebra: I, checksquare
 # using Enzyme: Reverse, Const, Duplicated, autodiff
 
-export basis, electronic_entropy
+export basis, electronic_entropy, fermi_dirac!
 
 # See https://github.com/PainterQubits/Unitful.jl/blob/6bf6f99/src/utils.jl#L241-L247
 struct DimensionError{X,Y} <: Exception
