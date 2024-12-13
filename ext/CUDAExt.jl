@@ -7,6 +7,7 @@ using CUDA:
     CuVector,
     CuDeviceMatrix,
     CuDeviceVector,
+    CuPtr,
     DeviceMemory,
     blockIdx,
     blockDim,
@@ -28,9 +29,15 @@ using CUDA.CUBLAS: axpy!, axpby!, gemm!, mul!
 using LinearAlgebra: Diagonal, checksquare
 using NVTX: @range
 
-using GeneralizedSP2: AbstractModel, CUDAError, eachlayer
+using GeneralizedSP2: AbstractModel, CUDAError, Precision, eachlayer, numlayers
 
-import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac, fermi_dirac!
+import GeneralizedSP2:
+    diagonalize,
+    diagonalize!,
+    fill_diagonal!,
+    fermi_dirac,
+    fermi_dirac!,
+    compute_exact_fermi_dirac!
 
 function diagonalize!(
     evals::CuVector{Cdouble,DeviceMemory},
@@ -242,6 +249,43 @@ function (model::AbstractModel)(DM::AbstractMatrix, X::CuMatrix)
     DM′ = CuMatrix(DM)
     model(DM′, X)
     DM .= DM′
+    return DM
+end
+
+function (model::AbstractModel)(
+    DM::CuMatrix, H::CuMatrix, precision, spectral_bounds=extrema(H)
+)
+    M, N = size(H)
+    if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
+        throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
+    end
+    nlayers = numlayers(model)
+    model = parent(model)
+    ϵₘᵢₙ, ϵₘₐₓ = extrema(spectral_bounds)
+    @ccall libpath.dm_mlsp2(
+        model::Ptr{Cdouble},
+        H::CuPtr{Cdouble},
+        DM::CuPtr{Cdouble},
+        nlayers::Cint,
+        N::Cint,
+        precision::Cint,
+        ϵₘᵢₙ::Cdouble,
+        ϵₘₐₓ::Cdouble,
+    )::Cvoid
+    return DM
+end
+
+function compute_exact_fermi_dirac!(DM::CuMatrix, H::CuMatrix, μ, β)
+    if size(DM) != size(H)
+        throw(DimensionMismatch("DM and H must have the same size!"))
+    end
+    M, N = size(H)
+    if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
+        throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
+    end
+    @ccall libpath.compute_exact_fermi_dirac(
+        H::CuPtr{Cdouble}, N::Cint, β::Cdouble, μ::Cdouble, DM::CuPtr{Cdouble}
+    )::Cvoid
     return DM
 end
 
