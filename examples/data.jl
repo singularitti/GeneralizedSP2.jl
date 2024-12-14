@@ -134,7 +134,6 @@ filenames = [
     "modelgpu_single.csv",
     "modelgpu_mixed.csv",
 ]
-# Custom labels
 labels = Dict(
     "exactcuda.csv" => "CUDA-C++ exact",
     "exactgpu.csv" => "Julia GPU exact",
@@ -143,6 +142,4 @@ labels = Dict(
     "modelgpu_single.csv" => "CUDA-C++ model single",
     "modelgpu_mixed.csv" => "CUDA-C++ model mixed",
 )
-
-# Plot results with custom labels
 plot_benchmark(folders, filenames, labels)
