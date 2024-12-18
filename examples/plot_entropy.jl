@@ -30,12 +30,11 @@ function plot_entropy(β, μ=0.568)
 
     𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
 
-    plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
-    plot!(; subplot=1, title="My fitted results μ=$μ, β=$β")
-    plot!(; subplot=2, title="Error of the approximation")
+    plt = plot(; layout=grid(2, 1; heights=(0.5, 0.5)))
     xlims!(lower_bound, upper_bound)
-    xlabel!(raw"$x$")
-    ylabel!(raw"$S$")
+    xlabel!(raw"$\varepsilon\prime$")
+    ylabel!(raw"$S(\varepsilon\prime)$"; subplot=1)
+    ylabel!(raw"$\Delta S(\varepsilon\prime)$"; subplot=2)
     hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
     plot!(
         𝐱,
