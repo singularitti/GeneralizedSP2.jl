@@ -109,18 +109,16 @@ function plot_fermi_dirac(μ, β)
 end
 
 # See https://discourse.julialang.org/t/26455 & https://discourse.julialang.org/t/45709/3
-symlog(y, n=-6) = sign(y) * (log10(1 + abs(y) / (10.0^n)))
+symlog(y, n=-5) = sign(y) * (log10(1 + abs(y) / (10.0^n)))
 
-function symlogformatter(y, n=-6)
-    if sign(y) == 0
-        raw"$0$"
+function symlogformatter(z, n=-5)
+    if z == 0  # Handle the case when the transformed value is 0
+        return "0"
     else
-        s = sign(y) == 1 ? "" : "-"
-        noexp = sign(y) * (abs(y) + n)
-        if sign(y) == -1
-            noexp = -noexp
-        end
-        '$' * s * "10^{$noexp}" * '$'
+        s = z > 0 ? "" : "-"
+        # Reverse the symlog transformation to find the original y
+        abs_y = (10.0^abs(z) - 1) * 10.0^n
+        return s * string(round(abs_y; digits=4))  # Format as a rounded number
     end
 end
 
