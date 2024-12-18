@@ -23,7 +23,7 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-function plot_fermi_dirac(β=9.423, μ=0.568)
+function plot_fermi_dirac(μ, β)
     minlayers = 14
     maxlayers = 16
     lower_bound, upper_bound = 0, 1
@@ -105,7 +105,6 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
             PLOT_DEFAULTS...,
         )
     end
-    savefig("fits_beta=$β,nlayers=$maxlayers.png")
     return plt
 end
 
@@ -125,4 +124,7 @@ function symlogformatter(y, n=-5)
     end
 end
 
-plot_fermi_dirac(50)
+μ = 0.568
+β = 50
+plt = plot_fermi_dirac(μ, β)
+savefig(plt, "fd μ=$μ β=$β.png")
