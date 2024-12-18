@@ -60,9 +60,10 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
     )
     plot!(
         𝐱,
-        fermi_dirac.(𝐱, μ, β) - oneunit.(𝐲) + 𝐲;
+        symlog.(fermi_dirac.(𝐱, μ, β) - oneunit.(𝐲) + 𝐲);
         subplot=2,
         label="SP2 with $maxlayers layers",
+        yformatter=symlogformatter,
         linestyle=:dash,
         PLOT_DEFAULTS...,
     )
@@ -78,9 +79,10 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
         )
         plot!(
             𝐱,
-            fermi_dirac.(𝐱, μ, β) - fermi_dirac(𝛉).(𝐱);
+            symlog.(fermi_dirac.(𝐱, μ, β) - fermi_dirac(𝛉).(𝐱));
             subplot=2,
             label="MLSP2 with $nlayers layers",
+            yformatter=symlogformatter,
             linestyle=:dot,
             PLOT_DEFAULTS...,
         )
@@ -99,8 +101,9 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
         )
         plot!(
             𝐱′,
-            fermi_dirac.(𝐱′, μ, β) - 𝐲′;
+            symlog.(fermi_dirac.(𝐱′, μ, β) - 𝐲′);
             subplot=2,
+            yformatter=symlogformatter,
             label="$nlayers layers by Chebyshev nodes",
             linestyle=:dashdot,
             PLOT_DEFAULTS...,
@@ -110,5 +113,20 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
     return plt
 end
 
-plot_fermi_dirac(9.423)
-plot_fermi_dirac(20)
+# See https://discourse.julialang.org/t/26455 & https://discourse.julialang.org/t/45709/3
+symlog(y, n=-5) = sign(y) * (log10(1 + abs(y) / (10.0^n)))
+
+function symlogformatter(y, n=-5)
+    if sign(y) == 0
+        raw"$0$"
+    else
+        s = sign(y) == 1 ? "" : "-"
+        nexp = sign(y) * (abs(y) + n)
+        if sign(y) == -1
+            nexp = -nexp
+        end
+        '$' * s * "10^{$nexp}" * '$'
+    end
+end
+
+plot_fermi_dirac(50)
