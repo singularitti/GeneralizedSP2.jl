@@ -23,12 +23,12 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-function plot_entropy(β, μ=0.568)
-    minlayers = 12
-    maxlayers = 14
+function plot_entropy(μ′, β′)
+    minlayers = 14
+    maxlayers = 16
     lower_bound, upper_bound = 0, 1
 
-    𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
+    𝐱 = sample_by_pdf(bell_distribution(μ′, β′), μ′, (lower_bound, upper_bound))
 
     plt = plot(; layout=grid(2, 1; heights=(0.5, 0.5)))
     xlims!(lower_bound, upper_bound)
@@ -38,16 +38,17 @@ function plot_entropy(β, μ=0.568)
     hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
     plot!(
         𝐱,
-        electronic_entropy.(𝐱, μ, β);
-        primary=false,
-        z_order=:back,
-        seriescolor=:maroon,
+        electronic_entropy.(𝐱, μ′, β′);
         subplot=1,
-        label="Reference entropy",
+        z_order=:back,
+        label="Reference",
         PLOT_DEFAULTS...,
     )
     for nlayers in minlayers:maxlayers
-        𝛉 = fit_electronic_entropy(𝐱, μ, β, init_model(μ, nlayers); max_iter=100000).model
+        𝛉 =
+            fit_electronic_entropy(
+                𝐱, μ′, β′, init_model(μ′, nlayers); max_iter=100000
+            ).model
         plot!(
             𝐱,
             electronic_entropy(𝛉).(𝐱);
@@ -58,16 +59,17 @@ function plot_entropy(β, μ=0.568)
         )
         plot!(
             𝐱,
-            electronic_entropy.(𝐱, μ, β) - electronic_entropy(𝛉).(𝐱);
+            electronic_entropy.(𝐱, μ′, β′) - electronic_entropy(𝛉).(𝐱);
             subplot=2,
             label="MLSP2 with $nlayers layers",
             linestyle=:dot,
             PLOT_DEFAULTS...,
         )
     end
-    savefig("fits_beta=$β,nlayers=$maxlayers.png")
     return plt
 end
 
-plot_entropy(9.423)
-plot_entropy(20)
+μ′ = 0.568
+β′ = 60
+plt = plot_entropy(μ′, β′)
+savefig(plt, "S μ=$μ′ β=$β′.pdf")
