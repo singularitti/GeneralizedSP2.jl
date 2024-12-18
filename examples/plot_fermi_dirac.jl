@@ -5,7 +5,7 @@ PLOT_DEFAULTS = Dict(
     :size => (450, 600),
     :dpi => 400,
     :framestyle => :box,
-    :linewidth => 1.5,
+    :linewidth => 2,
     :markersize => 2,
     :markerstrokewidth => 0,
     :minorticks => 5,
@@ -33,12 +33,10 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
     𝐲 = forward_pass(branches, 𝐱)
 
     plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
-    plot!(; subplot=1, title="My fitted results μ=$μ, β=$β")
-    plot!(; subplot=2, title="Error of the approximation")
     xlims!(lower_bound, upper_bound)
-    xlabel!(raw"$x$")
-    ylabel!(raw"$y$")
-    hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
+    xlabel!(raw"$\varepsilon\prime$")
+    ylabel!(raw"$n(\varepsilon\prime)$"; subplot=1)
+    ylabel!(raw"$\Delta n(\varepsilon\prime)$"; subplot=2)
     hline!([0]; subplot=2, label="Reference", z_order=:back, PLOT_DEFAULTS...)
     plot!(
         𝐱,
@@ -71,7 +69,7 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
             𝐱,
             fermi_dirac(𝛉).(𝐱);
             subplot=1,
-            label="MLSP2 with $nlayers layers",
+            label="$nlayers layers",
             linestyle=:dot,
             PLOT_DEFAULTS...,
         )
@@ -79,8 +77,8 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
             𝐱,
             symlog.(fermi_dirac.(𝐱, μ, β) - fermi_dirac(𝛉).(𝐱));
             subplot=2,
-            label="MLSP2 with $nlayers layers",
             yformatter=symlogformatter,
+            label="$nlayers layers",
             linestyle=:dot,
             PLOT_DEFAULTS...,
         )
@@ -93,7 +91,7 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
             𝐱′,
             𝐲′;
             subplot=1,
-            label="MLSP2 with $nlayers layers by Chebyshev nodes",
+            label="$nlayers layers (Chebyshev)",
             linestyle=:dashdot,
             PLOT_DEFAULTS...,
         )
@@ -102,7 +100,7 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
             symlog.(fermi_dirac.(𝐱′, μ, β) - 𝐲′);
             subplot=2,
             yformatter=symlogformatter,
-            label="$nlayers layers by Chebyshev nodes",
+            label="$nlayers layers (Chebyshev)",
             linestyle=:dashdot,
             PLOT_DEFAULTS...,
         )
