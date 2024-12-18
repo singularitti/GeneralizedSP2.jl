@@ -28,7 +28,7 @@ function plot_entropy(μ′, β′)
     maxlayers = 16
     lower_bound, upper_bound = 0, 1
 
-    𝐱 = sample_by_pdf(bell_distribution(μ′, β′), μ′, (lower_bound, upper_bound))
+    𝛆′ = sample_by_pdf(bell_distribution(μ′, β′), μ′, (lower_bound, upper_bound))
 
     plt = plot(; layout=grid(2, 1; heights=(0.5, 0.5)))
     xlims!(lower_bound, upper_bound)
@@ -37,31 +37,31 @@ function plot_entropy(μ′, β′)
     ylabel!(raw"$\Delta S(\varepsilon\prime)$"; subplot=2)
     hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
     plot!(
-        𝐱,
-        electronic_entropy.(𝐱, μ′, β′);
+        𝛆′,
+        electronic_entropy.(𝛆′, μ′, β′);
         subplot=1,
         z_order=:back,
         label="Reference",
         PLOT_DEFAULTS...,
     )
     for nlayers in minlayers:maxlayers
-        𝛉 =
+        model =
             fit_electronic_entropy(
-                𝐱, μ′, β′, init_model(μ′, nlayers); max_iter=100000
+                𝛆′, μ′, β′, init_model(μ′, nlayers); max_iter=100000
             ).model
         plot!(
-            𝐱,
-            electronic_entropy(𝛉).(𝐱);
+            𝛆′,
+            electronic_entropy(model).(𝛆′);
             subplot=1,
-            label="MLSP2 with $nlayers layers",
+            label="$nlayers layers",
             linestyle=:dot,
             PLOT_DEFAULTS...,
         )
         plot!(
-            𝐱,
-            electronic_entropy.(𝐱, μ′, β′) - electronic_entropy(𝛉).(𝐱);
+            𝛆′,
+            electronic_entropy.(𝛆′, μ′, β′) - electronic_entropy(model).(𝛆′);
             subplot=2,
-            label="MLSP2 with $nlayers layers",
+            label="$nlayers layers",
             linestyle=:dot,
             PLOT_DEFAULTS...,
         )
