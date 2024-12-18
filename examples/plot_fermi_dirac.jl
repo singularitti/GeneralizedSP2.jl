@@ -24,11 +24,11 @@ PLOT_DEFAULTS = Dict(
 )
 
 function plot_fermi_dirac(β=9.423, μ=0.568)
-    minlayers = 12
-    maxlayers = 14
+    minlayers = 14
+    maxlayers = 16
     lower_bound, upper_bound = 0, 1
 
-    branches = determine_branches(μ, maxlayers)
+    branches = determine_branches(μ, minlayers)
     𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
     𝐲 = forward_pass(branches, 𝐱)
 
@@ -54,7 +54,7 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
         𝐱,
         oneunit.(𝐲) - 𝐲;
         subplot=1,
-        label="SP2 with $maxlayers layers",
+        label="SP2 with $minlayers layers",
         linestyle=:dash,
         PLOT_DEFAULTS...,
     )
@@ -62,8 +62,8 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
         𝐱,
         symlog.(fermi_dirac.(𝐱, μ, β) - oneunit.(𝐲) + 𝐲);
         subplot=2,
-        label="SP2 with $maxlayers layers",
         yformatter=symlogformatter,
+        label="SP2 with $minlayers layers",
         linestyle=:dash,
         PLOT_DEFAULTS...,
     )
