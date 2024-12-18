@@ -18,7 +18,6 @@ function fit_fermi_dirac(
     store_trace=true,
     kwargs...,
 )
-    _checkdomain(𝛆′, μ′, β′)
     fd = fermi_dirac.(𝛆′, μ′, β′)
     result = curve_fit(
         _fermi_dirac!,
@@ -63,7 +62,6 @@ function fit_electronic_entropy(
     store_trace=true,
     kwargs...,
 )
-    _checkdomain(𝛆′, μ′, β′)
     𝐬 = electronic_entropy.(𝛆′, μ′, β′)
     result = curve_fit(
         _electronic_entropy!,
@@ -105,18 +103,6 @@ function init_model(μ, nlayers)
         end
     end
     return FlattendModel(M)
-end
-
-function _checkdomain(𝐱, μ, β)
-    if minimum(𝐱) < zero(eltype(𝐱)) || maximum(𝐱) > oneunit(eltype(𝐱))
-        throw(DomainError("rescaled 𝐱 must be in the range [0, 1]!"))
-    end
-    if μ < zero(μ) || μ > oneunit(μ)
-        throw(DomainError("rescaled μ must be in the range [0, 1]!"))
-    end
-    if β >= zero(β)
-        throw(DomainError("rescaled β must be negative!"))
-    end
 end
 
 _fermi_dirac!(result, X, A) = fermi_dirac!(FlattendModel(A), result, X)  # Only used for fitting
