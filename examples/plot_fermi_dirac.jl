@@ -109,18 +109,18 @@ function plot_fermi_dirac(μ, β)
 end
 
 # See https://discourse.julialang.org/t/26455 & https://discourse.julialang.org/t/45709/3
-symlog(y, n=-5) = sign(y) * (log10(1 + abs(y) / (10.0^n)))
+symlog(y, n=-6) = sign(y) * (log10(1 + abs(y) / (10.0^n)))
 
-function symlogformatter(y, n=-5)
+function symlogformatter(y, n=-6)
     if sign(y) == 0
         raw"$0$"
     else
         s = sign(y) == 1 ? "" : "-"
-        nexp = sign(y) * (abs(y) + n)
+        noexp = sign(y) * (abs(y) + n)
         if sign(y) == -1
-            nexp = -nexp
+            noexp = -noexp
         end
-        '$' * s * "10^{$nexp}" * '$'
+        '$' * s * "10^{$noexp}" * '$'
     end
 end
 
