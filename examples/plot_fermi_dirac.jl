@@ -39,15 +39,13 @@ function plot_fermi_dirac(β=9.423, μ=0.568)
     xlabel!(raw"$x$")
     ylabel!(raw"$y$")
     hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
-    hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
+    hline!([0]; subplot=2, label="Reference", z_order=:back, PLOT_DEFAULTS...)
     plot!(
         𝐱,
         fermi_dirac.(𝐱, μ, β);
-        primary=false,
-        z_order=:back,
-        seriescolor=:maroon,
         subplot=1,
-        label="Reference Fermi function",
+        z_order=:back,
+        label="Reference",
         PLOT_DEFAULTS...,
     )
     plot!(
