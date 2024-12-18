@@ -32,7 +32,7 @@ function plot_fermi_dirac(μ, β)
     𝐱 = sample_by_pdf(bell_distribution(μ, β), μ, (lower_bound, upper_bound))
     𝐲 = forward_pass(branches, 𝐱)
 
-    plt = plot(; layout=grid(2, 1; heights=(0.6, 0.4)))
+    plt = plot(; layout=grid(2, 1; heights=(0.5, 0.5)))
     xlims!(lower_bound, upper_bound)
     xlabel!(raw"$\varepsilon\prime$")
     ylabel!(raw"$n(\varepsilon\prime)$"; subplot=1)
@@ -123,6 +123,6 @@ function symlogformatter(z, n=-5)
 end
 
 μ = 0.568
-β = 50
+β = 60
 plt = plot_fermi_dirac(μ, β)
-savefig(plt, "fd μ=$μ β=$β.png")
+savefig(plt, "fd μ=$μ β=$β.pdf")
