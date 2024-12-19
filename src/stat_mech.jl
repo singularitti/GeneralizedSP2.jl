@@ -41,8 +41,13 @@ function electronic_energy(ε, μ, β)
     end
 end
 
-electronic_entropy(ε, μ, β) =
-    (fermi_dirac(ε, μ, β) * (ε - μ) - electronic_energy(ε, μ, β)) * β
+# electronic_entropy(ε, μ, β) =
+#     (fermi_dirac(ε, μ, β) * (ε - μ) - electronic_energy(ε, μ, β)) * β
+function electronic_entropy(ε, μ, β)
+    ρ = fermi_dirac(ε, μ, β)
+    η = one(ρ) - ρ
+    return -(η * log(η) + ρ * log(ρ))
+end
 
 function rescale_mu(spectral_bounds)
     ϵₘᵢₙ, ϵₘₐₓ = extrema(spectral_bounds)
