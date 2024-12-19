@@ -49,11 +49,9 @@ results = map(max_iters) do max_iter
     times = map(timed_results) do timed_result
         timed_result.time
     end
-    𝐲_fitted = map(models) do model
-        fermi_dirac(model).(𝛆′)
-    end
-    rmse = map(models, 𝐲_fitted) do model, 𝐲
-        residuals = 𝐲 - 𝐲̂
+    rmse = map(models) do model
+        𝐲_fitted = fermi_dirac(model).(𝛆′)
+        residuals = 𝐲_fitted - 𝐲̂
         sqrt(mean(abs2, residuals))
     end
     (rmse=rmse, times=times)
