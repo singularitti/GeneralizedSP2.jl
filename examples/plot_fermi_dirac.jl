@@ -24,11 +24,11 @@ PLOT_DEFAULTS = Dict(
 )
 
 function plot_fermi_dirac(μ′, β′)
-    minlayers = 14
-    maxlayers = 16
+    minlayers = 20
+    maxlayers = 22
     lower_bound, upper_bound = 0, 1
 
-    branches = determine_branches(μ′, minlayers)
+    branches = determine_branches(μ′, 12)
     𝛆′ = sample_by_pdf(bell_distribution(μ′, β′), μ′, (lower_bound, upper_bound))
     𝐲 = forward_pass(branches, 𝛆′)
 
@@ -50,7 +50,7 @@ function plot_fermi_dirac(μ′, β′)
         𝛆′,
         oneunit.(𝐲) - 𝐲;
         subplot=1,
-        label="SP2 with $minlayers layers",
+        label="SP2 with 12 layers",
         linestyle=:dash,
         PLOT_DEFAULTS...,
     )
@@ -59,7 +59,7 @@ function plot_fermi_dirac(μ′, β′)
         symlog.(fermi_dirac.(𝛆′, μ′, β′) - oneunit.(𝐲) + 𝐲);
         subplot=2,
         yformatter=symlogformatter,
-        label="SP2 with $minlayers layers",
+        label="SP2 with 12 layers",
         linestyle=:dash,
         PLOT_DEFAULTS...,
     )
@@ -109,16 +109,16 @@ function plot_fermi_dirac(μ′, β′)
 end
 
 # See https://discourse.julialang.org/t/26455 & https://discourse.julialang.org/t/45709/3
-symlog(y, n=-5) = sign(y) * (log10(1 + abs(y) / (10.0^n)))
+symlog(y, n=-7) = sign(y) * (log10(1 + abs(y) / (10.0^n)))
 
-function symlogformatter(z, n=-5)
+function symlogformatter(z, n=-7)
     if z == 0  # Handle the case when the transformed value is 0
         return "0"
     else
         s = z > 0 ? "" : "-"
         # Reverse the symlog transformation to find the original y
         abs_y = (10.0^abs(z) - 1) * 10.0^n
-        return s * string(round(abs_y; digits=4))  # Format as a rounded number
+        return s * string(round(abs_y; digits=5))  # Format as a rounded number
     end
 end
 
