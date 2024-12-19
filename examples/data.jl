@@ -1,10 +1,11 @@
 using CSV
 using DataFrames: DataFrame
 using Plots
-using Unitful: uparse, @u_str
+using Plots: bbox
+using Unitful: uparse, ustrip, @u_str
 
 PLOT_DEFAULTS = Dict(
-    :size => (600, 400),
+    :size => (900, 600),
     :dpi => 400,
     :framestyle => :box,
     :linewidth => 2,
@@ -16,7 +17,7 @@ PLOT_DEFAULTS = Dict(
     :guidefontsize => 8,
     :tickfontsize => 6,
     :legendfontsize => 8,
-    :left_margin => (1, :mm),
+    :left_margin => (2, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
@@ -37,10 +38,10 @@ function process_file(file_path, rows_of_interest)
     filtered = filter(row -> row[:Range] in rows_of_interest, df)
     # Parse "Proj Avg" and "Proj StdDev", removing spaces
     filtered[!, proj_avg_col] = map(
-        x -> u"μs"(uparse(nospace(x))), filtered[!, proj_avg_col]
+        x -> ustrip(u"μs", uparse(nospace(x))), filtered[!, proj_avg_col]
     )
     filtered[!, proj_stddev_col] = map(
-        x -> u"μs"(uparse(nospace(x))), filtered[!, proj_stddev_col]
+        x -> ustrip(u"μs", uparse(nospace(x))), filtered[!, proj_stddev_col]
     )
     # Calculate total projection time (T_i) and variance (Var(T_i))
     total_time_col = Symbol("Total Time")
@@ -95,27 +96,57 @@ end
 function plot_benchmark(folders, filenames, labels)
     mat_sizes = parse.(Int, folders)  # Convert folder names to integers for the x-axis
     plt = plot(; PLOT_DEFAULTS...)
+    plot!(
+        plt;
+        subplot=2,
+        inset=(1, bbox(0.65, 0.5, 0.3, 0.4, :bottom, :right)),
+        PLOT_DEFAULTS...,
+    )
+    times_dict = Dict()
+    errors_dict = Dict()
     for filename in filenames
-        times = typeof(1.0u"μs")[]
-        errors = typeof(1.0u"μs")[]
+        times = Float64[]
+        errors = Float64[]
         for folder in folders
             time, error = process_file_with_mapping(folder, filename)
             push!(times, time)
             push!(errors, error)
         end
+        times_dict[filename] = times
+        errors_dict[filename] = errors
+        # Main plot
         plot!(
             mat_sizes,
             times;
             xticks=(mat_sizes, string.(mat_sizes)),
-            yticks=[10, 100, 1000, 10^4, 10^5, 10^6, 10^7],
+            yticks=exp10.(0:7),
             xaxis=:log2,
             yaxis=:log10,
             yerror=errors,
             label=labels[filename],
+            PLOT_DEFAULTS...,
+        )
+        inset_range = mat_sizes .>= 8192
+        inset_times = times_dict[filename][inset_range]
+        inset_errors = errors_dict[filename][inset_range]
+        inset_sizes = mat_sizes[inset_range]
+        plot!(  # See https://discourse.julialang.org/t/102936/12
+            plt,
+            inset_sizes,
+            inset_times;
+            subplot=2,
+            xticks=(inset_sizes, string.(inset_sizes)),
+            yticks=exp10.(5:8),
+            yminorticks=100,
+            xaxis=:log2,
+            yaxis=:log10,
+            yerror=inset_errors,
+            label="",
+            PLOT_DEFAULTS...,
         )
     end
-    xlabel!(plt, "Hamiltonian size (N)")
-    ylabel!(plt, "Total kernel time (μs)")
+    xlabel!(plt, "Hamiltonian size (N)"; subplot=1)
+    ylabel!(plt, "total (kernel) time (μs)"; subplot=1)
     return plt
 end
 
