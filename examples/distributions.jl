@@ -173,9 +173,9 @@ for (fd_distribution, nlayer) in zip(fd_distributions, layers)
 end
 xlims!(extrema(𝛌); subplot=2)
 xlabel!(raw"eigenvalue distribution $\varepsilon$"; subplot=2)
-ylabel!(raw"$f(\varepsilon)$"; subplot=2)
+ylabel!(raw"$n(\varepsilon)$"; subplot=2)
 
-hline!([zero(𝐎)]; subplot=3, seriescolor=:black, primary=false, PLOT_DEFAULTS...)
+hline!([zero(𝐎)]; subplot=3, label="reference for fitting", z_order=:back, PLOT_DEFAULTS...)
 plot!(
     𝛆′_inv,
     𝐲_fitted[end] - 𝐲̂;
@@ -198,7 +198,7 @@ for (fd_distribution, nlayer) in zip(fd_distributions, layers)
 end
 xlims!(extrema(𝛌); subplot=3)
 xlabel!(raw"eigenvalue distribution $\varepsilon$"; subplot=3)
-ylabel!(raw"$\Delta f(\varepsilon)$"; subplot=3)
+ylabel!(raw"$\Delta n(\varepsilon)$"; subplot=3)
 savefig("$(dist_name)_$(β)_$(μ)_$(max_iter)_fermi_dirac.png")
 
 layout = (1, 3)
@@ -230,7 +230,7 @@ scatter!(
 )
 xlims!(extrema(layers); subplot=2)
 xlabel!(raw"number of layers $L$"; subplot=2)
-ylabel!(raw"$N_\text{occ} = \mathrm{tr}(\rho)$"; subplot=2)
+ylabel!(raw"$N_\textrm{occ} = \mathrm{tr}(\rho)$"; subplot=2)
 
 scatter!(
     layers,
@@ -287,6 +287,6 @@ histogram!(
     𝛌; subplot=1, nbins=45, normalize=true, legend_position=:top, label="", PLOT_DEFAULTS...
 )
 xlims!(extrema(𝛌); subplot=1)
-xlabel!("eigenvalue distribution"; subplot=1)
+xlabel!(raw"eigenvalue distribution $\varepsilon$"; subplot=1)
 ylabel!("density"; subplot=1)
 savefig("$(dist_name)_$(β)_$(μ)_$(max_iter)_hist.png")
