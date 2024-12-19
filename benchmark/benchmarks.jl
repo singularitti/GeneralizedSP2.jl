@@ -2,10 +2,29 @@ using GeneralizedSP2
 using Plots
 using ProgressMeter: @showprogress
 using Statistics: mean
-using BenchmarkTools
+using BenchmarkTools: BenchmarkTools, BenchmarkGroup, prunekwargs, hasevals, @benchmarkable
 
 SUITE = BenchmarkGroup()
 SUITE["rand"] = @benchmarkable rand(10)
+
+# See https://discourse.julialang.org/t/62644/9 & https://github.com/JuliaCI/BenchmarkTools.jl/blob/v1.5.0/src/execution.jl#L658-L686
+@eval BenchmarkTools macro btimed(args...)
+    _, params = prunekwargs(args...)
+    bench, trial, result = gensym(), gensym(), gensym()
+    trialmin = gensym()
+    tune_phase = hasevals(params) ? :() : :($BenchmarkTools.tune!($bench))
+    return esc(
+        quote
+            local $bench = $BenchmarkTools.@benchmarkable $(args...)
+            $tune_phase
+            local $trial, $result = $BenchmarkTools.run_result(
+                $bench; warmup=$(hasevals(params))
+            )
+            local $trialmin = $BenchmarkTools.minimum($trial)
+            $result, $BenchmarkTools.time($trialmin)
+        end,
+    )
+end
 
 # Write your benchmarks here.
 PLOT_DEFAULTS = Dict(
