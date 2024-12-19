@@ -13,16 +13,16 @@ using ToyHamiltonians: Hamiltonian, EigvalsSampler, EigvecsSampler, set_isapprox
 PLOT_DEFAULTS = Dict(
     :dpi => 400,
     :framestyle => :box,
-    :linewidth => 1,
-    :markersize => 3,
-    :markerstrokealpha => 0,
+    :linewidth => 2,
+    :markersize => 2,
     :markerstrokewidth => 0,
+    :minorticks => 5,
     :titlefontsize => 8,
     :plot_titlefontsize => 8,
-    :guidefontsize => 7,
+    :guidefontsize => 8,
     :tickfontsize => 6,
-    :legendfontsize => 6,
-    :left_margin => (8, :mm),
+    :legendfontsize => 8,
+    :left_margin => (6, :mm),
     :bottom_margin => (6, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
@@ -185,6 +185,7 @@ plot!(
     label="fitted by $(layers[end]) layers",
     PLOT_DEFAULTS...,
 )
+hline!([zero(𝐎)]; subplot=3, linestyle=:dash, label="exact DM eigvals", PLOT_DEFAULTS...)
 for (fd_distribution, nlayer) in zip(fd_distributions, layers)
     plot!(
         𝛌,
@@ -284,7 +285,14 @@ layout = (1, 1)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(1600 / 3, 400))
 
 histogram!(
-    𝛌; subplot=1, nbins=45, normalize=true, legend_position=:top, label="", PLOT_DEFAULTS...
+    𝛌;
+    subplot=1,
+    nbins=45,
+    normalize=true,
+    legend_position=:top,
+    label="",
+    linewidth=0,
+    PLOT_DEFAULTS...,
 )
 xlims!(extrema(𝛌); subplot=1)
 xlabel!(raw"eigenvalue distribution $\varepsilon$"; subplot=1)
