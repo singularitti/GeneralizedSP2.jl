@@ -35,7 +35,7 @@ function plot_entropy(μ′, β′)
     xlabel!(raw"$\varepsilon\prime$")
     ylabel!(raw"$S(\varepsilon\prime)$"; subplot=1)
     ylabel!(raw"$\Delta S(\varepsilon\prime)$"; subplot=2)
-    hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
+    hline!([0]; subplot=2, label="Reference", z_order=:back, PLOT_DEFAULTS...)
     plot!(
         𝛆′,
         electronic_entropy.(𝛆′, μ′, β′);
@@ -63,6 +63,30 @@ function plot_entropy(μ′, β′)
             subplot=2,
             label="$nlayers layers",
             linestyle=:dot,
+            PLOT_DEFAULTS...,
+        )
+    end
+    for nlayers in minlayers:maxlayers
+        𝐱′ = chebyshevnodes_1st(length(𝛆′), (lower_bound, upper_bound))
+        model =
+            fit_electronic_entropy(
+                𝐱′, μ′, β′, init_model(μ′, nlayers); max_iter=10000
+            ).model
+        𝐲′ = electronic_entropy(model).(𝐱′)
+        plot!(
+            𝐱′,
+            𝐲′;
+            subplot=1,
+            label="$nlayers layers (Chebyshev)",
+            linestyle=:dashdot,
+            PLOT_DEFAULTS...,
+        )
+        plot!(
+            𝐱′,
+            (electronic_entropy.(𝐱′, μ′, β′) - 𝐲′);
+            subplot=2,
+            label="$nlayers layers (Chebyshev)",
+            linestyle=:dashdot,
             PLOT_DEFAULTS...,
         )
     end
