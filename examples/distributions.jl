@@ -1,5 +1,5 @@
+using AffineScaler: rescale_one_zero
 using Distributions
-using GershgorinDiscs
 using GeneralizedSP2
 using GeneralizedSP2: fermi_dirac_deriv, _finalize_fermi_dirac_grad
 using LinearAlgebra: Eigen, Hermitian, diag, eigen, eigvals, norm, tr
