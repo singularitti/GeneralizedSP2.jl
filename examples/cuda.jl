@@ -69,8 +69,8 @@ H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 # lower_bound, upper_bound = 0, 1
 # 𝐱′ = chebyshevnodes_1st(1000, (lower_bound, upper_bound))
 # fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=10000)
-# M = fitted.model
-M = loadmodel("18_1qw.npy")
+# model = fitted.model
+model = loadmodel("18_1qw.npy")
 
 N = 4096
 
@@ -95,18 +95,18 @@ function modelcu(N; preheat=3)  # Julia model
     X = CuMatrix(H_scaled[1:N, 1:N])
     DM = zero(X)
     for _ in 1:preheat
-        M(DM, X)  # Preheating GPU
+        model(DM, X)  # Preheating GPU
     end
-    CUDA.@profile M(DM, X)  # Only profile the last run
+    CUDA.@profile model(DM, X)  # Only profile the last run
     return DM
 end
 function modelgpu(N, precision::Precision; preheat=3)  # CUDA
     X = CuMatrix(H[1:N, 1:N])
     DM = zero(X)
     for _ in 1:preheat
-        M(DM, X, precision, (εₘᵢₙ, εₘₐₓ))  # Preheating GPU
+        model(DM, X, precision, (εₘᵢₙ, εₘₐₓ))  # Preheating GPU
     end
-    CUDA.@profile M(DM, X, precision, (εₘᵢₙ, εₘₐₓ))
+    CUDA.@profile model(DM, X, precision, (εₘᵢₙ, εₘₐₓ))
     return DM
 end
 
