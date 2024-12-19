@@ -96,29 +96,28 @@ E = eigen(H)
 𝛌, V = E.values, E.vectors
 𝐎 = diag(inv(V) * exact_densitymatrix * V)  # Cannot just use `eigvals` since it is not in corresponding order
 
-𝐱′ = reverse(chebyshevnodes_1st(1000, (0, 1)))  # Have to reverse since β′ is negative
-𝐲̂ = fermi_dirac.(𝐱′, μ′, β′)
-𝐱′_inv = sort(inv(rescale_one_zero(εₘᵢₙ, εₘₐₓ)).(𝐱′))
+𝛆′ = reverse(chebyshevnodes_1st(1000, (0, 1)))  # Have to reverse since β′ is negative
+𝐲̂ = fermi_dirac.(𝛆′, μ′, β′)
+𝛆′_inv = sort(inv(rescale_one_zero(εₘᵢₙ, εₘₐₓ)).(𝛆′))
 
 max_iter = 10_000_000
 layers = 18:21
-println("fitting for max_iter = $max_iter")
-𝚯 = @showprogress map(layers) do nlayers
-    𝛉 = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, nlayers); max_iter=max_iter).model
+models = @showprogress map(layers) do nlayers
+    fit_fermi_dirac(𝛆′, μ′, β′, init_model(μ′, nlayers); max_iter=max_iter).model
 end
-𝐲_fitted = map(𝚯) do 𝛉
-    fermi_dirac(𝛉).(𝐱′)
+𝐲_fitted = map(models) do model
+    fermi_dirac(model).(𝛆′)
 end
-rmse = map(𝚯, 𝐲_fitted) do 𝛉, 𝐲
+rmse = map(𝐲_fitted) do 𝐲
     residuals = 𝐲 - 𝐲̂
     sqrt(mean(abs2, residuals))
 end
-derivative_norms = map(𝚯) do 𝛉
-    𝝝̄ = manualdiff_model(_finalize_fermi_dirac_grad, 𝐱′, 𝛉)
+derivative_norms = map(models) do model
+    𝝝̄ = manualdiff_model(_finalize_fermi_dirac_grad, 𝛆′, model)
     norm(𝝝̄, Inf)
 end
-densitymatrices = map(𝚯) do 𝛉
-    fermi_dirac(𝛉)(H_scaled)
+densitymatrices = map(models) do model
+    fermi_dirac(model)(H_scaled)
 end
 diff_norms = map(densitymatrices) do densitymatrix
     norm(densitymatrix - exact_densitymatrix, Inf)
@@ -145,7 +144,7 @@ xlabel!(raw"number of layers $L$"; subplot=1)
 ylabel!(raw"RMSE of fitting"; subplot=1)
 
 plot!(
-    𝐱′_inv,
+    𝛆′_inv,
     𝐲̂;
     subplot=2,
     linestyle=:solid,
@@ -153,7 +152,7 @@ plot!(
     PLOT_DEFAULTS...,
 )
 plot!(
-    𝐱′_inv,
+    𝛆′_inv,
     𝐲_fitted[end];
     subplot=2,
     linestyle=:dashdotdot,
@@ -179,7 +178,7 @@ ylabel!("Fermi–Dirac function"; subplot=2)
 
 hline!([zero(𝐎)]; subplot=3, seriescolor=:black, primary=false, PLOT_DEFAULTS...)
 plot!(
-    𝐱′_inv,
+    𝛆′_inv,
     𝐲_fitted[end] - 𝐲̂;
     subplot=3,
     linestyle=:dashdotdot,
