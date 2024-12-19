@@ -11,17 +11,16 @@ SUITE["rand"] = @benchmarkable rand(10)
 PLOT_DEFAULTS = Dict(
     :dpi => 400,
     :framestyle => :box,
-    :linewidth => 1,
-    :markersize => 3,
-    :markerstrokealpha => 0,
+    :linewidth => 2,
+    :markersize => 2,
     :markerstrokewidth => 0,
+    :minorticks => 5,
     :titlefontsize => 8,
     :plot_titlefontsize => 8,
-    :guidefontsize => 7,
+    :guidefontsize => 8,
     :tickfontsize => 6,
-    :legendfontsize => 6,
-    :left_margin => (8, :mm),
-    :bottom_margin => (6, :mm),
+    :legendfontsize => 8,
+    :left_margin => (1, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
@@ -30,11 +29,11 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-β′ = 100
-μ′ = 0.4
+β′ = 60
+μ′ = 0.568
 
-𝐱′ = reverse(chebyshevnodes_1st(400, (0, 1)))  # Have to reverse since β′ is negative
-𝐲̂ = fermi_dirac.(𝐱′, μ′, β′)
+𝛆′ = sample_by_pdf(bell_distribution(μ′, β′), μ′, (0, 1))
+𝐲̂ = fermi_dirac.(𝛆′, μ′, β′)
 
 layers = 10:21
 max_iters = [1_000, 10_000, 100_000, 1_000_000, 10_000_000]
@@ -42,18 +41,18 @@ max_iters = [1_000, 10_000, 100_000, 1_000_000, 10_000_000]
 results = map(max_iters) do max_iter
     println("fitting for max_iter = $max_iter")
     timed_results = @showprogress map(layers) do nlayers
-        @timed fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, nlayers); max_iter=max_iter)
+        @timed fit_fermi_dirac(𝛆′, μ′, β′, init_model(μ′, nlayers); max_iter=max_iter)
     end
-    𝚯 = map(timed_results) do timed_result
-        first(timed_result.value)
+    models = map(timed_results) do timed_result
+        timed_result.value.model
     end
     times = map(timed_results) do timed_result
         timed_result.time
     end
-    𝐲_fitted = map(𝚯) do 𝛉
-        fermi_dirac_model(𝐱′, 𝛉)
+    𝐲_fitted = map(models) do model
+        fermi_dirac(model).(𝛆′)
     end
-    rmse = map(𝚯, 𝐲_fitted) do 𝛉, 𝐲
+    rmse = map(models, 𝐲_fitted) do model, 𝐲
         residuals = 𝐲 - 𝐲̂
         sqrt(mean(abs2, residuals))
     end
@@ -64,7 +63,7 @@ time_matrix = hcat([result.times for result in results]...)
 rmse_matrix = hcat([result.rmse for result in results]...)
 
 layout = (1, 2)
-plot(; layout=layout, PLOT_DEFAULTS..., size=(3200 / 3, 400))
+plot(; layout=layout, PLOT_DEFAULTS..., size=(3200 / 3, 450))
 plot!(
     layers,
     rmse_matrix;
