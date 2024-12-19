@@ -3,20 +3,14 @@ using LinearAlgebra: Diagonal, eigen, eigvals
 using IsApprox: Approx, isunitary
 
 export fermi_dirac,
-    rescaled_fermi_dirac,
-    fermi_dirac_deriv,
-    electronic_energy,
-    electronic_entropy,
-    rescale_mu,
-    rescale_beta
+    fermi_dirac_deriv, electronic_energy, electronic_entropy, rescale_mu, rescale_beta
 
 function fermi_dirac(ε, μ, β)
     η = exp((ε - μ) * β)
     return inv(oneunit(η) + η)
 end
 fermi_dirac(H::AbstractMatrix, μ, β) = matrix_function(ε -> fermi_dirac(ε, μ, β), H)
-
-function rescaled_fermi_dirac(H::AbstractMatrix, μ, β, spectral_bounds=extrema(H))
+function fermi_dirac(H::AbstractMatrix, μ, β, spectral_bounds)
     μ′ = rescale_mu(spectral_bounds)(μ)
     β′ = rescale_beta(spectral_bounds)(β)
     f = rescale_one_zero(spectral_bounds)

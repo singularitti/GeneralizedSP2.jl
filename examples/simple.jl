@@ -48,8 +48,8 @@ M̄ = fitted.jac
 dm = fermi_dirac(M)(H_scaled)
 N = tr(dm)
 
-@assert rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ)) ≈ fermi_dirac(H_scaled, μ′, β′)
-dm_exact = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
+dm_exact = fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
+@assert dm_exact ≈ fermi_dirac(H_scaled, μ′, β′)
 N_exact = tr(dm_exact)
 
 scatter(eigvals(H), eigvals(dm_exact); label="target Fermi–Dirac", PLOT_DEFAULTS...)

@@ -89,7 +89,7 @@ H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
 β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
 μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 
-exact_densitymatrix = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
+exact_densitymatrix = fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
 exact_densitymatrix_norm = norm(exact_densitymatrix, Inf)
 exact_occupation = tr(exact_densitymatrix)
 E = eigen(H)

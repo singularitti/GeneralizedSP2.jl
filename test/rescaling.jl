@@ -29,7 +29,7 @@ end
         μ, β = 0.35, 4
         H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
         D = rescaled_fermi_dirac2(H, μ, β, (εₘᵢₙ, εₘₐₓ))
-        D′ = rescaled_fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
+        D′ = fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
         @test D ≈ D′
         @test eigvals(D) ≈ eigvals(D′)
     end
