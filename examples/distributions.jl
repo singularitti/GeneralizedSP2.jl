@@ -90,7 +90,6 @@ H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
 μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 
 exact_densitymatrix = fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
-exact_densitymatrix_norm = norm(exact_densitymatrix, Inf)
 exact_occupation = tr(exact_densitymatrix)
 E = eigen(H)
 𝛌, V = E.values, E.vectors
@@ -131,10 +130,10 @@ end
 estimated_mu = map(occupations) do occupation
     estimate_mu(H_scaled, β′, occupation)
 end
-band_energies = map(densitymatrices) do densitymatrix
-    tr(densitymatrix * H)
-end
 exact_band_energies = tr(exact_densitymatrix * H)
+band_energies_diff = map(densitymatrices) do densitymatrix
+    tr(densitymatrix * H) - exact_band_energies
+end
 
 layout = (1, 3)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(1600, 400))
@@ -235,7 +234,7 @@ ylabel!(raw"$\mathrm{tr}(\rho)$"; subplot=2)
 
 scatter!(
     layers,
-    (band_energies .- exact_band_energies) ./ exact_band_energies;
+    band_energies_diff ./ exact_band_energies;
     subplot=3,
     xticks=layers,
     label="",
