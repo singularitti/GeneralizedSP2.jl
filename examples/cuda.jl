@@ -1,4 +1,5 @@
 using AffineScaler: rescale_one_zero
+using BenchmarkTools: @belapsed
 using CUDA
 # using Distributions: LogUniform
 using GeneralizedSP2
@@ -75,7 +76,7 @@ N = 4096
 
 function exactcpu(N)
     X = H_scaled[1:N, 1:N]
-    return CUDA.@profile fermi_dirac(X, μ′, β′)
+    return @belapsed fermi_dirac($X, $μ′, $β′)
 end
 # cpu_exact = exactcpu(N)
 # exact_N = tr(cpu_exact)
@@ -83,7 +84,8 @@ end
 
 function modelcpu(N)
     X = H_scaled[1:N, 1:N]
-    return CUDA.@profile fermi_dirac(M)(X)
+    f = fermi_dirac(model)
+    return @belapsed $f($X)
 end
 # cpu_model = modelcpu(N)
 # cpu_N = tr(cpu_model)
