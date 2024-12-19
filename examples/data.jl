@@ -84,15 +84,6 @@ end
 
 nospace(s::AbstractString) = replace(s, r"\s+" => "")
 
-function process_all_folders(folders)
-    results = Dict()
-    for folder in folders
-        S, Std_S = process_file_with_mapping(folder, "modelgpu_double.csv")
-        results[folder] = (S, Std_S)
-    end
-    return results
-end
-
 function plot_benchmark(folders, filenames, labels)
     mat_sizes = parse.(Int, folders)  # Convert folder names to integers for the x-axis
     plt = plot(; PLOT_DEFAULTS...)
