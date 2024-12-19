@@ -24,8 +24,8 @@ PLOT_DEFAULTS = Dict(
 )
 
 function plot_entropy(μ′, β′)
-    minlayers = 14
-    maxlayers = 16
+    minlayers = 20
+    maxlayers = 22
     lower_bound, upper_bound = 0, 1
 
     𝛆′ = sample_by_pdf(bell_distribution(μ′, β′), μ′, (lower_bound, upper_bound))
@@ -47,7 +47,7 @@ function plot_entropy(μ′, β′)
     for nlayers in minlayers:maxlayers
         model =
             fit_electronic_entropy(
-                𝛆′, μ′, β′, init_model(μ′, nlayers); max_iter=100000
+                𝛆′, μ′, β′, init_model(μ′, nlayers); max_iter=10_000_000
             ).model
         plot!(
             𝛆′,
@@ -59,8 +59,9 @@ function plot_entropy(μ′, β′)
         )
         plot!(
             𝛆′,
-            electronic_entropy.(𝛆′, μ′, β′) - electronic_entropy(model).(𝛆′);
+            symlog.(electronic_entropy.(𝛆′, μ′, β′) - electronic_entropy(model).(𝛆′));
             subplot=2,
+            yformatter=symlogformatter,
             label="$nlayers layers",
             linestyle=:dot,
             PLOT_DEFAULTS...,
@@ -70,7 +71,7 @@ function plot_entropy(μ′, β′)
         𝐱′ = chebyshevnodes_1st(length(𝛆′), (lower_bound, upper_bound))
         model =
             fit_electronic_entropy(
-                𝐱′, μ′, β′, init_model(μ′, nlayers); max_iter=10000
+                𝐱′, μ′, β′, init_model(μ′, nlayers); max_iter=10_000_000
             ).model
         𝐲′ = electronic_entropy(model).(𝐱′)
         plot!(
@@ -83,14 +84,29 @@ function plot_entropy(μ′, β′)
         )
         plot!(
             𝐱′,
-            (electronic_entropy.(𝐱′, μ′, β′) - 𝐲′);
+            symlog.(electronic_entropy.(𝐱′, μ′, β′) - 𝐲′);
             subplot=2,
+            yformatter=symlogformatter,
             label="$nlayers layers (Chebyshev)",
             linestyle=:dashdot,
             PLOT_DEFAULTS...,
         )
     end
     return plt
+end
+
+# See https://discourse.julialang.org/t/26455 & https://discourse.julialang.org/t/45709/3
+symlog(y, n=-5) = sign(y) * (log10(1 + abs(y) / (10.0^n)))
+
+function symlogformatter(z, n=-5)
+    if z == 0  # Handle the case when the transformed value is 0
+        return "0"
+    else
+        s = z > 0 ? "" : "-"
+        # Reverse the symlog transformation to find the original y
+        abs_y = (10.0^abs(z) - 1) * 10.0^n
+        return s * string(round(abs_y; digits=5))  # Format as a rounded number
+    end
 end
 
 μ′ = 0.568
