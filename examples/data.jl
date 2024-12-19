@@ -110,7 +110,7 @@ function plot_benchmark(folders, filenames, labels)
             mat_sizes,
             times;
             xticks=(mat_sizes, string.(mat_sizes)),
-            yticks=exp10.(0:7),
+            yticks=exp10.(0:9),
             xaxis=:log2,
             yaxis=:log10,
             yerror=errors,
@@ -127,7 +127,7 @@ function plot_benchmark(folders, filenames, labels)
             inset_times;
             subplot=2,
             xticks=(inset_sizes, string.(inset_sizes)),
-            yticks=exp10.(5:8),
+            yticks=exp10.(5:9),
             yminorticks=100,
             xaxis=:log2,
             yaxis=:log10,
@@ -136,7 +136,7 @@ function plot_benchmark(folders, filenames, labels)
             PLOT_DEFAULTS...,
         )
     end
-    xlabel!(plt, "Hamiltonian size (N)"; subplot=1)
+    xlabel!(plt, raw"Hamiltonian size $N$"; subplot=1)
     ylabel!(plt, "total (kernel) time (μs)"; subplot=1)
     return plt
 end
