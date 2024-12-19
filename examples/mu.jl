@@ -9,17 +9,17 @@ using ToyHamiltonians
 PLOT_DEFAULTS = Dict(
     :dpi => 400,
     :framestyle => :box,
-    :linewidth => 1,
-    :markersize => 3,
-    :markerstrokealpha => 0,
+    :linewidth => 2,
+    :markersize => 2,
     :markerstrokewidth => 0,
+    :markerstrokealpha => 0,
+    :minorticks => 5,
     :titlefontsize => 8,
     :plot_titlefontsize => 8,
-    :guidefontsize => 7,
+    :guidefontsize => 8,
     :tickfontsize => 6,
-    :legendfontsize => 6,
+    :legendfontsize => 8,
     :left_margin => (1, :mm),
-    :bottom_margin => (1, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
@@ -73,15 +73,16 @@ for μ_init in (ϵₘᵢₙ + 10):50:(ϵₘₐₓ - 10)
 
     plot!(
         recover_mu_history(μ′_history, spectral_bounds_history);
-        label="μ₀=" * Printf.format(Printf.Format("%.4f"), μ_init),
+        label="μᵢₙᵢₜ=" * Printf.format(Printf.Format("%.4f"), μ_init),
         PLOT_DEFAULTS...,
     )
 end
 max_iter = maximum(map(length, μ′_histories))
-plot!(; xticks=Base.OneTo(max_iter))
-xlabel!("iteration")
+xlabel!("Newton iteration")
 ylabel!(raw"$\mu$")
 title!(
-    raw"Convergence of the estimated $\mu$ starting from different $\mu_0$ given an $N_{\textnormal{target}}$",
+    raw"Convergence of the estimated $\mu$ starting from different $\mu_\textnormal{init}$ given an $N_\textnormal{target}$",
 )
+xlims!(1, max_iter)
+plot!(; xminorticks=0)
 savefig("mu_convergence.pdf")
