@@ -66,13 +66,6 @@ function rescale_hamiltonian(H::AbstractMatrix)
     return rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H), εₘᵢₙ, εₘₐₓ
 end
 
-function samplex(μ, β, npoints_scale=100)
-    lower_bound, upper_bound = zero(μ), oneunit(μ)
-    return sample_by_pdf(
-        bell_distribution(μ, β, npoints_scale), μ, (lower_bound, upper_bound)
-    )
-end
-
 # dist = Cauchy(0.35, 0.2)
 # dist = Chisq(5)
 # dist = Erlang(100, 10)
