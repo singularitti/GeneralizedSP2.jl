@@ -147,7 +147,7 @@ plot!(
     𝐲̂;
     subplot=2,
     linestyle=:solid,
-    label=raw"$\hat{\mathbf{y}}$ for fitting",
+    label=raw"reference for fitting",
     PLOT_DEFAULTS...,
 )
 plot!(
@@ -156,7 +156,7 @@ plot!(
     subplot=2,
     linestyle=:dashdotdot,
     legend_position=:left,
-    label="fitted with N=$(layers[end])",
+    label="fitted by $(layers[end]) layers",
     PLOT_DEFAULTS...,
 )
 plot!(𝛌, 𝐎; subplot=2, linestyle=:dash, label="exact DM eigvals", PLOT_DEFAULTS...)
@@ -167,13 +167,13 @@ for (fd_distribution, nlayer) in zip(fd_distributions, layers)
         subplot=2,
         linestyle=:dot,
         legend_position=:left,
-        label="N=$nlayer",
+        label="DM eigvals ($nlayer layers)",
         PLOT_DEFAULTS...,
     )
 end
 xlims!(extrema(𝛌); subplot=2)
-xlabel!(raw"eigenvalue distribution"; subplot=2)
-ylabel!("Fermi–Dirac function"; subplot=2)
+xlabel!(raw"eigenvalue distribution $\varepsilon$"; subplot=2)
+ylabel!(raw"$f(\varepsilon)$"; subplot=2)
 
 hline!([zero(𝐎)]; subplot=3, seriescolor=:black, primary=false, PLOT_DEFAULTS...)
 plot!(
@@ -182,7 +182,7 @@ plot!(
     subplot=3,
     linestyle=:dashdotdot,
     legend_position=:left,
-    label="fitting with N=$(layers[end])",
+    label="fitted by $(layers[end]) layers",
     PLOT_DEFAULTS...,
 )
 for (fd_distribution, nlayer) in zip(fd_distributions, layers)
@@ -192,13 +192,13 @@ for (fd_distribution, nlayer) in zip(fd_distributions, layers)
         subplot=3,
         linestyle=:dot,
         legend_position=:topleft,
-        label="N=$nlayer",
+        label="DM eigvals ($nlayer layers)",
         PLOT_DEFAULTS...,
     )
 end
 xlims!(extrema(𝛌); subplot=3)
-xlabel!(raw"eigenvalue distribution"; subplot=3)
-ylabel!("occpuation difference"; subplot=3)
+xlabel!(raw"eigenvalue distribution $\varepsilon$"; subplot=3)
+ylabel!(raw"$\Delta f(\varepsilon)$"; subplot=3)
 savefig("$(dist_name)_$(β)_$(μ)_$(max_iter)_fermi_dirac.png")
 
 layout = (1, 3)
@@ -217,20 +217,20 @@ scatter!(
 xlabel!(raw"number of layers $L$"; subplot=1)
 ylabel!(raw"$| \rho - \rho_{\textrm{exact}} |_\infty$"; subplot=1)
 
-hline!([exact_occupation]; subplot=2, xticks=layers, label="exact Nocc", PLOT_DEFAULTS...)
+hline!([exact_occupation]; subplot=2, xticks=layers, label="exact", PLOT_DEFAULTS...)
 scatter!(
     layers,
     occupations;
     subplot=2,
     xticks=layers,
-    label="Nocc",
+    label="model",
     PLOT_DEFAULTS...,
     legend_position=:bottomleft,
     yformatter=:plain,
 )
 xlims!(extrema(layers); subplot=2)
 xlabel!(raw"number of layers $L$"; subplot=2)
-ylabel!(raw"$\mathrm{tr}(\rho)$"; subplot=2)
+ylabel!(raw"$N_\text{occ} = \mathrm{tr}(\rho)$"; subplot=2)
 
 scatter!(
     layers,
@@ -262,7 +262,7 @@ hline!(
     subplot=2,
     linestyle=:dash,
     xticks=layers,
-    label="reversed solved",
+    label="reversely solved",
     PLOT_DEFAULTS...,
 )
 scatter!(
