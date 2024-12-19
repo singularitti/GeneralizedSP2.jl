@@ -1,22 +1,22 @@
 using CSV
-using DataFrames
+using DataFrames: DataFrame
 using Plots
-using Unitful
+using Unitful: uparse, @u_str
 
 PLOT_DEFAULTS = Dict(
     :size => (600, 400),
     :dpi => 400,
     :framestyle => :box,
-    :linewidth => 1,
-    :markersize => 1,
+    :linewidth => 2,
+    :markersize => 2,
     :markerstrokewidth => 0,
     :minorticks => 5,
-    :titlefontsize => 9,
-    :plot_titlefontsize => 9,
-    :guidefontsize => 9,
-    :tickfontsize => 7,
-    :legendfontsize => 7,
-    :left_margin => (0, :mm),
+    :titlefontsize => 8,
+    :plot_titlefontsize => 8,
+    :guidefontsize => 8,
+    :tickfontsize => 6,
+    :legendfontsize => 8,
+    :left_margin => (1, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
@@ -29,23 +29,19 @@ PLOT_DEFAULTS = Dict(
 # Function to process a file with shared logic
 function process_file(file_path, rows_of_interest)
     df = CSV.read(file_path, DataFrame)
-
     # Define column names explicitly
     proj_avg_col = Symbol("Proj Avg")
     proj_stddev_col = Symbol("Proj StdDev")
     range_instances_col = Symbol("Range Instances")
-
     # Filter rows of interest
     filtered = filter(row -> row[:Range] in rows_of_interest, df)
-
     # Parse "Proj Avg" and "Proj StdDev", removing spaces
     filtered[!, proj_avg_col] = map(
-        x -> u"μs"(Unitful.uparse(nospace(x))), filtered[!, proj_avg_col]
+        x -> u"μs"(uparse(nospace(x))), filtered[!, proj_avg_col]
     )
     filtered[!, proj_stddev_col] = map(
-        x -> u"μs"(Unitful.uparse(nospace(x))), filtered[!, proj_stddev_col]
+        x -> u"μs"(uparse(nospace(x))), filtered[!, proj_stddev_col]
     )
-
     # Calculate total projection time (T_i) and variance (Var(T_i))
     total_time_col = Symbol("Total Time")
     var_total_time_col = Symbol("Var Total Time")
@@ -53,12 +49,10 @@ function process_file(file_path, rows_of_interest)
         filtered[!, range_instances_col] .* filtered[!, proj_avg_col]
     filtered[!, var_total_time_col] =
         filtered[!, range_instances_col] .* (filtered[!, proj_stddev_col] .^ 2)
-
     # Calculate sum of total projection times (S) and its variance
     S = sum(filtered[!, total_time_col])
     Var_S = sum(filtered[!, var_total_time_col])
     Std_S = sqrt(Var_S)
-
     return (S, Std_S)
 end
 
