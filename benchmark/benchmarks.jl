@@ -33,17 +33,15 @@ PLOT_DEFAULTS = Dict(
     :linewidth => 2,
     :markersize => 2,
     :markerstrokewidth => 0,
-    :minorticks => 5,
     :titlefontsize => 8,
     :plot_titlefontsize => 8,
     :guidefontsize => 8,
     :tickfontsize => 6,
     :legendfontsize => 8,
-    :left_margin => (1, :mm),
+    :bottom_margin => (2, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
-    :legend_position => :bottomleft,
     :background_color_inside => nothing,
     :color_palette => :tab10,
 )
@@ -54,7 +52,7 @@ PLOT_DEFAULTS = Dict(
 𝛆′ = sample_by_pdf(bell_distribution(μ′, β′), μ′, (0, 1))
 𝐲̂ = fermi_dirac.(𝛆′, μ′, β′)
 
-layers = 10:21
+layers = 12:20
 max_iters = [1_000, 10_000, 100_000, 1_000_000, 10_000_000]
 
 results = map(max_iters) do max_iter
@@ -63,7 +61,7 @@ results = map(max_iters) do max_iter
         model_init = init_model(μ′, nlayers)
         value, time = BenchmarkTools.@btimed fit_fermi_dirac(
             $𝛆′, $μ′, $β′, $model_init; max_iter=$max_iter
-        )
+        ) samples = 1
         (value=value, time=time)
     end
     models = map(timed_results) do timed_result
@@ -80,7 +78,7 @@ results = map(max_iters) do max_iter
     (rmse=rmse, times=times)
 end
 
-time_matrix = hcat([result.times for result in results]...)
+time_matrix = hcat([result.times for result in results]...) / 1e6  # Default units are in nanoseconds
 rmse_matrix = hcat([result.rmse for result in results]...)
 
 layout = (1, 2)
@@ -89,23 +87,33 @@ plot!(
     layers,
     rmse_matrix;
     subplot=1,
-    label=hcat(("max iter=$max_iter" for max_iter in max_iters)...),
+    label=hcat(("# fitting iter=$max_iter" for max_iter in max_iters)...),
     yscale=:log10,
     xticks=layers,
+    yticks=exp10.((-9):(-3)),
+    xminorticks=0,
+    yminorticks=5,
     xlabel=raw"number of layers $L$",
     ylabel="RMSE of fitting",
     PLOT_DEFAULTS...,
-    legend_position=:topright,
+    left_margin=(3, :mm),
+    legend_position=:bottomleft,
 )
 plot!(
     layers,
     time_matrix;
     subplot=2,
-    label=hcat(("max iter=$max_iter" for max_iter in max_iters)...),
+    label=hcat(("# fitting iter=$max_iter" for max_iter in max_iters)...),
     yscale=:log10,
     xticks=layers,
+    yticks=exp10.(0:6),
+    xminorticks=0,
+    yminorticks=5,
     xlabel=raw"number of layers $L$",
-    ylabel="time (s)",
+    ylabel="time (ms)",
     PLOT_DEFAULTS...,
+    left_margin=(1, :mm),
     legend_position=:topleft,
 )
+xlims!(12, 19)
+savefig("benchmarks.pdf")
