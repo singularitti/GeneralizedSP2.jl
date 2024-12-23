@@ -3,6 +3,8 @@ using LinearAlgebra: I, checksquare, axpy!, axpby!, mul!
 
 export basis, electronic_entropy, fermi_dirac!
 
+const FOUR_LOG_TWO = 4log(2)
+
 # See https://github.com/PainterQubits/Unitful.jl/blob/6bf6f99/src/utils.jl#L241-L247
 struct DimensionError{X,Y} <: Exception
     x::X
@@ -81,7 +83,7 @@ fermi_dirac!(model::AbstractModel, result::AbstractVector, 𝐱::AbstractVector)
 fermi_dirac!(model::AbstractModel, result::AbstractMatrix, X::AbstractMatrix) =
     copy!(result, fermi_dirac(model)(X))  # Note this is not element-wise!
 
-_finalize_electronic_entropy(Y) = 4log(2) * (Y - Y^2)  # Applies to 1 number/matrix at a time
+_finalize_electronic_entropy(Y) = FOUR_LOG_TWO * (Y - Y^2)  # Applies to 1 number/matrix at a time
 
 electronic_entropy(model::AbstractModel) = _finalize_electronic_entropy ∘ model
 
