@@ -57,10 +57,10 @@ function (M::AbstractModel{T})(
     map!(zero, result, result)
     Y = X
     for 𝐦 in eachlayer(M)
-        result += 𝐦[4] * Y
+        result .+= 𝐦[4] * Y
         Y = 𝐦[1] * Y^2 + 𝐦[2] * Y + 𝐦[3] * oneunit(Y)  # Note this is not element-wise!
     end
-    result += oneunit(T) * Y
+    result .+= oneunit(T) * Y
     return result
 end
 
