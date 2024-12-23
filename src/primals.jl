@@ -6,15 +6,6 @@ export basis, fermi_dirac!, electronic_entropy, electronic_entropy!
 
 const FOUR_LOG_TWO = 4log(2)
 
-# See https://github.com/PainterQubits/Unitful.jl/blob/6bf6f99/src/utils.jl#L241-L247
-struct DimensionError{X,Y} <: Exception
-    x::X
-    y::Y
-end
-
-Base.showerror(io::IO, e::DimensionError) =
-    print(io, "DimensionError: $(e.x) and $(e.y) are not dimensionally compatible.")
-
 function basis(model::AbstractModel)
     function _get(x)
         y = x  # `x` and `y` are 2 numbers
