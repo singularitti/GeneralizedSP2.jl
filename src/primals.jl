@@ -77,16 +77,13 @@ function Base.map!(model::AbstractModel, result::AbstractVector, 𝐱::AbstractV
 end
 
 _finalize_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
+_finalize_fermi_dirac!(Y::AbstractMatrix) = axpby!(1, oneunit(Y), -1, Y)  # This is the fastest, except for `axpy!(-1, result, oneunit(Y))`, which we cannot use here.
 
 fermi_dirac(model::AbstractModel) = _finalize_fermi_dirac ∘ model
 
 fermi_dirac!(model::AbstractModel, result::AbstractVector, 𝐱::AbstractVector) =
     map!(fermi_dirac(model), result, 𝐱)
-function fermi_dirac!(model::AbstractModel, result::AbstractMatrix, X::AbstractMatrix)
-    model(result, X)
-    axpby!(1, oneunit(result), -1, result)  # This is the fastest, except for `axpy!(-1, result, 𝟙)`, which we cannot use here.
-    return result
-end
+fermi_dirac!(model::AbstractModel) = _finalize_fermi_dirac! ∘ model
 
 _finalize_electronic_entropy(Y) = FOUR_LOG_TWO * (Y - Y^2)  # Applies to 1 number/matrix at a time
 
