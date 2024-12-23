@@ -57,9 +57,7 @@ function (M::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
     return result
 end
 
-function Base.map!(
-    M::AbstractModel{T}, result::AbstractVector{R}, 𝐱::AbstractVector{S}
-) where {R,S,T}
+function Base.map!(M::AbstractModel, result::AbstractVector, 𝐱::AbstractVector)
     map!(result, 𝐱) do x
         y = x  # `x` and `y` are 2 numbers
         accumulator = zero(eltype(result))  # Accumulator of the summation
@@ -67,7 +65,7 @@ function Base.map!(
             accumulator += 𝐦[4] * y
             y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
         end
-        accumulator += oneunit(T) * y
+        accumulator += oneunit(eltype(M)) * y
     end
     return result
 end
