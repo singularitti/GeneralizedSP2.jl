@@ -1,4 +1,4 @@
-using LinearAlgebra: I, checksquare, axpy!, axpby!, mul!
+using LinearAlgebra: checksquare, axpy!, axpby!, mul!
 # using Enzyme: Reverse, Const, Duplicated, autodiff
 
 export basis, electronic_entropy, fermi_dirac!
@@ -52,12 +52,12 @@ function (model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
     end
     Y = deepcopy(X)  # Modifying `Y` does not change `X` now
     Y² = similar(Y)
-    I = oneunit(Y)  # Identity matrix
+    𝟙 = oneunit(Y)  # Identity matrix
     for 𝐦 in eachlayer(model)  # All operations are in-place, significantly reducing allocations.
         axpy!(𝐦[4], Y, result)  # result .+= 𝐦[4] * Y
         mul!(Y², Y, Y)  # Y² .= Y^2
         axpby!(𝐦[1], Y², 𝐦[2], Y)  # Y .+= 𝐦[1] * Y^2 + 𝐦[2] * Y
-        axpy!(𝐦[3], I, Y)  # Y .+= 𝐦[3] * I
+        axpy!(𝐦[3], 𝟙, Y)  # Y .+= 𝐦[3] * 𝟙
     end
     axpy!(oneunit(eltype(model)), Y, result)  # result .+= oneunit(eltype(model)) * Y
     return result
