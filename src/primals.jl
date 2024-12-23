@@ -27,12 +27,12 @@ function basis(M::AbstractModel)
 end
 
 function (M::AbstractModel)(x)
-    𝟏 = oneunit(eltype(M))
-    accumulator = zero(x * 𝟏)  # Accumulator of the summation
-    y = x  # `x` and `y` are 2 numbers
+    y = x  # `x` and `y` are 2 numbers (not big numbers)
+    𝟏, 𝟏′ = oneunit(eltype(M)), oneunit(y)
+    accumulator = zero(𝟏 * x)  # Accumulator of the summation
     for 𝐦 in eachlayer(M)
         accumulator += 𝐦[4] * y
-        y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
+        y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * 𝟏′
     end
     accumulator += 𝟏 * y
     return accumulator
