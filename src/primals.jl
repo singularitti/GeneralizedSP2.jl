@@ -80,9 +80,6 @@ _finalize_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a tim
 _finalize_fermi_dirac!(Y::AbstractMatrix) = axpby!(1, oneunit(Y), -1, Y)  # This is the fastest, except for `axpy!(-1, result, oneunit(Y))`, which we cannot use here.
 
 fermi_dirac(model::AbstractModel) = _finalize_fermi_dirac ∘ model
-
-fermi_dirac!(model::AbstractModel, result::AbstractVector, 𝐱::AbstractVector) =
-    map!(fermi_dirac(model), result, 𝐱)
 fermi_dirac!(model::AbstractModel) = _finalize_fermi_dirac! ∘ model
 
 _finalize_electronic_entropy(Y) = FOUR_LOG_TWO * (Y - Y^2)  # Applies to 1 number/matrix at a time
