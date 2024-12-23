@@ -38,16 +38,8 @@ function (M::AbstractModel)(x)
     return accumulator
 end
 function (M::AbstractModel)(X::AbstractMatrix)
-    checksquare(X)  # See https://discourse.julialang.org/t/120556/2
-    𝟏 = oneunit(eltype(M))
-    accumulator = zeros(typeof(oneunit(eltype(X)) * 𝟏), size(X))
-    Y = X
-    for 𝐦 in eachlayer(M)
-        accumulator += 𝐦[4] * Y
-        Y = 𝐦[1] * Y^2 + 𝐦[2] * Y + 𝐦[3] * oneunit(Y)  # Note this is not element-wise!
-    end
-    accumulator += 𝟏 * Y
-    return accumulator
+    result = similar(X, typeof(oneunit(eltype(M)) * oneunit(eltype(X))))  # Prepare for in-place result
+    return M(result, X)
 end
 function (M::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
