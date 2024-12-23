@@ -49,11 +49,8 @@ function (M::AbstractModel)(X::AbstractMatrix)
     accumulator += 𝟏 * Y
     return accumulator
 end
-function (M::AbstractModel{T})(
-    result::AbstractMatrix{R}, X::AbstractMatrix{S}
-) where {R,S,T}
+function (M::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
-    _checkdimension(R, S, T)
     map!(zero, result, result)
     Y = copy(X)  # Modifying `Y` does not change `X` now
     Y² = similar(Y)
@@ -64,14 +61,13 @@ function (M::AbstractModel{T})(
         axpby!(𝐦[1], Y², 𝐦[2], Y)  # Y .+= 𝐦[1] * Y^2 + 𝐦[2] * Y
         axpy!(𝐦[3], I, Y)  # Y .+= 𝐦[3] * I
     end
-    result .+= oneunit(T) * Y
+    result .+= oneunit(eltype(M)) * Y
     return result
 end
 
 function Base.map!(
     M::AbstractModel{T}, result::AbstractVector{R}, 𝐱::AbstractVector{S}
 ) where {R,S,T}
-    _checkdimension(R, S, T)
     map!(result, 𝐱) do x
         y = x  # `x` and `y` are 2 numbers
         accumulator = zero(eltype(result))  # Accumulator of the summation
@@ -101,9 +97,3 @@ electronic_entropy!(M::AbstractModel, result::AbstractVector, 𝐱::AbstractVect
     map!(electronic_entropy(M), result, 𝐱)
 electronic_entropy!(M::AbstractModel, result::AbstractMatrix, X::AbstractMatrix) =
     copy!(result, electronic_entropy(M)(X))  # Note this is not element-wise!
-
-function _checkdimension(R, S, T)
-    if !isa(oneunit(S) * oneunit(T), R)
-        throw(DimensionError(oneunit(S) * oneunit(T), oneunit(R)))
-    end
-end
