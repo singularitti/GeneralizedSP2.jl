@@ -2,7 +2,7 @@ using LinearAlgebra: checksquare, axpy!, axpby!, mul!
 using LinearAlgebra.BLAS: scal!
 # using Enzyme: Reverse, Const, Duplicated, autodiff
 
-export basis, electronic_entropy, fermi_dirac!
+export basis, fermi_dirac!, electronic_entropy, electronic_entropy!
 
 const FOUR_LOG_TWO = 4log(2)
 
