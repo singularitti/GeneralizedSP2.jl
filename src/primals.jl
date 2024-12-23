@@ -57,7 +57,7 @@ function (model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
         axpby!(𝐦[1], Y², 𝐦[2], Y)  # Y .+= 𝐦[1] * Y^2 + 𝐦[2] * Y
         axpy!(𝐦[3], I, Y)  # Y .+= 𝐦[3] * I
     end
-    result .+= oneunit(eltype(model)) * Y
+    axpy!(oneunit(eltype(model)), Y, result)  # result .+= oneunit(eltype(model)) * Y
     return result
 end
 
