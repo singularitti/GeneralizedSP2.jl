@@ -219,39 +219,6 @@ function fermi_dirac(H::CuMatrix, β, μ)
     return fermi_dirac!(DM, H, β, μ)
 end
 
-function (model::AbstractModel)(DM::CuMatrix, X::CuMatrix)
-    checksquare(X)
-    checksquare(DM)
-    Y = copy(X)
-    Y² = similar(Y)
-    I = oneunit(Y)  # Identity matrix
-    accumulator = CUDA.zeros(eltype(Y), size(Y))
-    for (i, 𝐦) in enumerate(eachlayer(model))  # Main loop over each layer
-        @range "iterate" payload = i begin
-            # Update the accumulator with: accumulator += 𝐦[4] * Y
-            axpy!(length(Y), 𝐦[4], Y, accumulator)
-            mul!(Y², Y, Y)
-            # Compute Y .= 𝐦[1] * Y^2 + 𝐦[2] * Y
-            axpby!(length(Y), 𝐦[1], Y², 𝐦[2], Y)
-            # Add 𝐦[3] * I to Y
-            axpy!(length(Y), 𝐦[3], I, Y)
-        end
-    end
-    # Update the accumulator with: accumulator += Y
-    axpy!(length(Y), one(eltype(accumulator)), Y, accumulator)  # Add the final layer, `accumulator += Y`
-    @range "I - accumulator" begin
-        # Compute density matrix = I - accumulator
-        DM .= I - accumulator
-    end
-    return DM
-end
-function (model::AbstractModel)(DM::AbstractMatrix, X::CuMatrix)
-    DM′ = CuMatrix(DM)
-    model(DM′, X)
-    DM .= DM′
-    return DM
-end
-
 function (model::AbstractModel)(
     DM::CuMatrix, H::CuMatrix, precision, spectral_bounds=extrema(H)
 )
