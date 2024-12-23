@@ -29,8 +29,9 @@ PLOT_DEFAULTS = Dict(
 β = 1.25
 μ = 100
 H = diagonalhamil(1000, 235)
-𝚲 = eigvals(H)  # Must be all reals
-εₘᵢₙ, εₘₐₓ = floor(minimum(𝚲)), ceil(maximum(𝚲))
+E = eigen(H)
+𝛌, V = E.values, E.vectors
+εₘᵢₙ, εₘₐₓ = floor(minimum(𝛌)), ceil(maximum(𝛌))
 β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
 μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
@@ -52,10 +53,13 @@ dm_exact = fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
 @assert dm_exact ≈ fermi_dirac(H_scaled, μ′, β′)
 N_exact = tr(dm_exact)
 
-scatter(eigvals(H), eigvals(dm_exact); label="target Fermi–Dirac", PLOT_DEFAULTS...)
-scatter!(eigvals(H), eigvals(dm); label="MLSP2 model", PLOT_DEFAULTS...)
+scatter(
+    eigvals(H), diag(inv(V) * dm_exact * V); label="target Fermi–Dirac", PLOT_DEFAULTS...
+)
+scatter!(eigvals(H), diag(inv(V) * dm * V); label="model", PLOT_DEFAULTS...)
 xlabel!("eigenvalues of H")
 ylabel!("Fermi–Dirac distribution")
+savefig("fd.pdf")
 
 manifolds = eachcol(transpose(hcat(basis(M).(𝐱′)...))[:, (end - 5):end])
 plot(𝐱′, manifolds[1]; linestyle=:dot, label="basis", PLOT_DEFAULTS...)
