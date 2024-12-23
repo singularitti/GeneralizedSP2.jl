@@ -105,9 +105,9 @@ function init_model(μ, nlayers)
     return FlattendModel(M)
 end
 
-_fermi_dirac!(result, X, A) = fermi_dirac!(FlattendModel(A), result, X)  # Only used for fitting
+_fermi_dirac!(result, 𝐱, M) = map!(fermi_dirac(FlattendModel(M)), result, 𝐱)  # Only used for fitting
 
-_electronic_entropy!(result, X, A) = electronic_entropy!(FlattendModel(A), result, X)  # Only used for fitting
+_electronic_entropy!(result, 𝐱, M) = map!(electronic_entropy(FlattendModel(M)), result, 𝐱)  # Only used for fitting
 
 LMResults(method, initial_x::AbstractModel, minimizer::AbstractModel, args...) =
     LMResults(method, convert(Vector, initial_x), convert(Vector, minimizer), args...)
