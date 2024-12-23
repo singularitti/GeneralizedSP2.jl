@@ -93,7 +93,4 @@ function _finalize_electronic_entropy!(Y::AbstractMatrix)
 end
 
 electronic_entropy(model::AbstractModel) = _finalize_electronic_entropy ∘ model
-
-electronic_entropy!(model::AbstractModel, result::AbstractVector, 𝐱::AbstractVector) =
-    map!(electronic_entropy(model), result, 𝐱)
 electronic_entropy!(model::AbstractModel) = _finalize_electronic_entropy! ∘ model
