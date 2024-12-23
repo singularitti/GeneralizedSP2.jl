@@ -48,7 +48,7 @@ end
 function (model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
     map!(zero, result, result)
-    Y = copy(X)  # Modifying `Y` does not change `X` now
+    Y = deepcopy(X)  # Modifying `Y` does not change `X` now
     Y² = similar(Y)
     I = oneunit(Y)  # Identity matrix
     for 𝐦 in eachlayer(model)  # All operations are in-place, significantly reducing allocations.
