@@ -39,6 +39,7 @@ function (model::AbstractModel)(X::AbstractMatrix)
 end
 function (model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
+    checksquare(result)
     if !iszero(X)  # Very fast
         map!(zero, result, result)
     end
