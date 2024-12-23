@@ -84,8 +84,7 @@ fermi_dirac!(model::AbstractModel, result::AbstractVector, 𝐱::AbstractVector)
     map!(fermi_dirac(model), result, 𝐱)
 function fermi_dirac!(model::AbstractModel, result::AbstractMatrix, X::AbstractMatrix)
     model(result, X)
-    𝟙 = oneunit(result)
-    axpby!(1, 𝟙, -1, result)  # This is the fastest, except for `axpy!(-1, result, 𝟙)`, which we cannot use here.
+    axpby!(1, oneunit(result), -1, result)  # This is the fastest, except for `axpy!(-1, result, 𝟙)`, which we cannot use here.
     return result
 end
 
