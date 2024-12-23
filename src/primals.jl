@@ -1,4 +1,4 @@
-using LinearAlgebra: I, checksquare
+using LinearAlgebra: I, checksquare, axpy!, axpby!, mul!
 # using Enzyme: Reverse, Const, Duplicated, autodiff
 
 export basis, electronic_entropy, fermi_dirac!
@@ -55,10 +55,14 @@ function (M::AbstractModel{T})(
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
     _checkdimension(R, S, T)
     map!(zero, result, result)
-    Y = X
-    for 𝐦 in eachlayer(M)
-        result .+= 𝐦[4] * Y
-        Y = 𝐦[1] * Y^2 + 𝐦[2] * Y + 𝐦[3] * oneunit(Y)  # Note this is not element-wise!
+    Y = copy(X)  # Modifying `Y` does not change `X` now
+    Y² = similar(Y)
+    I = oneunit(Y)  # Identity matrix
+    for 𝐦 in eachlayer(M)  # All operations are in-place, significantly reducing allocations.
+        axpy!(𝐦[4], Y, result)  # result .+= 𝐦[4] * Y
+        mul!(Y², Y, Y)  # Y² .= Y^2
+        axpby!(𝐦[1], Y², 𝐦[2], Y)  # Y .+= 𝐦[1] * Y^2 + 𝐦[2] * Y
+        axpy!(𝐦[3], I, Y)  # Y .+= 𝐦[3] * I
     end
     result .+= oneunit(T) * Y
     return result
