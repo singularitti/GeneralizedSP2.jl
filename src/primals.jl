@@ -1,4 +1,5 @@
 using LinearAlgebra: checksquare, axpy!, axpby!, mul!
+using LinearAlgebra.BLAS: scal!
 # using Enzyme: Reverse, Const, Duplicated, autodiff
 
 export basis, electronic_entropy, fermi_dirac!
@@ -83,10 +84,16 @@ fermi_dirac(model::AbstractModel) = _finalize_fermi_dirac ∘ model
 fermi_dirac!(model::AbstractModel) = _finalize_fermi_dirac! ∘ model
 
 _finalize_electronic_entropy(Y) = FOUR_LOG_TWO * (Y - Y^2)  # Applies to 1 number/matrix at a time
+function _finalize_electronic_entropy!(Y::AbstractMatrix)
+    Y² = similar(Y)
+    mul!(Y², Y, Y)  # Y² .= Y^2
+    axpy!(-1, Y², Y)  # Y .= Y - Y²
+    scal!(FOUR_LOG_TWO, Y)  # Y .= 4log(2) * Y
+    return Y
+end
 
 electronic_entropy(model::AbstractModel) = _finalize_electronic_entropy ∘ model
 
 electronic_entropy!(model::AbstractModel, result::AbstractVector, 𝐱::AbstractVector) =
     map!(electronic_entropy(model), result, 𝐱)
-electronic_entropy!(model::AbstractModel, result::AbstractMatrix, X::AbstractMatrix) =
-    copy!(result, electronic_entropy(model)(X))  # Note this is not element-wise!
+electronic_entropy!(model::AbstractModel) = _finalize_electronic_entropy! ∘ model
