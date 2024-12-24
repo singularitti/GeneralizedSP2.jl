@@ -190,7 +190,7 @@ function fermi_dirac!(result::CuVector{T}, 𝛆::CuVector{T}, μ::T, β::T) wher
     return result
 end
 
-function fermi_dirac!(DM::CuMatrix{T}, H::CuMatrix{T}, β::T, μ::T) where {T}
+function fermi_dirac!(DM::CuMatrix{T}, H::CuMatrix{T}, μ::T, β::T) where {T}
     M, N = size(H)
     if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
         throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
@@ -214,9 +214,9 @@ function fermi_dirac!(DM::CuMatrix{T}, H::CuMatrix{T}, β::T, μ::T) where {T}
     end
     return DM
 end
-function fermi_dirac(H::CuMatrix, β, μ)
+function fermi_dirac(H::CuMatrix, μ, β)
     DM = similar(H)
-    return fermi_dirac!(DM, H, β, μ)
+    return fermi_dirac!(DM, H, μ, β)
 end
 
 function (model::AbstractModel)(
