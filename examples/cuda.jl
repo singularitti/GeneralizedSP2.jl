@@ -66,11 +66,10 @@ H = direct_sum(H, H, H, H)
 μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 
-# lower_bound, upper_bound = 0, 1
-# 𝐱′ = chebyshevnodes_1st(1000, (lower_bound, upper_bound))
-# fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=10000)
-# model = fitted.model
-model = loadmodel("18_1qw.npy")
+lower_bound, upper_bound = 0, 1
+𝐱′ = chebyshevnodes_1st(1000, (lower_bound, upper_bound))
+fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=10000)
+model = fitted.model
 
 N = 4096
 
