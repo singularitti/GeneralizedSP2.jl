@@ -1,13 +1,12 @@
 using AffineScaler: rescale_one_zero
 using BenchmarkTools: @btimed
 using CUDA
-# using Distributions: LogUniform
+using Distributions: LogUniform
 using GeneralizedSP2
 using GeneralizedSP2: DOUBLE, SINGLE, MIXED
 using LinearAlgebra
 # using Plots
-# using ToyHamiltonians
-using NPZ
+using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
     :size => (400, 300),
@@ -52,14 +51,12 @@ end
 
 β = 1.25  # Physical
 μ = 11.5  # Physical
-# sys_size = 1024
-# dist = LogUniform(1, 20)
-# Λ = rand(EigvalsSampler(dist), sys_size)
-# V = rand(EigvecsSampler(dist), sys_size, sys_size)
-# set_isapprox_rtol(1e-13)
-# H = CuMatrix(Hamiltonian(Eigen(Λ, V)))
-H = npzread("H.npy")
-H = direct_sum(H, H, H, H)
+sys_size = 4096
+dist = LogUniform(1, 20)
+Λ = rand(EigvalsSampler(dist), sys_size)
+V = rand(EigvecsSampler(dist), sys_size, sys_size)
+set_isapprox_rtol(1e-10)
+H = (Hamiltonian(Eigen(Λ, V)))
 𝛌 = eigvals(H)
 εₘᵢₙ, εₘₐₓ = floor(minimum(𝛌)), ceil(maximum(𝛌))
 β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
@@ -68,10 +65,8 @@ H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 
 lower_bound, upper_bound = 0, 1
 𝐱′ = chebyshevnodes_1st(1000, (lower_bound, upper_bound))
-fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=10000)
+fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=1000000)
 model = fitted.model
-
-N = 4096
 
 function exactcpu(N)
     X = H_scaled[1:N, 1:N]
