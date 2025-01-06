@@ -1,59 +1,10 @@
-using Enzyme: Reverse, Active, Duplicated, Const, autodiff
+using DifferentiationInterface: prepare_gradient, gradient
 
-export manualdiff_model
+export autodiff_model, manualdiff_model
 
-function autodiff_model()
-    θ = randn(nlayers, 4)
-    dθ = zero(θ)
-    A = zeros(nlayers, npts)
-    dA = zero(A)
-    F = zero(X)
-    dF = zero(F)
-    L = zeros(1)
-    dL = zero(L)
-
-    function f(
-        θ::Matrix{Float64},
-        𝐱::Vector{Float64},
-        𝐲̂::Vector{Float64},
-        A::Matrix{Float64},
-        F::Vector{Float64},
-        L::Vector{Float64},
-    )
-        F .= 0
-
-        for layer in 1:size(θ, 1)
-            for i in eachindex(𝐱)
-                if layer == 1
-                    A[layer, i] = θ[layer, 1] * 𝐱[i]^2 + θ[layer, 2] * 𝐱[i] + θ[layer, 3]
-                else
-                    A[layer, i] =
-                        θ[layer, 1] * A[layer - 1, i]^2 +
-                        θ[layer, 2] * A[layer - 1, i] +
-                        θ[layer, 3]
-                end
-                F[i] += θ[layer, 4] * A[layer, i]
-            end
-        end
-
-        L[1] = 0
-        for i in eachindex(𝐱)
-            L[1] += (F[i] - 𝐲̂[i])^2
-        end
-        return L[1]
-    end
-
-    return autodiff(
-        Reverse,
-        f,
-        Active,
-        Duplicated(θ, dθ),
-        Const(X),
-        Const(Y),
-        Duplicated(A, dA),
-        Duplicated(F, dF),
-        Duplicated(L, dL),
-    )
+function autodiff_model(model::AbstractModel, x, backend)
+    prep = prepare_gradient(model, backend, x)
+    gradient(model, prep, backend, x)
 end
 
 function manualdiff_model(f′, 𝐱, M)
