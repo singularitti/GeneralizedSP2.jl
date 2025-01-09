@@ -20,7 +20,7 @@ function manualdiff_model(f′, 𝐱, M)
     return manualdiff_model!(f′, 𝐌̄, 𝐱, M)
 end
 
-function manualdiff_model!(f′, derivatives, 𝐱::AbstractVector, model::Model)
+function manualdiff_model!(f′, derivatives::AbstractArray, 𝐱::AbstractVector, model::Model)
     if size(derivatives) != (size(𝐱)..., size(model)...)
         throw(DimensionMismatch("the derivatives do not have the correct size!"))
     end
@@ -29,7 +29,7 @@ function manualdiff_model!(f′, derivatives, 𝐱::AbstractVector, model::Model
     end
     return derivatives
 end
-function manualdiff_model!(f′, derivatives, x, model::Model)
+function manualdiff_model!(f′, derivatives::AbstractMatrix, x, model::Model)
     if size(model) != size(derivatives)
         throw(DimensionMismatch("the model and its derivatives must have the same size!"))
     end
@@ -58,7 +58,6 @@ function manualdiff_model!(f′, derivatives, x, model::Model)
     end
     return derivatives
 end
-manualdiff_model!(f′, 𝐌̄, 𝐱, M) = manualdiff_model!(f′, 𝐌̄, 𝐱, Model(FlattendModel(M)))
 
 _finalize_fermi_dirac_grad(Y) = -one(Y)  # Applies to 1 number at a time
 
