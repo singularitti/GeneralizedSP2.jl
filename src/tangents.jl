@@ -29,10 +29,12 @@ function manualdiff_model!(f′, 𝐌̄, 𝐱::AbstractVector, model::Model)
     end
     return 𝐌̄
 end
-function manualdiff_model!(f′, 𝐌̄, x, model::Model)
+function manualdiff_model!(f′, derivatives, x, model::Model)
+    if size(model) != size(derivatives)
+        throw(DimensionMismatch("the model and its derivatives must have the same size!"))
+    end
     nlayers = numlayers(model)
     𝐲 = zeros(eltype(x), nlayers + 1)
-    𝐌̄ = reshape(𝐌̄, size(model)...)
     # Forward calculation
     𝐲[1] = x
     Y = zero(eltype(𝐲))
@@ -46,15 +48,15 @@ function manualdiff_model!(f′, 𝐌̄, x, model::Model)
     z = one(eltype(model)) # zₗₐₛₜ
     for i in nlayers:-1:1
         # zᵢ₊₁
-        𝐌̄[1, i] = α * z * 𝐲[i]^2
-        𝐌̄[2, i] = α * z * 𝐲[i]
-        𝐌̄[3, i] = α * z
-        𝐌̄[4, i] = α * 𝐲[i]
+        derivatives[1, i] = α * z * 𝐲[i]^2
+        derivatives[2, i] = α * z * 𝐲[i]
+        derivatives[3, i] = α * z
+        derivatives[4, i] = α * 𝐲[i]
         z =
             model[4, i] * oneunit(𝐲[i]) +
             z * (2model[1, i] * 𝐲[i] + model[2, i] * oneunit(𝐲[i]))  # zᵢ
     end
-    return 𝐌̄
+    return derivatives
 end
 manualdiff_model!(f′, 𝐌̄, 𝐱, M) = manualdiff_model!(f′, 𝐌̄, 𝐱, Model(FlattendModel(M)))
 
