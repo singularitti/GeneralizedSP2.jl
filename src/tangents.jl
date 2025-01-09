@@ -20,14 +20,14 @@ function manualdiff_model(f′, 𝐱, M)
     return manualdiff_model!(f′, 𝐌̄, 𝐱, M)
 end
 
-function manualdiff_model!(f′, 𝐌̄, 𝐱::AbstractVector, model::Model)
-    if size(𝐌̄) != (size(𝐱)..., size(model)...)
+function manualdiff_model!(f′, derivatives, 𝐱::AbstractVector, model::Model)
+    if size(derivatives) != (size(𝐱)..., size(model)...)
         throw(DimensionMismatch("the derivatives do not have the correct size!"))
     end
     for (i, x) in enumerate(𝐱)
-        manualdiff_model!(f′, 𝐌̄[i, :, :], x, model)  # Single-point calculation
+        manualdiff_model!(f′, derivatives[i, :, :], x, model)  # Single-point calculation
     end
-    return 𝐌̄
+    return derivatives
 end
 function manualdiff_model!(f′, derivatives, x, model::Model)
     if size(model) != size(derivatives)
