@@ -21,11 +21,11 @@ function manualdiff_model(f′, 𝐱, M)
 end
 
 function manualdiff_model!(f′, 𝐌̄, 𝐱::AbstractVector, model::Model)
-    npoints = length(𝐱)
-    𝐌̄ = reshape(𝐌̄, size(𝐱)..., size(model)...)
-    for j in 1:npoints
-        # Call manualdiff_model_single! for each x in 𝐱
-        manualdiff_model!(f′, 𝐌̄[j, :, :], 𝐱[j], model)
+    if size(𝐌̄) != (size(𝐱)..., size(model)...)
+        throw(DimensionMismatch("the derivatives do not have the correct size!"))
+    end
+    for (i, x) in enumerate(𝐱)
+        manualdiff_model!(f′, 𝐌̄[i, :, :], x, model)  # Single-point calculation
     end
     return 𝐌̄
 end
