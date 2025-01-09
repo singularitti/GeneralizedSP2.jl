@@ -20,7 +20,9 @@ function manualdiff_model(f′, 𝐱, M)
     return manualdiff_model!(f′, 𝐌̄, 𝐱, M)
 end
 
-function manualdiff_model!(f′, derivatives::AbstractArray, 𝐱::AbstractVector, model::Model)
+function manualdiff_model!(
+    f′, derivatives::AbstractArray{T,3}, 𝐱::AbstractVector, model::AbstractModel
+) where {T}
     if size(derivatives) != (size(𝐱)..., size(model)...)
         throw(DimensionMismatch("the derivatives do not have the correct size!"))
     end
@@ -29,7 +31,7 @@ function manualdiff_model!(f′, derivatives::AbstractArray, 𝐱::AbstractVecto
     end
     return derivatives
 end
-function manualdiff_model!(f′, derivatives::AbstractMatrix, x, model::Model)
+function manualdiff_model!(f′, derivatives::AbstractMatrix, x, model::AbstractModel)
     if size(model) != size(derivatives)
         throw(DimensionMismatch("the model and its derivatives must have the same size!"))
     end
@@ -37,24 +39,25 @@ function manualdiff_model!(f′, derivatives::AbstractMatrix, x, model::Model)
     𝐲 = zeros(eltype(x), nlayers + 1)
     # Forward calculation
     𝐲[1] = x
-    Y = zero(eltype(𝐲))
-    for i in 1:nlayers
-        Y += model[4, i] * 𝐲[i]
-        𝐲[i + 1] = model[1, i] * 𝐲[i]^2 + model[2, i] * 𝐲[i] + model[3, i] * oneunit(𝐲[i])
+    accumulator = zero(eltype(𝐲))
+    for (i, 𝐦) in enumerate(eachlayer(model))
+        y = 𝐲[i]
+        accumulator += 𝐦[4] * y
+        𝐲[i + 1] = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
     end
-    Y += 𝐲[nlayers + 1]
-    α = f′(Y)
+    accumulator += 𝐲[nlayers + 1]
+    α = f′(accumulator)
     # Backward calculation
     z = one(eltype(model)) # zₗₐₛₜ
-    for i in nlayers:-1:1
+    for (i, 𝐦) in Iterators.reverse(enumerate(eachlayer(model)))
+        y = 𝐲[i]
+        𝟏 = oneunit(y)
         # zᵢ₊₁
-        derivatives[1, i] = α * z * 𝐲[i]^2
-        derivatives[2, i] = α * z * 𝐲[i]
+        derivatives[1, i] = α * z * y^2
+        derivatives[2, i] = α * z * y
         derivatives[3, i] = α * z
-        derivatives[4, i] = α * 𝐲[i]
-        z =
-            model[4, i] * oneunit(𝐲[i]) +
-            z * (2model[1, i] * 𝐲[i] + model[2, i] * oneunit(𝐲[i]))  # zᵢ
+        derivatives[4, i] = α * y
+        z = 𝐦[4] * 𝟏 + z * (2𝐦[1] * y + 𝐦[2] * 𝟏)  # zᵢ
     end
     return derivatives
 end
