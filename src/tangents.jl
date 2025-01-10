@@ -35,21 +35,22 @@ function manualdiff_model!(f′, derivatives::AbstractMatrix, x, model::Abstract
     if size(model) != size(derivatives)
         throw(DimensionMismatch("the model and its derivatives must have the same size!"))
     end
-    nlayers = numlayers(model)
-    𝐲 = zeros(eltype(x), nlayers + 1)
+    layers = eachlayer(model)
+    layerindices = eachindex(layers)
+    𝐲 = zeros(eltype(x), numlayers(model) + 1)
     # Forward calculation
-    𝐲[1] = x
+    𝐲[begin] = x
     accumulator = zero(eltype(𝐲))
-    for (i, 𝐦) in enumerate(eachlayer(model))
+    for (i, 𝐦) in zip(layerindices, layers)
         y = 𝐲[i]
         accumulator += 𝐦[4] * y
         𝐲[i + 1] = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
     end
-    accumulator += 𝐲[nlayers + 1]
+    accumulator += 𝐲[end]
     α = f′(accumulator)
     # Backward calculation
     z = one(eltype(model)) # zₗₐₛₜ
-    for (i, 𝐦) in Iterators.reverse(enumerate(eachlayer(model)))
+    for (i, 𝐦) in Iterators.reverse(zip(layerindices, layers))
         y = 𝐲[i]
         𝟏 = oneunit(y)
         # zᵢ₊₁
