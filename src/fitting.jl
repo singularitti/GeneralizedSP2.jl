@@ -38,7 +38,7 @@ function fit_fermi_dirac(
         @warn "the curve fitting did not converge!"
     end
     return (
-        model=FlattendModel(coef(result)),
+        model=Model(coef(result)),
         jac=result.jacobian,
         resid=residuals(result),
         rmse=sqrt(mse(result)),
@@ -82,7 +82,7 @@ function fit_electronic_entropy(
         @warn "the curve fitting did not converge!"
     end
     return (
-        model=FlattendModel(coef(result)),
+        model=Model(coef(result)),
         jac=result.jacobian,
         resid=residuals(result),
         rmse=sqrt(mse(result)),
@@ -102,12 +102,12 @@ function init_model(μ, nlayers)
             M[:, i] = [-1, 2, 0, 0] # x' = 2x - x^2, decrease μᵢ
         end
     end
-    return FlattendModel(M)
+    return vec(Model(M))
 end
 
-_fermi_dirac!(result, 𝐱, M) = map!(fermi_dirac(FlattendModel(M)), result, 𝐱)  # Only used for fitting
+_fermi_dirac!(result, 𝐱, M) = map!(fermi_dirac(Model(M)), result, 𝐱)  # Only used for fitting
 
-_electronic_entropy!(result, 𝐱, M) = map!(electronic_entropy(FlattendModel(M)), result, 𝐱)  # Only used for fitting
+_electronic_entropy!(result, 𝐱, M) = map!(electronic_entropy(Model(M)), result, 𝐱)  # Only used for fitting
 
-LMResults(method, initial_x::AbstractModel, minimizer::AbstractModel, args...) =
+LMResults(method, initial_x::Model, minimizer::Model, args...) =
     LMResults(method, convert(Vector, initial_x), convert(Vector, minimizer), args...)

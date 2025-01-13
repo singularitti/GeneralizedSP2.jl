@@ -6,10 +6,8 @@ function loadmodel(file)
     ext = lowercase(splitext(file)[2])
     if ext in (".npy", ".npz")
         A = npzread(file)
-        if A isa Vector
-            return FlattendModel(A)
-        elseif A isa Matrix
-            return Model(A)
+        if A isa AbstractVecOrMat
+            return Model(collect(A))
         else
             error("this is not a model!")
         end
@@ -18,7 +16,7 @@ function loadmodel(file)
     end
 end
 
-function savemodel(file, model::AbstractModel)
+function savemodel(file, model::Model)
     ext = lowercase(splitext(file)[2])
     if ext in (".npy", ".npz")
         npzwrite(file, model)

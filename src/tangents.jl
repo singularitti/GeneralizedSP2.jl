@@ -31,7 +31,7 @@ function manualdiff_model!(
     end
     return derivatives
 end
-function manualdiff_model!(f′, derivatives::AbstractMatrix, x, model::AbstractModel)
+function manualdiff_model!(f′, derivatives::AbstractMatrix, x, model::Model)
     if size(model) != size(derivatives)
         throw(DimensionMismatch("the model and its derivatives must have the same size!"))
     end

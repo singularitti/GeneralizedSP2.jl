@@ -6,7 +6,7 @@ export basis, fermi_dirac!, electronic_entropy, electronic_entropy!
 
 const FOUR_LOG_TWO = 4log(2)
 
-function basis(model::AbstractModel)
+function basis(model::Model)
     function _get(x)
         y = x  # `x` and `y` are 2 numbers
         collector = Vector{typeof(oneunit(x) * oneunit(eltype(model)))}(
@@ -22,7 +22,7 @@ function basis(model::AbstractModel)
     return _get
 end
 
-function (model::AbstractModel)(x)
+function (model::Model)(x)
     y = x  # `x` and `y` are 2 numbers (not big numbers)
     𝟏, 𝟏′ = oneunit(eltype(model)), oneunit(y)
     accumulator = zero(𝟏 * x)  # Accumulator of the summation
@@ -33,11 +33,11 @@ function (model::AbstractModel)(x)
     accumulator += 𝟏 * y
     return accumulator
 end
-function (model::AbstractModel)(X::AbstractMatrix)
+function (model::Model)(X::AbstractMatrix)
     result = similar(X, typeof(oneunit(eltype(model)) * oneunit(eltype(X))))  # Prepare for in-place result
     return model(result, X)
 end
-function (model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
+function (model::Model)(result::AbstractMatrix, X::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
     checksquare(result)
     if !iszero(X)  # Very fast
@@ -56,7 +56,7 @@ function (model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
     return result
 end
 
-function Base.map!(model::AbstractModel, result::AbstractVector, 𝐱::AbstractVector)
+function Base.map!(model::Model, result::AbstractVector, 𝐱::AbstractVector)
     map!(result, 𝐱) do x
         y = x  # `x` and `y` are 2 numbers
         accumulator = zero(eltype(result))  # Accumulator of the summation
@@ -72,8 +72,8 @@ end
 _finalize_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
 _finalize_fermi_dirac!(Y::AbstractMatrix) = axpby!(1, oneunit(Y), -1, Y)  # This is the fastest, except for `axpy!(-1, result, oneunit(Y))`, which we cannot use here.
 
-fermi_dirac(model::AbstractModel) = _finalize_fermi_dirac ∘ model
-fermi_dirac!(model::AbstractModel) = _finalize_fermi_dirac! ∘ model
+fermi_dirac(model::Model) = _finalize_fermi_dirac ∘ model
+fermi_dirac!(model::Model) = _finalize_fermi_dirac! ∘ model
 
 _finalize_electronic_entropy(Y) = FOUR_LOG_TWO * (Y - Y^2)  # Applies to 1 number/matrix at a time
 function _finalize_electronic_entropy!(Y::AbstractMatrix)
@@ -84,5 +84,5 @@ function _finalize_electronic_entropy!(Y::AbstractMatrix)
     return Y
 end
 
-electronic_entropy(model::AbstractModel) = _finalize_electronic_entropy ∘ model
-electronic_entropy!(model::AbstractModel) = _finalize_electronic_entropy! ∘ model
+electronic_entropy(model::Model) = _finalize_electronic_entropy ∘ model
+electronic_entropy!(model::Model) = _finalize_electronic_entropy! ∘ model

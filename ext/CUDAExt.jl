@@ -29,7 +29,7 @@ using CUDA.CUBLAS: axpy!, axpby!, gemm!, mul!
 using LinearAlgebra: Diagonal, checksquare
 using NVTX: @range
 
-using GeneralizedSP2: AbstractModel, CUDAError, Precision, eachlayer, numlayers
+using GeneralizedSP2: Model, CUDAError, Precision, eachlayer, numlayers
 
 import GeneralizedSP2:
     diagonalize,
@@ -219,7 +219,7 @@ function fermi_dirac(H::CuMatrix, μ, β)
     return fermi_dirac!(DM, H, μ, β)
 end
 
-function (model::AbstractModel)(
+function (model::Model)(
     DM::CuMatrix, H::CuMatrix, precision, spectral_bounds=extrema(H)
 )
     M, N = size(H)
