@@ -1,6 +1,6 @@
 using DifferentiationInterface: prepare_jacobian, jacobian
 
-export autodiff_model, manualdiff_model
+export autodiff_model
 
 function autodiff_model(model::Model, x, backend)
     prep = prepare_jacobian(Base.Fix1(map, model), backend, x)
@@ -10,14 +10,6 @@ function autodiff_model(model, x, backend)
     model = Model(FlattendModel(model))
     prep = prepare_jacobian(Base.Fix1(map, model), backend, x)
     return jacobian(Base.Fix1(map, model), prep, backend, x)
-end
-
-function manualdiff_model(f′, 𝐱, M)
-    M = Model(FlattendModel(M))
-    𝐌̄ = Array{typeof(oneunit(eltype(M)) / oneunit(eltype(𝐱)))}(
-        undef, size(𝐱)..., size(M)...
-    )
-    return manualdiff_model!(f′, 𝐌̄, 𝐱, M)
 end
 
 function manualdiff_model!(
