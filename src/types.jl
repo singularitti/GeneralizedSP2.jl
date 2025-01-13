@@ -37,10 +37,9 @@ function Base.similar(M::Model, ::Type{T}, dims::Dims) where {T}
 end
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta1/base/abstractarray.jl#L874
 function Base.similar(::Type{<:Model{T}}, dims::Dims) where {T}
-    if length(dims) == 1
-        return Model(Vector{T}(undef, dims))
-    elseif length(dims) == 2
-        return Model(Matrix{T}(undef, dims))
+    N = length(dims)
+    if N in (1, 2)
+        return Model(Array{T,N}(undef, dims))
     else
         return throw(DimensionMismatch("invalid dimensions `$dims` for `Model`!"))
     end
