@@ -1,15 +1,21 @@
-using DifferentiationInterface: prepare_jacobian, jacobian
+using DifferentiationInterface: Constant, derivative
 
 export autodiff_model
 
-function autodiff_model(model::Model, x, backend)
-    prep = prepare_jacobian(Base.Fix1(map, model), backend, x)
-    return jacobian(Base.Fix1(map, model), prep, backend, x)
+function apply!(t, model, i, x)
+    model[i] = t
+    return model(x)
 end
-function autodiff_model(model, x, backend)
-    model = Model(FlattendModel(model))
-    prep = prepare_jacobian(Base.Fix1(map, model), backend, x)
-    return jacobian(Base.Fix1(map, model), prep, backend, x)
+
+function autodiff_model(model::Model, x, backend)
+    return map(eachindex(model)) do i
+        derivative(apply!, backend, model[i], Constant(model), Constant(i), Constant(x))
+    end
+end
+function autodiff_model(model::Model, 𝐱::AbstractVector, backend)
+    return transpose(hcat(map(𝐱) do x
+        autodiff_model(model, x, backend)
+    end...))
 end
 
 function manualdiff_model!(
