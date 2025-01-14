@@ -7,7 +7,7 @@ export basis, fermi_dirac!, electronic_entropy, electronic_entropy!
 const FOUR_LOG_TWO = 4log(2)
 
 function basis(model::Model)
-    function _get(x)
+    function _collect(x)
         y = x  # `x` and `y` are 2 numbers
         collector = Vector{typeof(oneunit(x) * oneunit(eltype(model)))}(
             undef, numlayers(model) + 1
@@ -19,7 +19,7 @@ function basis(model::Model)
         collector[end] = oneunit(eltype(model)) * y
         return collector
     end
-    return _get
+    return _collect
 end
 
 function (model::Model)(x)
