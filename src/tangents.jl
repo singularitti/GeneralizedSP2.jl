@@ -18,15 +18,14 @@ function autodiff_model(model::Model, 𝐱::AbstractVector, backend)
     end...))
 end
 
-function manualdiff_model!(
-    f′, derivatives::AbstractArray{T,3}, 𝐱::AbstractVector, model::AbstractModel
-) where {T}
-    if size(derivatives) != (size(𝐱)..., size(model)...)
+function manualdiff_model!(f′, derivatives::AbstractVector, x, M::AbstractVector)
+    if size(derivatives) != size(M)
         throw(DimensionMismatch("the derivatives do not have the correct size!"))
     end
-    for (i, x) in enumerate(𝐱)
-        manualdiff_model!(f′, derivatives[i, :, :], x, model)  # Single-point calculation
-    end
+    model = Model(M)
+    derivatives2 = reshape(derivatives, size(model))
+    manualdiff_model!(f′, derivatives2, x, model)  # Single-point calculation
+    derivatives[:] .= derivatives2[:]
     return derivatives
 end
 function manualdiff_model!(f′, derivatives::AbstractMatrix, x, model::Model)
@@ -65,7 +64,12 @@ _finalize_fermi_dirac_grad(Y) = -one(Y)  # Applies to 1 number at a time
 
 _finalize_electronic_entropy_grad(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
-fermi_dirac_grad!(𝐌̄, 𝐱, M) = manualdiff_model!(_finalize_fermi_dirac_grad, 𝐌̄, 𝐱, M)
+function fermi_dirac_grad!(derivatives, 𝐱, M)
+    for (i, x) in enumerate(𝐱)
+        manualdiff_model!(_finalize_fermi_dirac_grad, derivatives[i, :], x, M)
+    end
+    return derivatives
+end
 
 electronic_entropy_grad!(𝐌̄, 𝐱, M) =
     manualdiff_model!(_finalize_electronic_entropy_grad, 𝐌̄, 𝐱, M)
