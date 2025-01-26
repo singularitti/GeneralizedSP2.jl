@@ -9,14 +9,14 @@ const FOUR_LOG_TWO = 4log(2)
 function basis(model::Model)
     function _collect(x)
         y = x  # `x` and `y` are 2 numbers
-        collector = Vector{typeof(oneunit(x) * oneunit(eltype(model)))}(
+        collector = Vector{typeof(oneunit(x) * oneunit(elementtype(model)))}(
             undef, numlayers(model) + 1
         )
         for (i, 𝐦) in enumerate(eachlayer(model))
             collector[i] = 𝐦[4] * y
             y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
         end
-        collector[end] = oneunit(eltype(model)) * y
+        collector[end] = oneunit(elementtype(model)) * y
         return collector
     end
     return _collect
@@ -24,7 +24,7 @@ end
 
 function (model::Model)(x)
     y = x  # `x` and `y` are 2 numbers (not big numbers)
-    𝟏, 𝟏′ = oneunit(eltype(model)), oneunit(y)
+    𝟏, 𝟏′ = oneunit(elementtype(model)), oneunit(y)
     accumulator = zero(𝟏 * x)  # Accumulator of the summation
     for 𝐦 in eachlayer(model)
         accumulator += 𝐦[4] * y
@@ -34,7 +34,7 @@ function (model::Model)(x)
     return accumulator
 end
 function (model::Model)(X::AbstractMatrix)
-    result = similar(X, typeof(oneunit(eltype(model)) * oneunit(eltype(X))))  # Prepare for in-place result
+    result = similar(X, typeof(oneunit(elementtype(model)) * oneunit(eltype(X))))  # Prepare for in-place result
     return model(result, X)
 end
 function (model::Model)(result::AbstractMatrix, X::AbstractMatrix)
@@ -52,7 +52,7 @@ function (model::Model)(result::AbstractMatrix, X::AbstractMatrix)
         axpby!(𝐦[1], Y², 𝐦[2], Y)  # Y .+= 𝐦[1] * Y^2 + 𝐦[2] * Y
         axpy!(𝐦[3], 𝟙, Y)  # Y .+= 𝐦[3] * 𝟙
     end
-    axpy!(oneunit(eltype(model)), Y, result)  # result .+= oneunit(eltype(model)) * Y
+    axpy!(oneunit(elementtype(model)), Y, result)  # result .+= oneunit(elementtype(model)) * Y
     return result
 end
 
@@ -64,7 +64,7 @@ function Base.map!(model::Model, result::AbstractVector, 𝐱::AbstractVector)
             accumulator += 𝐦[4] * y
             y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
         end
-        accumulator += oneunit(eltype(model)) * y
+        accumulator += oneunit(elementtype(model)) * y
     end
     return result
 end

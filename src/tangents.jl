@@ -46,7 +46,7 @@ function manualdiff_model!(f′, derivatives::AbstractMatrix, x, model::Model)
     accumulator += 𝐲[end]
     α = f′(accumulator)
     # Backward calculation
-    z = one(eltype(model)) # zₗₐₛₜ
+    z = one(elementtype(model)) # zₗₐₛₜ
     for (i, 𝐦) in Iterators.reverse(zip(layerindices, layers))
         y = 𝐲[i]
         𝟏 = oneunit(y)
