@@ -10,6 +10,7 @@ struct Model{T} <: AbstractMatrix{T}
     end
 end
 Model(A::AbstractMatrix) = Model{eltype(A)}(A)
+Model(A::AbstractVector{<:AbstractVector}) = Model(collect(Iterators.flatten(A)))
 Model(A::AbstractVector) = Model(reshape(parent(A), LAYER_WIDTH, :))
 Model(M::Model) = M
 
