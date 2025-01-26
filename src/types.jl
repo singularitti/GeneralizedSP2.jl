@@ -1,4 +1,6 @@
-export Model, numlayers, eachlayer
+export Model, layerwidth, numlayers, eachlayer
+
+const LAYER_WIDTH = 4
 
 struct Model{T} <: AbstractMatrix{T}
     data::Matrix{T}
@@ -18,6 +20,8 @@ function Model(A::AbstractVector{<:AbstractVector})
 end
 Model(A::AbstractVector) = Model(reshape(parent(A), LAYER_WIDTH, :))
 Model(M::Model) = M
+
+layerwidth(::Model) = LAYER_WIDTH
 
 numlayers(M::Model) = size(M, 2)
 
