@@ -1,50 +1,65 @@
+using StaticArrays: SVector, MVector
+
 export Model, numlayers, eachlayer
 
-struct Model{T} <: AbstractMatrix{T}
-    data::Matrix{T}
-    function Model{T}(data::AbstractMatrix{S}) where {T,S}
-        if size(data, 1) != LAYER_WIDTH
-            throw(DimensionMismatch("model matrix must have $LAYER_WIDTH rows!"))  # See https://discourse.julialang.org/t/120556/2
-        end
-        return S <: T ? new{S}(data) : new(convert(Matrix{T}, data))  # Reduce allocations
-    end
+struct Model{S,T<:AbstractVector{S},N}
+    data::SVector{N,T}
 end
-Model(A::AbstractMatrix) = Model{eltype(A)}(A)
-Model(A::AbstractVector) = Model(reshape(parent(A), LAYER_WIDTH, :))
-Model(M::Model) = M
+function Model(A::AbstractMatrix)
+    if size(A, 1) != LAYER_WIDTH
+        throw(DimensionMismatch("model matrix must have $LAYER_WIDTH rows!"))  # See https://discourse.julialang.org/t/120556/2
+    end
+    return Model(eachcol(A))
+end
+function Model(A::AbstractVector{T}) where {S,T<:AbstractVector{S}}
+    if innersize(A) != (LAYER_WIDTH,)
+        throw(DimensionMismatch("invalid dimensions for `Model`!"))  # See https://discourse.julialang.org/t/120556/2
+    end
+    return Model{S,T,length(A)}(A)
+end
+Model(A::AbstractVector) = Model(collect(Iterators.partition(A, LAYER_WIDTH)))
+Model(model::Model) = model
 
-numlayers(M::Model) = size(M, 2)
+numlayers(model::Model) = length(model)
 
-eachlayer(M::Model) = eachcol(M)
+Base.iterate(model::Model, state=firstindex(model)) = iterate(parent(model), state)
 
-Base.parent(M::Model) = M.data
+Base.IteratorSize(::Type{<:Model}) = Base.HasLength()
 
-Base.size(M::Model) = size(parent(M))
+Base.length(::Model{S,T,N}) where {S,T,N} = N
 
-Base.getindex(M::Model, i::Int) = getindex(parent(M), i)
+Base.eltype(::Type{<:Model{T}}) where {T} = T
+Base.eltype(model::Model) = eltype(typeof(model))
 
-Base.setindex!(M::Model, v, i::Int) = setindex!(parent(M), v, i)
+Base.parent(model::Model) = model.data
 
-Base.IndexStyle(::Type{<:Model}) = IndexLinear()
+Base.size(model::Model) = size(parent(model))
 
-# Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta2/base/abstractarray.jl#L839
-function Base.similar(M::Model, ::Type{T}, dims::Dims) where {T}
-    if length(dims) in (1, 2)
-        return Model(similar(parent(M), T, dims))
+Base.getindex(model::Model, i) = getindex(parent(model), i)
+
+Base.setindex!(model::Model, v, i) = setindex!(parent(model), v, i)
+
+Base.firstindex(model::Model) = firstindex(parent(model))
+
+Base.lastindex(model::Model) = lastindex(parent(model))
+
+struct EachLayer{N,T}
+    data::MVector{N,SVector{4,T}}
+end
+
+eachlayer(model::Model) = EachLayer{length(model),eltype(model)}(parent(model))
+
+# Similar to https://github.com/JuliaCollections/IterTools.jl/blob/0ecaa88/src/IterTools.jl#L1028-L1032
+function Base.iterate(iter::EachLayer, state=1)
+    if state > length(iter)
+        return nothing
     else
-        return throw(DimensionMismatch("invalid dimensions `$dims` for `Model`!"))
-    end
-end
-# Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta1/base/abstractarray.jl#L874
-function Base.similar(::Type{<:Model{T}}, dims::Dims) where {T}
-    N = length(dims)
-    if N in (1, 2)
-        return Model(Array{T,N}(undef, dims))
-    else
-        return throw(DimensionMismatch("invalid dimensions `$dims` for `Model`!"))
+        return iter.data[state], state + 1
     end
 end
 
-# See https://docs.julialang.org/en/v1/manual/conversion-and-promotion/#When-is-convert-called?
-Base.convert(::Type{Model{S}}, M::Model{T}) where {S,T} = Model(convert(Matrix{S}, M))
-Base.convert(::Type{Model}, M::Model{T}) where {T} = convert(Model{eltype(M)}, M)
+Base.IteratorSize(::Type{<:EachLayer}) = Base.HasLength()
+
+Base.length(::EachLayer{N}) where {N} = N
+
+Base.eltype(::Type{EachLayer{N,T}}) where {N,T} = SVector{4,T}
