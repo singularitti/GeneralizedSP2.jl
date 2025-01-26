@@ -10,7 +10,12 @@ struct Model{T} <: AbstractMatrix{T}
     end
 end
 Model(A::AbstractMatrix) = Model{eltype(A)}(A)
-Model(A::AbstractVector{<:AbstractVector}) = Model(collect(Iterators.flatten(A)))
+function Model(A::AbstractVector{<:AbstractVector})
+    if any(map(length, A) .!= 4)
+        throw(DimensionMismatch("model matrix must have $LAYER_WIDTH rows!"))
+    end
+    return Model(hcat(A...))
+end
 Model(A::AbstractVector) = Model(reshape(parent(A), LAYER_WIDTH, :))
 Model(M::Model) = M
 
