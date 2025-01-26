@@ -18,16 +18,6 @@ function autodiff_model(model::Model, 𝐱::AbstractVector, backend)
     end...))
 end
 
-function manualdiff_model!(f′, derivatives::AbstractVector, M::AbstractVector, x)
-    if size(derivatives) != size(M)
-        throw(DimensionMismatch("the derivatives do not have the correct size!"))
-    end
-    model = Model(M)
-    derivatives2 = reshape(derivatives, size(model))
-    manualdiff_model!(f′, derivatives2, model, x)  # Single-point calculation
-    derivatives[:] .= derivatives2[:]
-    return derivatives
-end
 function manualdiff_model!(f′, derivatives::AbstractMatrix, model::Model, x)
     if size(model) != size(derivatives)
         throw(DimensionMismatch("the model and its derivatives must have the same size!"))
@@ -56,6 +46,13 @@ function manualdiff_model!(f′, derivatives::AbstractMatrix, model::Model, x)
         derivatives[3, i] = α * z
         derivatives[4, i] = α * y
         z = 𝐦[4] * 𝟏 + z * (2𝐦[1] * y + 𝐦[2] * 𝟏)  # zᵢ
+    end
+    return derivatives
+end
+function manualdiff_model!(f′, derivatives::AbstractMatrix, model::Model, 𝐱::AbstractVector)
+    derivatives = reshape(derivatives, length(𝐱), layerwidth(model), numlayers(model))
+    for (i, x) in enumerate(𝐱)
+        manualdiff_model!(f′, @view(derivatives[i, :, :]), model, x)
     end
     return derivatives
 end
