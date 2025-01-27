@@ -13,18 +13,18 @@ function _modify_apply!(parameter, model::AbstractModel, index, x)
     return model(x)
 end
 
-function autodiff_model(model::AbstractModel, x, backend)
+function autodiff_model(f, model::AbstractModel, x, backend)
     derivatives = similar(model)
-    return autodiff_model!(derivatives, model, x, backend)
+    return autodiff_model!(f, derivatives, model, x, backend)
 end
-function autodiff_model!(derivatives, model::AbstractModel, x, backend)
+function autodiff_model!(f, derivatives, model::AbstractModel, x, backend)
     if length(derivatives) != length(model)
         throw(ArgumentError("The length of derivatives and the model are not equal!"))
     end
     return map!(derivatives, eachindex(model)) do i
         contexts = Constant(model), Constant(i), Constant(x)
-        prep = prepare_derivative(_modify_apply!, backend, model[i], contexts...)
-        derivative(_modify_apply!, prep, backend, model[i], contexts...)
+        prep = prepare_derivative(f ∘ _modify_apply!, backend, model[i], contexts...)
+        derivative(f ∘ _modify_apply!, prep, backend, model[i], contexts...)
     end
 end
 
