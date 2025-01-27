@@ -7,18 +7,18 @@ function apply!(t, model, i, x)
     return model(x)
 end
 
-function autodiff_model(model::Model, x, backend)
+function autodiff_model(model::AbstractModel, x, backend)
     return map(eachindex(model)) do i
         derivative(apply!, backend, model[i], Constant(model), Constant(i), Constant(x))
     end
 end
-function autodiff_model(model::Model, 𝐱::AbstractVector, backend)
+function autodiff_model(model::AbstractModel, 𝐱::AbstractVector, backend)
     return transpose(hcat(map(𝐱) do x
         autodiff_model(model, x, backend)
     end...))
 end
 
-function manualdiff_model!(f′, derivatives::AbstractMatrix, model::Model, x)
+function manualdiff_model!(f′, derivatives::AbstractMatrix, model::AbstractModel, x)
     if size(model) != size(derivatives)
         throw(DimensionMismatch("the model and its derivatives must have the same size!"))
     end
@@ -49,7 +49,7 @@ function manualdiff_model!(f′, derivatives::AbstractMatrix, model::Model, x)
     end
     return derivatives
 end
-function manualdiff_model!(f′, derivatives::AbstractMatrix, model::Model, 𝐱::AbstractVector)
+function manualdiff_model!(f′, derivatives::AbstractMatrix, model::AbstractModel, 𝐱::AbstractVector)
     derivatives = reshape(derivatives, length(𝐱), layerwidth(model), numlayers(model))
     for (i, x) in enumerate(𝐱)
         manualdiff_model!(f′, @view(derivatives[i, :, :]), model, x)

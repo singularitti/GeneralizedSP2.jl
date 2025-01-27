@@ -102,12 +102,18 @@ function init_model(μ, nlayers)
             M[:, i] = [-1, 2, 0, 0] # x' = 2x - x^2, decrease μᵢ
         end
     end
-    return vec(Model(M))
+    return FlattendModel(M)
 end
 
-_fermi_dirac!(result, 𝐱, M) = map!(fermi_dirac(Model(M)), result, 𝐱)  # Only used for fitting
+_fermi_dirac!(result, 𝐱, M) = map!(fermi_dirac(FlattendModel(M)), result, 𝐱)  # Only used for fitting
 
-_electronic_entropy!(result, 𝐱, M) = map!(electronic_entropy(Model(M)), result, 𝐱)  # Only used for fitting
+_electronic_entropy!(result, 𝐱, M) = map!(electronic_entropy(FlattendModel(M)), result, 𝐱)  # Only used for fitting
 
-LMResults(method, initial_x::Model, minimizer::Model, args...) =
+LMResults(method, initial_x::Model, minimizer::Model, args...) = LMResults(
+    method,
+    convert(FlattendModel, initial_x),
+    convert(FlattendModel, minimizer),
+    args...,
+)
+LMResults(method, initial_x::FlattendModel, minimizer::FlattendModel, args...) =
     LMResults(method, convert(Vector, initial_x), convert(Vector, minimizer), args...)
