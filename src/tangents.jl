@@ -57,7 +57,7 @@ _finalize_electronic_entropy_grad(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to
 
 function fermi_dirac_grad!(derivatives, 𝐱, M)
     for (i, x) in enumerate(𝐱)
-        manualdiff_model!(_finalize_fermi_dirac_grad, derivatives[i, :], M, x)
+        manualdiff_model!(_finalize_fermi_dirac_grad, @view(derivatives[i, :]), M, x)
     end
     return derivatives
 end
