@@ -19,9 +19,6 @@ function autodiff_model(model::AbstractModel, 𝐱::AbstractVector, backend)
 end
 
 function manualdiff_model!(f′, derivatives::AbstractMatrix, model::AbstractModel, x)
-    if size(model) != size(derivatives)
-        throw(DimensionMismatch("the model and its derivatives must have the same size!"))
-    end
     layers = eachlayer(model)
     layerindices = eachindex(layers)
     𝐲 = zeros(eltype(x), numlayers(model) + 1)
