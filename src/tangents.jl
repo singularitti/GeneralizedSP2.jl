@@ -1,6 +1,6 @@
 using DifferentiationInterface: Constant, derivative, prepare_derivative
 
-export autodiff_model, autodiff_model!, manualdiff_model!
+export autodiff_model, autodiff_model!, manualdiff_model, manualdiff_model!
 
 function apply!(t, model, i, x)
     model[i] = t
@@ -22,6 +22,10 @@ function autodiff_model!(model::AbstractModel, derivatives, x, backend)
     end
 end
 
+function manualdiff_model(f′, model, x)
+    derivatives = similar(model)
+    return manualdiff_model!(f′, derivatives, model, x)
+end
 function manualdiff_model!(f′, derivatives::AbstractVecOrMat, model, x)
     # FIXME: Only works for `derivatives` which supports linear indices
     model = Model(model)
