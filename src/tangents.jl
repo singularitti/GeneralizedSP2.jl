@@ -33,6 +33,9 @@ function manualdiff_model(f′, model, x)
     return manualdiff_model!(f′, derivatives, model, x)
 end
 function manualdiff_model!(f′, derivatives::AbstractVecOrMat, model, x)
+    if length(derivatives) != length(model)
+        throw(ArgumentError("The length of derivatives and the model are not equal!"))
+    end
     # FIXME: Only works for `derivatives` which supports linear indices
     model = Model(model)
     layers = eachlayer(model)
@@ -70,12 +73,18 @@ _finalize_fermi_dirac_grad(Y) = -one(Y)  # Applies to 1 number at a time
 _finalize_electronic_entropy_grad(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
 function fermi_dirac_grad!(derivatives, 𝐱, M, ::Manual)
+    if size(derivatives) != (length(𝐱), length(M))
+        throw(DimensionMismatch("the size of derivatives is not compatible with 𝐱 and M!"))
+    end
     for (i, x) in enumerate(𝐱)
         manualdiff_model!(_finalize_fermi_dirac_grad, @view(derivatives[i, :]), M, x)
     end
     return derivatives
 end
 function fermi_dirac_grad!(derivatives, 𝐱, M, strategy::Auto)
+    if size(derivatives) != (length(𝐱), length(M))
+        throw(DimensionMismatch("the size of derivatives is not compatible with 𝐱 and M!"))
+    end
     for (i, x) in enumerate(𝐱)
         autodiff_model!(@view(derivatives[i, :]), M, x, strategy.backend)
     end
