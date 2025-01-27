@@ -9,9 +9,9 @@ end
 
 function autodiff_model(model::AbstractModel, x, backend)
     derivatives = similar(model)
-    return autodiff_model!(model, derivatives, x, backend)
+    return autodiff_model!(derivatives, model, x, backend)
 end
-function autodiff_model!(model::AbstractModel, derivatives, x, backend)
+function autodiff_model!(derivatives, model::AbstractModel, x, backend)
     if length(derivatives) != length(model)
         throw(ArgumentError("The length of derivatives and the model are not equal!"))
     end
