@@ -86,7 +86,9 @@ function fermi_dirac_grad!(derivatives, 𝐱, M, strategy::Auto)
         throw(DimensionMismatch("the size of derivatives is not compatible with 𝐱 and M!"))
     end
     for (i, x) in enumerate(𝐱)
-        autodiff_model!(@view(derivatives[i, :]), M, x, strategy.backend)
+        autodiff_model!(
+            _finalize_fermi_dirac, @view(derivatives[i, :]), M, x, strategy.backend
+        )
     end
     return derivatives
 end
