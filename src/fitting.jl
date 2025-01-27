@@ -109,11 +109,5 @@ _fermi_dirac!(result, 𝐱, M) = map!(fermi_dirac(FlattendModel(M)), result, �
 
 _electronic_entropy!(result, 𝐱, M) = map!(electronic_entropy(FlattendModel(M)), result, 𝐱)  # Only used for fitting
 
-LMResults(method, initial_x::Model, minimizer::Model, args...) = LMResults(
-    method,
-    convert(FlattendModel, initial_x),
-    convert(FlattendModel, minimizer),
-    args...,
-)
 LMResults(method, initial_x::FlattendModel, minimizer::FlattendModel, args...) =
     LMResults(method, convert(Vector, initial_x), convert(Vector, minimizer), args...)
