@@ -1,4 +1,4 @@
-using DifferentiationInterface: Constant, derivative
+using DifferentiationInterface: Constant, derivative, prepare_derivative
 
 export autodiff_model
 
@@ -8,14 +8,12 @@ function apply!(t, model, i, x)
 end
 
 function autodiff_model(model::AbstractModel, x, backend)
-    return map(eachindex(model)) do i
-        derivative(apply!, backend, model[i], Constant(model), Constant(i), Constant(x))
+    derivatives = similar(model)
+    return map!(derivatives, eachindex(model)) do i
+        contexts = Constant(model), Constant(i), Constant(x)
+        prep = prepare_derivative(apply!, backend, model[i], contexts...)
+        derivative(apply!, prep, backend, model[i], contexts...)
     end
-end
-function autodiff_model(model::AbstractModel, 𝐱::AbstractVector, backend)
-    return transpose(hcat(map(𝐱) do x
-        autodiff_model(model, x, backend)
-    end...))
 end
 
 function manualdiff_model!(f′, derivatives::AbstractVecOrMat, model, x)
