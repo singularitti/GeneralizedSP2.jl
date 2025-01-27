@@ -1,6 +1,6 @@
 using DifferentiationInterface: Constant, derivative, prepare_derivative
 
-export autodiff_model
+export autodiff_model, autodiff_model!, manualdiff_model!
 
 function apply!(t, model, i, x)
     model[i] = t
@@ -9,6 +9,12 @@ end
 
 function autodiff_model(model::AbstractModel, x, backend)
     derivatives = similar(model)
+    return autodiff_model!(model, derivatives, x, backend)
+end
+function autodiff_model!(model::AbstractModel, derivatives, x, backend)
+    if length(derivatives) != length(model)
+        throw(ArgumentError("The length of derivatives and the model are not equal!"))
+    end
     return map!(derivatives, eachindex(model)) do i
         contexts = Constant(model), Constant(i), Constant(x)
         prep = prepare_derivative(apply!, backend, model[i], contexts...)
