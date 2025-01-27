@@ -2,8 +2,8 @@ using DifferentiationInterface: Constant, derivative, prepare_derivative
 
 export autodiff_model, autodiff_model!, manualdiff_model, manualdiff_model!
 
-function apply!(t, model, i, x)
-    model[i] = t
+function _modify_apply!(parameter, model::AbstractModel, index, x)
+    model[index] = parameter
     return model(x)
 end
 
@@ -17,8 +17,8 @@ function autodiff_model!(derivatives, model::AbstractModel, x, backend)
     end
     return map!(derivatives, eachindex(model)) do i
         contexts = Constant(model), Constant(i), Constant(x)
-        prep = prepare_derivative(apply!, backend, model[i], contexts...)
-        derivative(apply!, prep, backend, model[i], contexts...)
+        prep = prepare_derivative(_modify_apply!, backend, model[i], contexts...)
+        derivative(_modify_apply!, prep, backend, model[i], contexts...)
     end
 end
 
