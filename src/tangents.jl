@@ -8,19 +8,20 @@ struct Auto{T} <: Strategy
     backend::T
 end
 
-function _modify_apply!(parameter, model::AbstractModel, index, x)
+function _modify_apply!(parameter, model, index, x)
     model[index] = parameter
     return model(x)
 end
 
-function autodiff_model(f, model::AbstractModel, x, backend)
+function autodiff_model(f, model, x, backend)
     derivatives = similar(model)
     return autodiff_model!(f, derivatives, model, x, backend)
 end
-function autodiff_model!(f, derivatives, model::AbstractModel, x, backend)
+function autodiff_model!(f, derivatives, model, x, backend)
     if length(derivatives) != length(model)
         throw(ArgumentError("The length of derivatives and the model are not equal!"))
     end
+    model = Model(model)
     return map!(derivatives, eachindex(model)) do i
         contexts = Constant(model), Constant(i), Constant(x)
         prep = prepare_derivative(f ∘ _modify_apply!, backend, model[i], contexts...)
