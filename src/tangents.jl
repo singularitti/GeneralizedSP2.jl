@@ -36,7 +36,6 @@ function manualdiff_model!(f′, derivatives::AbstractVecOrMat, model, x)
     if length(derivatives) != length(model)
         throw(ArgumentError("The length of derivatives and the model are not equal!"))
     end
-    # FIXME: Only works for `derivatives` which supports linear indices
     model = Model(model)
     layers = eachlayer(model)
     layerindices = eachindex(layers)
@@ -53,20 +52,19 @@ function manualdiff_model!(f′, derivatives::AbstractVecOrMat, model, x)
     α = f′(accumulator)
     # Backward calculation
     z = one(eltype(model)) # zₗₐₛₜ
+    linear_indices = LinearIndices(model)
     for (i, 𝐦) in Iterators.reverse(zip(layerindices, layers))
         y = 𝐲[i]
         𝟏 = oneunit(y)
         # zᵢ₊₁
-        derivatives[linear_index(1, i)] = α * z * y^2
-        derivatives[linear_index(2, i)] = α * z * y
-        derivatives[linear_index(3, i)] = α * z
-        derivatives[linear_index(4, i)] = α * y
+        derivatives[linear_indices[1, i]] = α * z * y^2
+        derivatives[linear_indices[2, i]] = α * z * y
+        derivatives[linear_indices[3, i]] = α * z
+        derivatives[linear_indices[4, i]] = α * y
         z = 𝐦[4] * 𝟏 + z * (2𝐦[1] * y + 𝐦[2] * 𝟏)  # zᵢ
     end
     return derivatives
 end
-
-linear_index(j, i) = j + 4 * (i - 1)  # The linear index of the j-th element in the i-th layer
 
 _finalize_fermi_dirac_grad(Y) = -one(Y)  # Applies to 1 number at a time
 
