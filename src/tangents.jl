@@ -70,47 +70,22 @@ _finalize_fermi_dirac_grad(Y) = -one(Y)  # Applies to 1 number at a time
 
 _finalize_electronic_entropy_grad(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
-function fermi_dirac_grad!(derivatives, 𝐱, M, ::Manual)
-    if size(derivatives) != (length(𝐱), length(M))
-        throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
-    end
-    for (i, x) in enumerate(𝐱)
-        manualdiff_model!(_finalize_fermi_dirac_grad, @view(derivatives[i, :]), M, x)
-    end
-    return derivatives
-end
-function fermi_dirac_grad!(derivatives, 𝐱, M, strategy::Auto)
-    if size(derivatives) != (length(𝐱), length(M))
-        throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
-    end
-    for (i, x) in enumerate(𝐱)
-        autodiff_model!(
-            _finalize_fermi_dirac,
-            @view(derivatives[i, :]),  # Must use `@view` or `derivatives` will not be updated
-            M,
-            x,
-            strategy.backend,
-        )
-    end
-    return derivatives
-end
-
-function electronic_entropy_grad!(derivatives, 𝐱, model, ::Manual)
+function compute_jac!(f′, derivatives, 𝐱, model, ::Manual)
     if size(derivatives) != (length(𝐱), length(model))
         throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
     end
     for (i, x) in enumerate(𝐱)
-        manualdiff_model!(_finalize_electronic_entropy_grad, @view(derivatives[i, :]), model, x)
+        manualdiff_model!(f′, @view(derivatives[i, :]), model, x)
     end
     return derivatives
 end
-function electronic_entropy_grad!(derivatives, 𝐱, model, strategy::Auto)
+function compute_jac!(f, derivatives, 𝐱, model, strategy::Auto)
     if size(derivatives) != (length(𝐱), length(model))
         throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
     end
     for (i, x) in enumerate(𝐱)
         autodiff_model!(
-            _finalize_electronic_entropy,
+            f,
             @view(derivatives[i, :]),  # Must use `@view` or `derivatives` will not be updated
             model,
             x,
@@ -119,3 +94,13 @@ function electronic_entropy_grad!(derivatives, 𝐱, model, strategy::Auto)
     end
     return derivatives
 end
+
+fermi_dirac_grad!(derivatives, 𝐱, model, ::Manual) =
+    compute_jac!(_finalize_fermi_dirac_grad, derivatives, 𝐱, model, Manual())
+fermi_dirac_grad!(derivatives, 𝐱, model, strategy::Auto) =
+    compute_jac!(_finalize_fermi_dirac, derivatives, 𝐱, model, strategy)
+
+electronic_entropy_grad!(derivatives, 𝐱, model, ::Manual) =
+    compute_jac!(_finalize_electronic_entropy_grad, derivatives, 𝐱, model, Manual())
+electronic_entropy_grad!(derivatives, 𝐱, model, strategy) =
+    compute_jac!(_finalize_electronic_entropy, derivatives, 𝐱, model, strategy)
