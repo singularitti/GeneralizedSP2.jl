@@ -21,7 +21,7 @@ H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 lower_bound, upper_bound = 0, 1
 𝐱′ = chebyshevnodes_1st(300, (lower_bound, upper_bound))
 benchmark_fitted = fit_fermi_dirac(
-    𝐱′, μ′, β′, init_model(μ′, 18); strategy=Manual(), max_iter=1_000_000
+    𝐱′, μ′, β′, init_model(μ′, 18); diff=Manual(), max_iter=1_000_000
 );
 benchmark_model = benchmark_fitted.model
 
@@ -31,7 +31,7 @@ fermi_dirac_grad!(benchmark_derivatives, 𝐱′, benchmark_model, Manual())
 backend = AutoFiniteDiff()
 backend = AutoMooncake(; config=nothing)
 ad_fitted = fit_fermi_dirac(
-    𝐱′, μ′, β′, init_model(μ′, 18); strategy=Auto(backend), max_iter=1_000_000
+    𝐱′, μ′, β′, init_model(μ′, 18); diff=Auto(backend), max_iter=1_000_000
 );
 ad_model = ad_fitted.model
 @show benchmark_model ≈ ad_model

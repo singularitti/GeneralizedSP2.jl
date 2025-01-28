@@ -2,9 +2,9 @@ using DifferentiationInterface: Constant, derivative
 
 export Manual, Auto, autodiff_model, autodiff_model!, manualdiff_model, manualdiff_model!
 
-abstract type Strategy end
-struct Manual <: Strategy end
-struct Auto{T} <: Strategy
+abstract type DiffStrategy end
+struct Manual <: DiffStrategy end
+struct Auto{T} <: DiffStrategy
     backend::T
 end
 
