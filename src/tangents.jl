@@ -66,9 +66,9 @@ function manualdiff_model!(f′, derivatives::AbstractVecOrMat, model, x)
     return derivatives
 end
 
-_finalize_fermi_dirac_grad(Y) = -one(Y)  # Applies to 1 number at a time
+_finalize_fermi_dirac_jac(Y) = -one(Y)  # Applies to 1 number at a time
 
-_finalize_electronic_entropy_grad(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
+_finalize_electronic_entropy_jac(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
 function compute_jac!(f′, derivatives, 𝐱, model, ::Manual)
     if size(derivatives) != (length(𝐱), length(model))
@@ -95,12 +95,12 @@ function compute_jac!(f, derivatives, 𝐱, model, strategy::Auto)
     return derivatives
 end
 
-fermi_dirac_grad!(derivatives, 𝐱, model, ::Manual) =
-    compute_jac!(_finalize_fermi_dirac_grad, derivatives, 𝐱, model, Manual())
-fermi_dirac_grad!(derivatives, 𝐱, model, strategy::Auto) =
+fermi_dirac_jac!(derivatives, 𝐱, model, ::Manual) =
+    compute_jac!(_finalize_fermi_dirac_jac, derivatives, 𝐱, model, Manual())
+fermi_dirac_jac!(derivatives, 𝐱, model, strategy::Auto) =
     compute_jac!(_finalize_fermi_dirac, derivatives, 𝐱, model, strategy)
 
-electronic_entropy_grad!(derivatives, 𝐱, model, ::Manual) =
-    compute_jac!(_finalize_electronic_entropy_grad, derivatives, 𝐱, model, Manual())
-electronic_entropy_grad!(derivatives, 𝐱, model, strategy) =
+electronic_entropy_jac!(derivatives, 𝐱, model, ::Manual) =
+    compute_jac!(_finalize_electronic_entropy_jac, derivatives, 𝐱, model, Manual())
+electronic_entropy_jac!(derivatives, 𝐱, model, strategy) =
     compute_jac!(_finalize_electronic_entropy, derivatives, 𝐱, model, strategy)

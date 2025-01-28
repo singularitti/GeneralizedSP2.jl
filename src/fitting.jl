@@ -22,7 +22,7 @@ function fit_fermi_dirac(
     fd = fermi_dirac.(𝛆′, μ′, β′)
     result = curve_fit(
         _fermi_dirac!,
-        _fermi_dirac_grad!(diff),
+        _fermi_dirac_jac!(diff),
         𝛆′,  # xdata
         fd,  # ydata
         model_init;  # p0
@@ -66,7 +66,7 @@ function fit_electronic_entropy(
     𝐬 = electronic_entropy.(𝛆′, μ′, β′)
     result = curve_fit(
         _electronic_entropy!,
-        electronic_entropy_grad!,
+        electronic_entropy_jac!,
         𝛆′,  # xdata
         𝐬,  # ydata
         model_init;  # p0
@@ -110,8 +110,8 @@ _fermi_dirac!(result, 𝐱, M) = map!(fermi_dirac(FlattendModel(M)), result, �
 
 _electronic_entropy!(result, 𝐱, M) = map!(electronic_entropy(FlattendModel(M)), result, 𝐱)  # Only used for fitting
 
-_fermi_dirac_grad!(strategy::DiffStrategy) =
-    (derivatives, 𝐱, M) -> fermi_dirac_grad!(derivatives, 𝐱, M, strategy)
+_fermi_dirac_jac!(strategy::DiffStrategy) =
+    (derivatives, 𝐱, M) -> fermi_dirac_jac!(derivatives, 𝐱, M, strategy)
 
 LMResults(method, initial_x::FlattendModel, minimizer::FlattendModel, args...) =
     LMResults(method, convert(Vector, initial_x), convert(Vector, minimizer), args...)
