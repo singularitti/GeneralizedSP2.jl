@@ -72,7 +72,7 @@ _finalize_electronic_entropy_grad(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to
 
 function fermi_dirac_grad!(derivatives, 𝐱, M, ::Manual)
     if size(derivatives) != (length(𝐱), length(M))
-        throw(DimensionMismatch("the size of derivatives is not compatible with 𝐱 and M!"))
+        throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
     end
     for (i, x) in enumerate(𝐱)
         manualdiff_model!(_finalize_fermi_dirac_grad, @view(derivatives[i, :]), M, x)
@@ -81,7 +81,7 @@ function fermi_dirac_grad!(derivatives, 𝐱, M, ::Manual)
 end
 function fermi_dirac_grad!(derivatives, 𝐱, M, strategy::Auto)
     if size(derivatives) != (length(𝐱), length(M))
-        throw(DimensionMismatch("the size of derivatives is not compatible with 𝐱 and M!"))
+        throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
     end
     for (i, x) in enumerate(𝐱)
         autodiff_model!(
@@ -95,5 +95,27 @@ function fermi_dirac_grad!(derivatives, 𝐱, M, strategy::Auto)
     return derivatives
 end
 
-electronic_entropy_grad!(𝐌̄, 𝐱, M) =
-    manualdiff_model!(_finalize_electronic_entropy_grad, 𝐌̄, M, 𝐱)
+function electronic_entropy_grad!(derivatives, 𝐱, model, ::Manual)
+    if size(derivatives) != (length(𝐱), length(model))
+        throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
+    end
+    for (i, x) in enumerate(𝐱)
+        manualdiff_model!(_finalize_electronic_entropy_grad, @view(derivatives[i, :]), model, x)
+    end
+    return derivatives
+end
+function electronic_entropy_grad!(derivatives, 𝐱, model, strategy::Auto)
+    if size(derivatives) != (length(𝐱), length(model))
+        throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
+    end
+    for (i, x) in enumerate(𝐱)
+        autodiff_model!(
+            _finalize_electronic_entropy,
+            @view(derivatives[i, :]),  # Must use `@view` or `derivatives` will not be updated
+            model,
+            x,
+            strategy.backend,
+        )
+    end
+    return derivatives
+end
