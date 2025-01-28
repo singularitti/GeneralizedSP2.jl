@@ -19,7 +19,7 @@ function autodiff_model(f, model, x, backend)
 end
 function autodiff_model!(f, derivatives, model, x, backend)
     if length(derivatives) != length(model)
-        throw(ArgumentError("The length of derivatives and the model are not equal!"))
+        throw(DimensionMismatch("the length of derivatives and the model are not equal!"))
     end
     model = Model(model)
     return map!(derivatives, eachindex(model)) do i
@@ -34,7 +34,7 @@ function manualdiff_model(f′, model, x)
 end
 function manualdiff_model!(f′, derivatives::AbstractVecOrMat, model, x)
     if length(derivatives) != length(model)
-        throw(ArgumentError("The length of derivatives and the model are not equal!"))
+        throw(DimensionMismatch("the length of derivatives and the model are not equal!"))
     end
     model = Model(model)
     layers = eachlayer(model)
