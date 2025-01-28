@@ -85,7 +85,11 @@ function fermi_dirac_grad!(derivatives, 𝐱, M, strategy::Auto)
     end
     for (i, x) in enumerate(𝐱)
         autodiff_model!(
-            _finalize_fermi_dirac, @view(derivatives[i, :]), M, x, strategy.backend
+            _finalize_fermi_dirac,
+            @view(derivatives[i, :]),  # Must use `@view` or `derivatives` will not be updated
+            M,
+            x,
+            strategy.backend,
         )
     end
     return derivatives
