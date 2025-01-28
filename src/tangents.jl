@@ -1,4 +1,4 @@
-using DifferentiationInterface: Constant, derivative, prepare_derivative
+using DifferentiationInterface: Constant, derivative
 
 export Manual, Auto, autodiff_model, autodiff_model!, manualdiff_model, manualdiff_model!
 
@@ -24,8 +24,7 @@ function autodiff_model!(f, derivatives, model, x, backend)
     model = Model(model)
     return map!(derivatives, eachindex(model)) do i
         contexts = Constant(model), Constant(i), Constant(x)
-        prep = prepare_derivative(f ∘ _modify_apply!, backend, model[i], contexts...)
-        derivative(f ∘ _modify_apply!, prep, backend, model[i], contexts...)
+        derivative(f ∘ _modify_apply!, backend, model[i], contexts...)
     end
 end
 
