@@ -1,27 +1,43 @@
 using DifferentiationInterface: Constant, derivative
 
-export autodiff_model
+export Manual, Auto, autodiff_model, autodiff_model!, manualdiff_model, manualdiff_model!
 
-function apply!(t, model, i, x)
-    model[i] = t
+abstract type Strategy end
+struct Manual <: Strategy end
+struct Auto{T} <: Strategy
+    backend::T
+end
+
+function _modify_apply!(parameter, model, index, x)
+    model[index] = parameter
     return model(x)
 end
 
-function autodiff_model(model::Model, x, backend)
-    return map(eachindex(model)) do i
-        derivative(apply!, backend, model[i], Constant(model), Constant(i), Constant(x))
-    end
+function autodiff_model(f, model, x, backend)
+    derivatives = similar(model)
+    return autodiff_model!(f, derivatives, model, x, backend)
 end
-function autodiff_model(model::Model, 𝐱::AbstractVector, backend)
-    return transpose(hcat(map(𝐱) do x
-        autodiff_model(model, x, backend)
-    end...))
+function autodiff_model!(f, derivatives, model, x, backend)
+    if length(derivatives) != length(model)
+        throw(ArgumentError("The length of derivatives and the model are not equal!"))
+    end
+    model = Model(model)
+    return map!(derivatives, eachindex(model)) do i
+        contexts = Constant(model), Constant(i), Constant(x)
+        derivative(f ∘ _modify_apply!, backend, model[i], contexts...)
+    end
 end
 
-function manualdiff_model!(f′, derivatives::AbstractMatrix, model::Model, x)
-    if size(model) != size(derivatives)
-        throw(DimensionMismatch("the model and its derivatives must have the same size!"))
+function manualdiff_model(f′, model, x)
+    derivatives = similar(model)
+    return manualdiff_model!(f′, derivatives, model, x)
+end
+function manualdiff_model!(f′, derivatives::AbstractVecOrMat, model, x)
+    if length(derivatives) != length(model)
+        throw(ArgumentError("The length of derivatives and the model are not equal!"))
     end
+    # FIXME: Only works for `derivatives` which supports linear indices
+    model = Model(model)
     layers = eachlayer(model)
     layerindices = eachindex(layers)
     𝐲 = zeros(eltype(x), numlayers(model) + 1)
@@ -41,29 +57,38 @@ function manualdiff_model!(f′, derivatives::AbstractMatrix, model::Model, x)
         y = 𝐲[i]
         𝟏 = oneunit(y)
         # zᵢ₊₁
-        derivatives[1, i] = α * z * y^2
-        derivatives[2, i] = α * z * y
-        derivatives[3, i] = α * z
-        derivatives[4, i] = α * y
+        derivatives[linear_index(1, i)] = α * z * y^2
+        derivatives[linear_index(2, i)] = α * z * y
+        derivatives[linear_index(3, i)] = α * z
+        derivatives[linear_index(4, i)] = α * y
         z = 𝐦[4] * 𝟏 + z * (2𝐦[1] * y + 𝐦[2] * 𝟏)  # zᵢ
     end
     return derivatives
 end
-function manualdiff_model!(f′, derivatives::AbstractMatrix, model::Model, 𝐱::AbstractVector)
-    derivatives = reshape(derivatives, length(𝐱), layerwidth(model), numlayers(model))
-    for (i, x) in enumerate(𝐱)
-        manualdiff_model!(f′, @view(derivatives[i, :, :]), model, x)
-    end
-    return derivatives
-end
+
+linear_index(j, i) = j + 4 * (i - 1)  # The linear index of the j-th element in the i-th layer
 
 _finalize_fermi_dirac_grad(Y) = -one(Y)  # Applies to 1 number at a time
 
 _finalize_electronic_entropy_grad(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
-function fermi_dirac_grad!(derivatives, 𝐱, M)
+function fermi_dirac_grad!(derivatives, 𝐱, M, ::Manual)
+    if size(derivatives) != (length(𝐱), length(M))
+        throw(DimensionMismatch("the size of derivatives is not compatible with 𝐱 and M!"))
+    end
     for (i, x) in enumerate(𝐱)
-        manualdiff_model!(_finalize_fermi_dirac_grad, derivatives[i, :], M, x)
+        manualdiff_model!(_finalize_fermi_dirac_grad, @view(derivatives[i, :]), M, x)
+    end
+    return derivatives
+end
+function fermi_dirac_grad!(derivatives, 𝐱, M, strategy::Auto)
+    if size(derivatives) != (length(𝐱), length(M))
+        throw(DimensionMismatch("the size of derivatives is not compatible with 𝐱 and M!"))
+    end
+    for (i, x) in enumerate(𝐱)
+        autodiff_model!(
+            _finalize_fermi_dirac, @view(derivatives[i, :]), M, x, strategy.backend
+        )
     end
     return derivatives
 end
