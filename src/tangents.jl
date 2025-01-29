@@ -70,11 +70,11 @@ _finalize_fermi_dirac_jac(Y) = -one(Y)  # Applies to 1 number at a time
 
 _finalize_electronic_entropy_jac(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
-function compute_jac(f_or_f′, 𝐱, model, strategy::DiffStrategy)
+function compute_jac(f_or_f′, model, 𝐱, strategy::DiffStrategy)
     derivatives = similar(model, length(𝐱), length(model))
-    return compute_jac!(f_or_f′, derivatives, 𝐱, model, strategy)
+    return compute_jac!(f_or_f′, derivatives, model, 𝐱, strategy)
 end
-function compute_jac!(f′, derivatives, 𝐱, model, ::Manual)
+function compute_jac!(f′, derivatives, model, 𝐱, ::Manual)
     if size(derivatives) != (length(𝐱), length(model))
         throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
     end
@@ -83,7 +83,7 @@ function compute_jac!(f′, derivatives, 𝐱, model, ::Manual)
     end
     return derivatives
 end
-function compute_jac!(f, derivatives, 𝐱, model, strategy::Auto)
+function compute_jac!(f, derivatives, model, 𝐱, strategy::Auto)
     if size(derivatives) != (length(𝐱), length(model))
         throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
     end
@@ -99,20 +99,20 @@ function compute_jac!(f, derivatives, 𝐱, model, strategy::Auto)
     return derivatives
 end
 
-fermi_dirac_jac(𝐱, model, ::Manual) =
-    compute_jac(_finalize_fermi_dirac_jac, 𝐱, model, Manual())
-fermi_dirac_jac(𝐱, model, strategy::Auto) =
-    compute_jac(_finalize_fermi_dirac, 𝐱, model, strategy)
-fermi_dirac_jac!(derivatives, 𝐱, model, ::Manual) =
-    compute_jac!(_finalize_fermi_dirac_jac, derivatives, 𝐱, model, Manual())
-fermi_dirac_jac!(derivatives, 𝐱, model, strategy::Auto) =
-    compute_jac!(_finalize_fermi_dirac, derivatives, 𝐱, model, strategy)
+fermi_dirac_jac(model, 𝐱, ::Manual) =
+    compute_jac(_finalize_fermi_dirac_jac, model, 𝐱, Manual())
+fermi_dirac_jac(model, 𝐱, strategy::Auto) =
+    compute_jac(_finalize_fermi_dirac, model, 𝐱, strategy)
+fermi_dirac_jac!(derivatives, model, 𝐱, ::Manual) =
+    compute_jac!(_finalize_fermi_dirac_jac, derivatives, model, 𝐱, Manual())
+fermi_dirac_jac!(derivatives, model, 𝐱, strategy::Auto) =
+    compute_jac!(_finalize_fermi_dirac, derivatives, model, 𝐱, strategy)
 
-electronic_entropy_jac(𝐱, model, ::Manual) =
-    compute_jac(_finalize_electronic_entropy_jac, 𝐱, model, Manual())
-electronic_entropy_jac(𝐱, model, strategy::Auto) =
-    compute_jac(_finalize_electronic_entropy, 𝐱, model, strategy)
-electronic_entropy_jac!(derivatives, 𝐱, model, ::Manual) =
-    compute_jac!(_finalize_electronic_entropy_jac, derivatives, 𝐱, model, Manual())
-electronic_entropy_jac!(derivatives, 𝐱, model, strategy) =
-    compute_jac!(_finalize_electronic_entropy, derivatives, 𝐱, model, strategy)
+electronic_entropy_jac(model, 𝐱, ::Manual) =
+    compute_jac(_finalize_electronic_entropy_jac, model, 𝐱, Manual())
+electronic_entropy_jac(model, 𝐱, strategy::Auto) =
+    compute_jac(_finalize_electronic_entropy, model, 𝐱, strategy)
+electronic_entropy_jac!(derivatives, model, 𝐱, ::Manual) =
+    compute_jac!(_finalize_electronic_entropy_jac, derivatives, model, 𝐱, Manual())
+electronic_entropy_jac!(derivatives, model, 𝐱, strategy) =
+    compute_jac!(_finalize_electronic_entropy, derivatives, model, 𝐱, strategy)
