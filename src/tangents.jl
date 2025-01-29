@@ -70,6 +70,10 @@ _finalize_fermi_dirac_jac(Y) = -one(Y)  # Applies to 1 number at a time
 
 _finalize_electronic_entropy_jac(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
+function compute_jac(f_or_f′, 𝐱, model, strategy::DiffStrategy)
+    derivatives = similar(model, length(𝐱), length(model))
+    return compute_jac!(f_or_f′, derivatives, 𝐱, model, strategy)
+end
 function compute_jac!(f′, derivatives, 𝐱, model, ::Manual)
     if size(derivatives) != (length(𝐱), length(model))
         throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
@@ -95,11 +99,19 @@ function compute_jac!(f, derivatives, 𝐱, model, strategy::Auto)
     return derivatives
 end
 
+fermi_dirac_jac(𝐱, model, ::Manual) =
+    compute_jac(_finalize_fermi_dirac_jac, 𝐱, model, Manual())
+fermi_dirac_jac(𝐱, model, strategy::Auto) =
+    compute_jac(_finalize_fermi_dirac, 𝐱, model, strategy)
 fermi_dirac_jac!(derivatives, 𝐱, model, ::Manual) =
     compute_jac!(_finalize_fermi_dirac_jac, derivatives, 𝐱, model, Manual())
 fermi_dirac_jac!(derivatives, 𝐱, model, strategy::Auto) =
     compute_jac!(_finalize_fermi_dirac, derivatives, 𝐱, model, strategy)
 
+electronic_entropy_jac(𝐱, model, ::Manual) =
+    compute_jac(_finalize_electronic_entropy_jac, 𝐱, model, Manual())
+electronic_entropy_jac(𝐱, model, strategy::Auto) =
+    compute_jac(_finalize_electronic_entropy, 𝐱, model, strategy)
 electronic_entropy_jac!(derivatives, 𝐱, model, ::Manual) =
     compute_jac!(_finalize_electronic_entropy_jac, derivatives, 𝐱, model, Manual())
 electronic_entropy_jac!(derivatives, 𝐱, model, strategy) =
