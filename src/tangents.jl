@@ -22,9 +22,10 @@ function autodiff_model!(f, derivatives, model, x, backend)
         throw(DimensionMismatch("the length of derivatives and the model are not equal!"))
     end
     model = Model(model)
+    g = f ∘ _modify_apply!
     return map!(derivatives, eachindex(model)) do i
         contexts = Constant(model), Constant(i), Constant(x)
-        derivative(f ∘ _modify_apply!, backend, model[i], contexts...)
+        derivative(g, backend, model[i], contexts...)
     end
 end
 
