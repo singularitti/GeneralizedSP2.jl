@@ -24,6 +24,7 @@ function Model(A::AbstractVector{<:AbstractVector})
 end
 Model(A::AbstractVector) = Model(reshape(parent(A), LAYER_WIDTH, :))
 Model(model::Model) = model
+Model{T}(::UndefInitializer, dims::Dims{2}) where {T} = Model(Matrix{T}(undef, dims))
 
 struct FlattendModel{T} <: Model1D{T}
     data::Vector{T}
@@ -43,6 +44,8 @@ function FlattendModel(A::AbstractVector{<:AbstractVector})
 end
 FlattendModel(A::AbstractMatrix) = FlattendModel(vec(A))
 FlattendModel(model::FlattendModel) = model
+FlattendModel{T}(::UndefInitializer, dims::Dims{1}) where {T} =
+    FlattendModel(Vector{T}(undef, dims))
 
 layerwidth(::AbstractModel) = LAYER_WIDTH
 
