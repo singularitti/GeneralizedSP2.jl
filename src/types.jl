@@ -2,12 +2,12 @@ export Model, FlatModel, layerwidth, numlayers, eachlayer
 
 const LAYER_WIDTH = 4
 
-abstract type AbstractModel{T,N} <: AbstractArray{T,N} end
-const Model2D{T} = AbstractModel{T,2}
-const Model1D{T} = AbstractModel{T,1}
+abstract type AbstractModel{T,N,M<:AbstractArray{T,N}} <: AbstractArray{T,N} end
+const Model2D{T,A} = AbstractModel{T,2,A}
+const Model1D{T,A} = AbstractModel{T,1,A}
 
-struct Model{T,M<:AbstractMatrix{T}} <: Model2D{T}
-    data::M
+struct Model{T,A<:AbstractMatrix{T}} <: Model2D{T,A}
+    data::A
     function Model{T}(data::AbstractMatrix{S}) where {T,S}
         if size(data, 1) != LAYER_WIDTH
             throw(DimensionMismatch("model matrix must have $LAYER_WIDTH rows!"))  # See https://discourse.julialang.org/t/120556/2
@@ -31,8 +31,8 @@ Model(A::AbstractVector) = Model(reshape(parent(A), LAYER_WIDTH, :))
 Model(model::Model) = model
 Model{T}(::UndefInitializer, dims::Dims{2}) where {T} = Model(Matrix{T}(undef, dims))
 
-struct FlatModel{T,M<:AbstractVector{T}} <: Model1D{T}
-    data::M
+struct FlatModel{T,A<:AbstractVector{T}} <: Model1D{T,A}
+    data::A
     function FlatModel{T}(data::AbstractVector{S}) where {T,S}
         if !iszero(length(data) % LAYER_WIDTH)
             throw(DimensionMismatch("flattend model must have $LAYER_WIDTH×N elements!"))
