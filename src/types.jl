@@ -66,25 +66,19 @@ Base.setindex!(model::AbstractModel, v, i::Int) = setindex!(parent(model), v, i)
 Base.IndexStyle(::Type{<:AbstractModel}) = IndexLinear()
 
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta2/base/abstractarray.jl#L839
-function Base.similar(model::AbstractModel, ::Type{T}, dims::Dims) where {T}
-    if dims isa Dims{1}
-        return FlattendModel(similar(parent(model), T, dims))
-    elseif dims isa Dims{2}
-        return Model(similar(parent(model), T, dims))
-    else
-        return similar(parent(model), T, dims)
-    end
-end
+Base.similar(model::AbstractModel, ::Type{T}, dims::Dims{1}) where {T} =
+    FlattendModel(similar(parent(model), T, dims))
+Base.similar(model::AbstractModel, ::Type{T}, dims::Dims{2}) where {T} =
+    Model(similar(parent(model), T, dims))
+Base.similar(model::AbstractModel, ::Type{T}, dims::Dims) where {T} =
+    similar(parent(model), T, dims)
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta1/base/abstractarray.jl#L874
-function Base.similar(::Type{<:AbstractModel{T}}, dims::Dims{N}) where {T,N}
-    if dims isa Dims{1}
-        return FlattendModel(Vector{T}(undef, dims))
-    elseif dims isa Dims{2}
-        return Model(Matrix{T}(undef, dims))
-    else
-        return similar(Array{T,N}, dims)
-    end
-end
+Base.similar(::Type{<:AbstractModel{T}}, dims::Dims{1}) where {T} =
+    FlattendModel(Vector{T}(undef, dims))
+Base.similar(::Type{<:AbstractModel{T}}, dims::Dims{2}) where {T} =
+    Model(Matrix{T}(undef, dims))
+Base.similar(::Type{<:AbstractModel{T}}, dims::Dims{N}) where {T,N} =
+    similar(Array{T,N}, dims)
 
 # See https://docs.julialang.org/en/v1/manual/conversion-and-promotion/#When-is-convert-called?
 Base.convert(::Type{Model{S}}, model::Model{T}) where {S,T} = Model{S}(model)
