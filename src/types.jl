@@ -6,13 +6,18 @@ abstract type AbstractModel{T,N} <: AbstractArray{T,N} end
 const Model2D{T} = AbstractModel{T,2}
 const Model1D{T} = AbstractModel{T,1}
 
-struct Model{T} <: Model2D{T}
-    data::Matrix{T}
+struct Model{T,M<:AbstractMatrix{T}} <: Model2D{T}
+    data::M
     function Model{T}(data::AbstractMatrix{S}) where {T,S}
         if size(data, 1) != LAYER_WIDTH
             throw(DimensionMismatch("model matrix must have $LAYER_WIDTH rows!"))  # See https://discourse.julialang.org/t/120556/2
         end
-        return S <: T ? new{S}(data) : new(convert(Matrix{T}, data))  # Reduce allocations
+        return if S <: T
+            new{S,typeof(data)}(data)  # Reduce allocations
+        else
+            data′ = similar(data, T)
+            new{T,typeof(data′)}(copyto!(data′, data))  # Reduce allocations
+        end  # Reduce allocations
     end
 end
 Model(A::AbstractMatrix) = Model{eltype(A)}(A)
@@ -26,13 +31,18 @@ Model(A::AbstractVector) = Model(reshape(parent(A), LAYER_WIDTH, :))
 Model(model::Model) = model
 Model{T}(::UndefInitializer, dims::Dims{2}) where {T} = Model(Matrix{T}(undef, dims))
 
-struct FlatModel{T} <: Model1D{T}
-    data::Vector{T}
+struct FlatModel{T,M<:AbstractVector{T}} <: Model1D{T}
+    data::M
     function FlatModel{T}(data::AbstractVector{S}) where {T,S}
         if !iszero(length(data) % LAYER_WIDTH)
             throw(DimensionMismatch("flattend model must have $LAYER_WIDTH×N elements!"))
         end
-        return S <: T ? new{S}(data) : new(convert(Vector{T}, data))  # Reduce allocations
+        return if S <: T
+            new{S,typeof(data)}(data)  # Reduce allocations
+        else
+            data′ = similar(data, T)
+            new{T,typeof(data′)}(copyto!(data′, data))  # Reduce allocations
+        end  # Reduce allocations
     end
 end
 FlatModel(A::AbstractVector) = FlatModel{eltype(A)}(A)
