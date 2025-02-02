@@ -66,23 +66,23 @@ Base.setindex!(model::AbstractModel, v, i::Int) = setindex!(parent(model), v, i)
 Base.IndexStyle(::Type{<:AbstractModel}) = IndexLinear()
 
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta2/base/abstractarray.jl#L839
-function Base.similar(M::AbstractModel, ::Type{T}, dims::Dims) where {T}
+function Base.similar(model::AbstractModel, ::Type{T}, dims::Dims) where {T}
     if dims isa Dims{1}
-        return FlattendModel(similar(parent(M), T, dims))
+        return FlattendModel(similar(parent(model), T, dims))
     elseif dims isa Dims{2}
-        return Model(similar(parent(M), T, dims))
+        return Model(similar(parent(model), T, dims))
     else
-        return throw(DimensionMismatch("invalid dimensions `$dims` for `Model`!"))
+        return similar(parent(model), T, dims)
     end
 end
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta1/base/abstractarray.jl#L874
-function Base.similar(::Type{<:AbstractModel{T}}, dims::Dims) where {T}
+function Base.similar(::Type{<:AbstractModel{T}}, dims::Dims{N}) where {T,N}
     if dims isa Dims{1}
         return FlattendModel(Vector{T}(undef, dims))
     elseif dims isa Dims{2}
         return Model(Matrix{T}(undef, dims))
     else
-        return throw(DimensionMismatch("invalid dimensions `$dims` for `Model`!"))
+        return similar(Array{T,N}, dims)
     end
 end
 
