@@ -1,4 +1,4 @@
-export Model, layerwidth, numlayers, eachlayer
+export Model, FlatModel, layerwidth, numlayers, eachlayer
 
 const LAYER_WIDTH = 4
 
