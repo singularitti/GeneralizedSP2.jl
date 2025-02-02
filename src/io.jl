@@ -7,7 +7,7 @@ function loadmodel(file)
     if ext in (".npy", ".npz")
         A = npzread(file)
         if A isa AbstractVector
-            return FlattendModel(A)
+            return FlatModel(A)
         elseif A isa AbstractMatrix
             return Model(A)
         else

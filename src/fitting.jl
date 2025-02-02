@@ -104,12 +104,12 @@ function init_model(μ, nlayers)
             model[:, i] = [-1, 2, 0, 0] # x' = 2x - x^2, decrease μᵢ
         end
     end
-    return FlattendModel(model)
+    return FlatModel(model)
 end
 
-_fermi_dirac!(result, 𝐱, M) = map!(fermi_dirac(FlattendModel(M)), result, 𝐱)  # Only used for fitting
+_fermi_dirac!(result, 𝐱, M) = map!(fermi_dirac(FlatModel(M)), result, 𝐱)  # Only used for fitting
 
-_electronic_entropy!(result, 𝐱, M) = map!(electronic_entropy(FlattendModel(M)), result, 𝐱)  # Only used for fitting
+_electronic_entropy!(result, 𝐱, M) = map!(electronic_entropy(FlatModel(M)), result, 𝐱)  # Only used for fitting
 
 _fermi_dirac_jac!(strategy::DiffStrategy) =
     (derivatives, 𝐱, M) -> fermi_dirac_jac!(derivatives, M, 𝐱, strategy)  # Only used for fitting
@@ -117,5 +117,5 @@ _fermi_dirac_jac!(strategy::DiffStrategy) =
 _electronic_entropy_jac!(strategy::DiffStrategy) =
     (derivatives, 𝐱, M) -> electronic_entropy_jac!(derivatives, M, 𝐱, strategy)  # Only used for fitting
 
-LMResults(method, initial_x::FlattendModel, minimizer::FlattendModel, args...) =
+LMResults(method, initial_x::FlatModel, minimizer::FlatModel, args...) =
     LMResults(method, convert(Vector, initial_x), convert(Vector, minimizer), args...)

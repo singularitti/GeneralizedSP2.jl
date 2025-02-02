@@ -26,34 +26,34 @@ Model(A::AbstractVector) = Model(reshape(parent(A), LAYER_WIDTH, :))
 Model(model::Model) = model
 Model{T}(::UndefInitializer, dims::Dims{2}) where {T} = Model(Matrix{T}(undef, dims))
 
-struct FlattendModel{T} <: Model1D{T}
+struct FlatModel{T} <: Model1D{T}
     data::Vector{T}
-    function FlattendModel{T}(data::AbstractVector{S}) where {T,S}
+    function FlatModel{T}(data::AbstractVector{S}) where {T,S}
         if !iszero(length(data) % LAYER_WIDTH)
             throw(DimensionMismatch("flattend model must have $LAYER_WIDTH×N elements!"))
         end
         return S <: T ? new{S}(data) : new(convert(Vector{T}, data))  # Reduce allocations
     end
 end
-FlattendModel(A::AbstractVector) = FlattendModel{eltype(A)}(A)
-function FlattendModel(A::AbstractVector{<:AbstractVector})
+FlatModel(A::AbstractVector) = FlatModel{eltype(A)}(A)
+function FlatModel(A::AbstractVector{<:AbstractVector})
     if any(map(length, A) .!= 4)
         throw(DimensionMismatch("model must have $LAYER_WIDTH×N elements!"))
     end
-    return FlattendModel(collect(Iterators.flatten(A)))
+    return FlatModel(collect(Iterators.flatten(A)))
 end
-FlattendModel(A::AbstractMatrix) = FlattendModel(vec(A))
-FlattendModel(model::FlattendModel) = model
-FlattendModel{T}(::UndefInitializer, dims::Dims{1}) where {T} =
-    FlattendModel(Vector{T}(undef, dims))
+FlatModel(A::AbstractMatrix) = FlatModel(vec(A))
+FlatModel(model::FlatModel) = model
+FlatModel{T}(::UndefInitializer, dims::Dims{1}) where {T} =
+    FlatModel(Vector{T}(undef, dims))
 
 layerwidth(::AbstractModel) = LAYER_WIDTH
 
 numlayers(model::Model) = size(model, 2)
-numlayers(model::FlattendModel) = numlayers(Model(model))
+numlayers(model::FlatModel) = numlayers(Model(model))
 
 eachlayer(model::Model) = eachcol(model)
-eachlayer(model::FlattendModel) = eachcol(Model(model))
+eachlayer(model::FlatModel) = eachcol(Model(model))
 
 Base.parent(model::AbstractModel) = model.data
 
@@ -67,14 +67,14 @@ Base.IndexStyle(::Type{<:AbstractModel}) = IndexLinear()
 
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta2/base/abstractarray.jl#L839
 Base.similar(model::AbstractModel, ::Type{T}, dims::Dims{1}) where {T} =
-    FlattendModel(similar(parent(model), T, dims))
+    FlatModel(similar(parent(model), T, dims))
 Base.similar(model::AbstractModel, ::Type{T}, dims::Dims{2}) where {T} =
     Model(similar(parent(model), T, dims))
 Base.similar(model::AbstractModel, ::Type{T}, dims::Dims) where {T} =
     similar(parent(model), T, dims)
 # Override https://github.com/JuliaLang/julia/blob/v1.10.0-beta1/base/abstractarray.jl#L874
 Base.similar(::Type{<:AbstractModel{T}}, dims::Dims{1}) where {T} =
-    FlattendModel(Vector{T}(undef, dims))
+    FlatModel(Vector{T}(undef, dims))
 Base.similar(::Type{<:AbstractModel{T}}, dims::Dims{2}) where {T} =
     Model(Matrix{T}(undef, dims))
 Base.similar(::Type{<:AbstractModel{T}}, dims::Dims{N}) where {T,N} =
@@ -83,12 +83,11 @@ Base.similar(::Type{<:AbstractModel{T}}, dims::Dims{N}) where {T,N} =
 # See https://docs.julialang.org/en/v1/manual/conversion-and-promotion/#When-is-convert-called?
 Base.convert(::Type{Model{S}}, model::Model{T}) where {S,T} = Model{S}(model)
 Base.convert(::Type{Model}, model::Model{T}) where {T} = model
-Base.convert(::Type{FlattendModel{S}}, model::FlattendModel{T}) where {S,T} =
-    FlattendModel{S}(model)
-Base.convert(::Type{FlattendModel}, model::FlattendModel{T}) where {T} = model
-Base.convert(::Type{Model{S}}, model::FlattendModel{T}) where {S,T} =
+Base.convert(::Type{FlatModel{S}}, model::FlatModel{T}) where {S,T} = FlatModel{S}(model)
+Base.convert(::Type{FlatModel}, model::FlatModel{T}) where {T} = model
+Base.convert(::Type{Model{S}}, model::FlatModel{T}) where {S,T} =
     Model(convert(Matrix{S}, model))
-Base.convert(::Type{Model}, model::FlattendModel{T}) where {T} = Model(model)
-Base.convert(::Type{FlattendModel{S}}, model::Model{T}) where {S,T} =
-    FlattendModel(convert(Vector{S}, model))
-Base.convert(::Type{FlattendModel}, model::Model{T}) where {T} = FlattendModel(model)
+Base.convert(::Type{Model}, model::FlatModel{T}) where {T} = Model(model)
+Base.convert(::Type{FlatModel{S}}, model::Model{T}) where {S,T} =
+    FlatModel(convert(Vector{S}, model))
+Base.convert(::Type{FlatModel}, model::Model{T}) where {T} = FlatModel(model)
