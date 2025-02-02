@@ -13,11 +13,11 @@ struct Model{T,M<:AbstractMatrix{T}} <: Model2D{T}
             throw(DimensionMismatch("model matrix must have $LAYER_WIDTH rows!"))  # See https://discourse.julialang.org/t/120556/2
         end
         return if S <: T
-            new{S,typeof(data)}(data)  # Reduce allocations
+            new{S,typeof(data)}(data)
         else
             data′ = similar(data, T)
             new{T,typeof(data′)}(copyto!(data′, data))  # Reduce allocations
-        end  # Reduce allocations
+        end
     end
 end
 Model(A::AbstractMatrix) = Model{eltype(A)}(A)
@@ -38,11 +38,11 @@ struct FlatModel{T,M<:AbstractVector{T}} <: Model1D{T}
             throw(DimensionMismatch("flattend model must have $LAYER_WIDTH×N elements!"))
         end
         return if S <: T
-            new{S,typeof(data)}(data)  # Reduce allocations
+            new{S,typeof(data)}(data)
         else
             data′ = similar(data, T)
             new{T,typeof(data′)}(copyto!(data′, data))  # Reduce allocations
-        end  # Reduce allocations
+        end
     end
 end
 FlatModel(A::AbstractVector) = FlatModel{eltype(A)}(A)
