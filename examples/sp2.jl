@@ -37,15 +37,18 @@ end
 
 μ = 0.4
 𝐱 = 0:0.001:1
-plot()
-hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-for nlayers in 6:15
+𝐲₀ = Base.Fix2(heaviside, μ).(𝐱)
+plot(; layout=grid(2, 1; heights=(0.7, 0.3)))
+for nlayers in 7:15
     branches = determine_branches(μ, nlayers)
     𝐲 = forward_pass(branches, 𝐱)
-    plot!(𝐱, 𝐲; linestyle=:dash, label="L=" * string(nlayers), PLOT_DEFAULTS...)
+    plot!(𝐱, 𝐲; subplot=1, linestyle=:dash, label="I=" * string(nlayers), PLOT_DEFAULTS...)
+    plot!(𝐱, 𝐲 - 𝐲₀; subplot=2, label="", linestyle=:dash, PLOT_DEFAULTS..., minorticks=2)
 end
-plot!(𝐱, Base.Fix2(heaviside, μ).(𝐱); linetype=:steppre, label="H(x - 0.4)")
+plot!(𝐱, 𝐲₀; subplot=1, linetype=:steppre, label="H(x - 0.4)", PLOT_DEFAULTS...)
+hline!([0]; subplot=2, label="", seriescolor=:black, primary=false)
 xlims!(0, 1)
-xlabel!("x")
-ylabel!("y")
-savefig("sp2.pdf")
+xlabel!("x"; subplot=2)
+ylabel!("y"; subplot=1)
+ylabel!("y - H(x - 0.4)"; subplot=2)
+savefig("sp2.png")
