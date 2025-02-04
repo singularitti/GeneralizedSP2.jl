@@ -2,7 +2,7 @@ using GeneralizedSP2
 using Plots
 
 PLOT_DEFAULTS = Dict(
-    :size => (450, 450),
+    :size => (450, 600),
     :dpi => 400,
     :framestyle => :box,
     :linewidth => 1.5,
@@ -12,8 +12,8 @@ PLOT_DEFAULTS = Dict(
     :titlefontsize => 10,
     :guidefontsize => 10,
     :tickfontsize => 8,
-    :legendfontsize => 7,
-    :left_margin => (0, :mm),
+    :legendfontsize => 8,
+    :left_margin => (1, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
@@ -39,6 +39,7 @@ end
 𝐱 = 0:0.001:1
 𝐲₀ = Base.Fix2(heaviside, μ).(𝐱)
 plot(; layout=grid(2, 1; heights=(0.7, 0.3)))
+hline!([1 / 2]; subplot=1, label="", seriescolor=:black, primary=false)
 for nlayers in 7:15
     branches = determine_branches(μ, nlayers)
     𝐲 = forward_pass(branches, 𝐱)
