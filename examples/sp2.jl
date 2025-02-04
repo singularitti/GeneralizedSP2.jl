@@ -20,54 +20,19 @@ PLOT_DEFAULTS = Dict(
     :legend_position => :topleft,
     :background_color_inside => nothing,
     :color_palette => :tab10,
+    :fontfamily => "Palatino Roman",
 )
-
-f(𝐱) = 𝐱 .^ 2
-
-g(𝐱) = 2𝐱 .- 𝐱 .^ 2
 
 𝐱 = chebyshevnodes_1st(1000, (0, 1))
 
 plot()
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-plot!(𝐱, g(𝐱); label=raw"$g(x) = 2x - x^2$", PLOT_DEFAULTS...)
-plot!(𝐱, (f ∘ g)(𝐱); label=raw"$f \circ g$", PLOT_DEFAULTS...)
-plot!(𝐱, (g ∘ f)(𝐱); label=raw"$g \circ f$", PLOT_DEFAULTS...)
-plot!(𝐱, f(𝐱); label=raw"$f(x) = x^2$", PLOT_DEFAULTS...)
-xlims!(0, 1)
-xlabel!(raw"$x$")
-ylabel!(raw"$y$")
-savefig("projections.pdf")
-
-plot()
-hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-plot!(𝐱, g(𝐱); label=raw"$g(x) = 2x - x^2$", PLOT_DEFAULTS...)
-plot!(𝐱, (f ∘ g)(𝐱); label=raw"$f \circ g$", PLOT_DEFAULTS...)
-plot!(𝐱, (g ∘ f ∘ g)(𝐱); label=raw"$g \circ f \circ g$", PLOT_DEFAULTS...)
-plot!(𝐱, (f ∘ g ∘ f ∘ g)(𝐱); label=raw"$f \circ g \circ f \circ g$", PLOT_DEFAULTS...)
-plot!(
-    𝐱,
-    (g ∘ f ∘ g ∘ f ∘ g)(𝐱);
-    label=raw"$g \circ f \circ g \circ f \circ g$",
-    PLOT_DEFAULTS...,
-)
-xlims!(0, 1)
-xlabel!(raw"$x$")
-ylabel!(raw"$y$")
-savefig("projections_more.pdf")
-
-plot()
-xlims!(0, 1)
-xlabel!(raw"$x$")
-ylabel!(raw"$y$")
-projections = Iterators.accumulate(∘, map(i -> iseven(i) ? f : g, 1:6))
-animation = @animate for projection in projections
-    plot!(
-        𝐱,
-        projection.(𝐱);
-        label=string(repr(projection; context=:module => Main)),  # See https://discourse.julialang.org/t/122702/2
-        PLOT_DEFAULTS...,
-        legend_position=:bottomright,
-    )
+for nlayers in 4:1:13
+    branches = determine_branches(1 / 2, nlayers)
+    𝐲 = forward_pass(branches, 𝐱)
+    plot!(𝐱, 𝐲; label="L=" * string(nlayers), PLOT_DEFAULTS...)
 end
-gif(animation, "animation.gif"; fps=2)
+xlims!(0, 1)
+xlabel!(raw"$x$")
+ylabel!(raw"$y$")
+savefig("sp2.pdf")
