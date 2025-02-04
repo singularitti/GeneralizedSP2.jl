@@ -1,7 +1,7 @@
 using AffineScaler: rescale_one_zero
 using Distributions
 using GeneralizedSP2
-using GeneralizedSP2: fermi_dirac_deriv, _finalize_fermi_dirac_grad
+using GeneralizedSP2: fermi_dirac_deriv, fermi_dirac_jac
 using LinearAlgebra: Eigen, Hermitian, diag, eigen, eigvals, norm, tr
 using Roots: Newton, find_zero
 using Plots
@@ -112,7 +112,7 @@ rmse = map(𝐲_fitted) do 𝐲
     sqrt(mean(abs2, residuals))
 end
 derivative_norms = map(models) do model
-    𝝝̄ = manualdiff_model(_finalize_fermi_dirac_grad, 𝛆′, model)
+    𝝝̄ = fermi_dirac_jac(𝛆′, model, Manual())
     norm(𝝝̄, Inf)
 end
 densitymatrices = map(models) do model
