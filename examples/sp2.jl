@@ -17,22 +17,35 @@ PLOT_DEFAULTS = Dict(
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
-    :legend_position => :topleft,
+    :legend_position => :bottomright,
     :background_color_inside => nothing,
     :color_palette => :tab10,
-    :fontfamily => "Palatino Roman",
+    :legendfontfamily => "Palatino Italic",
+    :guidefontfamily => "Palatino Italic",
+    :tickfontfamily => "Palatino Roman",
 )
 
-𝐱 = chebyshevnodes_1st(1000, (0, 1))
+function heaviside(x, μ)
+    if x < μ
+        return 0
+    elseif x == μ
+        return 1 / 2
+    else
+        return 1
+    end
+end
 
+μ = 0.4
+𝐱 = 0:0.001:1
 plot()
 hline!([1 / 2]; label="", seriescolor=:black, primary=false)
-for nlayers in 4:1:13
-    branches = determine_branches(1 / 2, nlayers)
+for nlayers in 6:15
+    branches = determine_branches(μ, nlayers)
     𝐲 = forward_pass(branches, 𝐱)
-    plot!(𝐱, 𝐲; label="L=" * string(nlayers), PLOT_DEFAULTS...)
+    plot!(𝐱, 𝐲; linestyle=:dash, label="L=" * string(nlayers), PLOT_DEFAULTS...)
 end
+plot!(𝐱, Base.Fix2(heaviside, μ).(𝐱); linetype=:steppre, label="H(x - 0.4)")
 xlims!(0, 1)
-xlabel!(raw"$x$")
-ylabel!(raw"$y$")
+xlabel!("x")
+ylabel!("y")
 savefig("sp2.pdf")
