@@ -41,15 +41,14 @@ results = map(max_iters) do max_iter
     timed_results = @showprogress map(layers) do nlayers
         model_init = init_model(μ′, nlayers)
         value, time = @btimed fit_fermi_dirac(
-            $𝛆′, $μ′, $β′, $model_init; max_iter=$max_iter
-        ) samples=1 evals = 1
-        (value=value, time=time)
+            $𝛆′, $μ′, $β′, $model_init; max_iter=$max_iter, diff=Manual()
+        ) samples = 1 evals = 1
     end
     models = map(timed_results) do timed_result
-        timed_result.value.model
+        timed_result[begin].model
     end
     times = map(timed_results) do timed_result
-        timed_result.time
+        timed_result[end]
     end
     rmse = map(models) do model
         𝐲_fitted = fermi_dirac(model).(𝛆′)
