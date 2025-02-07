@@ -42,7 +42,7 @@ results = map(max_iters) do max_iter
         model_init = init_model(μ′, nlayers)
         value, time = @btimed fit_fermi_dirac(
             $𝛆′, $μ′, $β′, $model_init; max_iter=$max_iter
-        ) samples = 1
+        ) samples=1 evals = 1
         (value=value, time=time)
     end
     models = map(timed_results) do timed_result
