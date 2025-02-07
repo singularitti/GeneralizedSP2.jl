@@ -2,12 +2,8 @@ using GeneralizedSP2
 using Plots
 using ProgressMeter: @showprogress
 using Statistics: mean
-using BenchmarkTools: BenchmarkTools, BenchmarkGroup, prunekwargs, hasevals, @btimed
+using BenchmarkTools: @btimed
 
-SUITE = BenchmarkGroup()
-SUITE["rand"] = @benchmarkable rand(10)
-
-# Write your benchmarks here.
 PLOT_DEFAULTS = Dict(
     :dpi => 400,
     :framestyle => :box,
