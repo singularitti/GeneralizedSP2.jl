@@ -1,7 +1,11 @@
+using Chairmarks
+using BenchmarkTools
+using DifferentiationInterface
+using Enzyme
 using GeneralizedSP2
+using Mooncake
 using Plots
 using Statistics: mean
-using BenchmarkTools: @btimed
 
 PLOT_DEFAULTS = Dict(
     :dpi => 400,
@@ -35,9 +39,12 @@ results = map(max_iters) do max_iter
     timed_results = map(layers) do nlayers
         println("fitting for max_iter = $max_iter", ", nlayers = $nlayers")
         model_init = init_model(μ′, nlayers)
-        value, time = @btimed fit_fermi_dirac(
+        result = Ref{Any}()
+        benchmark = @b _ fit_fermi_dirac(
             $𝛆′, $μ′, $β′, $model_init; max_iter=$max_iter, diff=Manual()
-        ) samples = 1 evals = 1
+        ) result[] = _ samples = 1 evals = 1
+        value = result[]
+        value, benchmark.time
     end
     models = map(timed_results) do timed_result
         timed_result[begin].model
@@ -53,7 +60,7 @@ results = map(max_iters) do max_iter
     (rmse=rmse, times=times)
 end
 
-time_matrix = hcat([result.times for result in results]...) / 1e6  # Default units are in nanoseconds
+time_matrix = hcat([result.times for result in results]...)  # In seconds
 rmse_matrix = hcat([result.rmse for result in results]...)
 
 layout = (1, 2)
