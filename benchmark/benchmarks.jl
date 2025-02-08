@@ -10,20 +10,24 @@ using Statistics: mean
 PLOT_DEFAULTS = Dict(
     :dpi => 400,
     :framestyle => :box,
-    :linewidth => 2,
-    :markersize => 2,
+    :linewidth => 1.5,
+    :markersize => 4,
     :markerstrokewidth => 0,
-    :titlefontsize => 8,
-    :plot_titlefontsize => 8,
-    :guidefontsize => 8,
-    :tickfontsize => 6,
+    :minorticks => 5,
+    :guidefontsize => 9,
+    :tickfontsize => 7,
     :legendfontsize => 8,
-    :bottom_margin => (2, :mm),
+    :left_margin => (4, :mm),
+    :bottom_margin => (4, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
+    :legend_position => :bottomright,
     :background_color_inside => nothing,
     :color_palette => :tab10,
+    :legendfontfamily => "Palatino Italic",
+    :guidefontfamily => "Palatino Roman",
+    :tickfontfamily => "Palatino Roman",
 )
 
 β′ = 60
@@ -64,38 +68,37 @@ time_matrix = hcat([result.times for result in results]...)  # In seconds
 rmse_matrix = hcat([result.rmse for result in results]...)
 
 layout = (1, 2)
-plot(; layout=layout, PLOT_DEFAULTS..., size=(3200 / 3, 450))
+plot(; layout=layout, PLOT_DEFAULTS..., size=(1100, 425))
 plot!(
     layers,
     rmse_matrix;
     subplot=1,
-    label=hcat(("# fitting iter=$max_iter" for max_iter in max_iters)...),
+    label=hcat(("I=$max_iter" for max_iter in max_iters)...),
     yscale=:log10,
     xticks=layers,
     yticks=exp10.((-9):(-3)),
     xminorticks=0,
     yminorticks=5,
-    xlabel=raw"number of layers $L$",
+    xlabel="number of layers",
     ylabel="RMSE of fitting",
     PLOT_DEFAULTS...,
-    left_margin=(3, :mm),
     legend_position=:bottomleft,
 )
 plot!(
     layers,
     time_matrix;
     subplot=2,
-    label=hcat(("# fitting iter=$max_iter" for max_iter in max_iters)...),
+    label=hcat(("I=$max_iter" for max_iter in max_iters)...),
     yscale=:log10,
     xticks=layers,
-    yticks=exp10.(0:6),
+    yticks=exp10.(-2:3),
     xminorticks=0,
     yminorticks=5,
-    xlabel=raw"number of layers $L$",
-    ylabel="time (ms)",
+    xlabel="number of layers",
+    ylabel="time (s)",
     PLOT_DEFAULTS...,
     left_margin=(1, :mm),
     legend_position=:topleft,
 )
-xlims!(12, 19)
-savefig("benchmarks.pdf")
+xlims!(extrema(layers))
+savefig("benchmarks.png")
