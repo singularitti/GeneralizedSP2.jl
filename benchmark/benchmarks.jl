@@ -1,6 +1,5 @@
 using GeneralizedSP2
 using Plots
-using ProgressMeter: @showprogress
 using Statistics: mean
 using BenchmarkTools: @btimed
 
@@ -33,8 +32,8 @@ layers = 12:20
 max_iters = [1_000, 10_000, 100_000, 1_000_000, 10_000_000]
 
 results = map(max_iters) do max_iter
-    println("fitting for max_iter = $max_iter")
-    timed_results = @showprogress map(layers) do nlayers
+    timed_results = map(layers) do nlayers
+        println("fitting for max_iter = $max_iter", ", nlayers = $nlayers")
         model_init = init_model(μ′, nlayers)
         value, time = @btimed fit_fermi_dirac(
             $𝛆′, $μ′, $β′, $model_init; max_iter=$max_iter, diff=Manual()
