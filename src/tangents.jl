@@ -11,25 +11,25 @@ end
 _apply(x) = model -> model(x)
 
 function autodiff_model(f, model, x, backend)
-    derivatives = similar(parent(model))
-    return autodiff_model!(f, derivatives, model, x, backend)
+    grad = similar(parent(model))
+    return autodiff_model!(f, grad, model, x, backend)
 end
-function autodiff_model!(f, derivatives, model, x, backend)
-    if length(derivatives) != length(model)
-        throw(DimensionMismatch("the length of derivatives and the model are not equal!"))
+function autodiff_model!(f, grad, model, x, backend)
+    if length(grad) != length(model)
+        throw(DimensionMismatch("the length of gradient and the model are not equal!"))
     end
     model = Model(model)
     g = f ∘ _apply(x)
-    return gradient!(g, derivatives, backend, model)
+    return gradient!(g, grad, backend, model)
 end
 
 function manualdiff_model(f′, model, x)
-    derivatives = similar(parent(model))
-    return manualdiff_model!(f′, derivatives, model, x)
+    grad = similar(parent(model))
+    return manualdiff_model!(f′, grad, model, x)
 end
-function manualdiff_model!(f′, derivatives::AbstractVecOrMat, model, x)
-    if length(derivatives) != length(model)
-        throw(DimensionMismatch("the length of derivatives and the model are not equal!"))
+function manualdiff_model!(f′, grad::AbstractVecOrMat, model, x)
+    if length(grad) != length(model)
+        throw(DimensionMismatch("the length of gradient and the model are not equal!"))
     end
     model = Model(model)
     layers = eachlayer(model)
@@ -52,13 +52,13 @@ function manualdiff_model!(f′, derivatives::AbstractVecOrMat, model, x)
         y = 𝐲[i]
         𝟏 = oneunit(y)
         # zᵢ₊₁
-        derivatives[linear_indices[1, i]] = α * z * y^2
-        derivatives[linear_indices[2, i]] = α * z * y
-        derivatives[linear_indices[3, i]] = α * z
-        derivatives[linear_indices[4, i]] = α * y
+        grad[linear_indices[1, i]] = α * z * y^2
+        grad[linear_indices[2, i]] = α * z * y
+        grad[linear_indices[3, i]] = α * z
+        grad[linear_indices[4, i]] = α * y
         z = 𝐦[4] * 𝟏 + z * (2𝐦[1] * y + 𝐦[2] * 𝟏)  # zᵢ
     end
-    return derivatives
+    return grad
 end
 
 _finalize_fermi_dirac_jac(Y) = -one(Y)  # Applies to 1 number at a time
@@ -66,48 +66,50 @@ _finalize_fermi_dirac_jac(Y) = -one(Y)  # Applies to 1 number at a time
 _finalize_electronic_entropy_jac(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
 function compute_jac(f_or_f′, model, 𝐱, strategy::DiffStrategy)
-    derivatives = similar(parent(model), length(𝐱), length(model))
-    return compute_jac!(f_or_f′, derivatives, model, 𝐱, strategy)
+    jac = similar(parent(model), length(𝐱), length(model))
+    return compute_jac!(f_or_f′, jac, model, 𝐱, strategy)
 end
-function compute_jac!(f′, derivatives, model, 𝐱, ::Manual)
-    if size(derivatives) != (length(𝐱), length(model))
-        throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
+function compute_jac!(f′, jac, model, 𝐱, ::Manual)
+    if size(jac) != (length(𝐱), length(model))
+        throw(DimensionMismatch("the size of `jac` is not compatible with `𝐱` & `model`!"))
     end
     for (i, x) in enumerate(𝐱)
-        manualdiff_model!(f′, @view(derivatives[i, :]), model, x)
+        manualdiff_model!(f′, @view(jac[i, :]), model, x)
     end
-    return derivatives
+    return jac
 end
-function compute_jac!(f, derivatives, model, 𝐱, strategy::Auto)
-    if size(derivatives) != (length(𝐱), length(model))
-        throw(DimensionMismatch("the size of `derivatives` is not compatible with `𝐱` & `model`!"))
+function compute_jac!(f, jac, model, 𝐱, strategy::Auto)
+    if size(jac) != (length(𝐱), length(model))
+        throw(DimensionMismatch("the size of `jac` is not compatible with `𝐱` & `model`!"))
     end
     for (i, x) in enumerate(𝐱)
         autodiff_model!(
             f,
-            @view(derivatives[i, :]),  # Must use `@view` or `derivatives` will not be updated
+            @view(jac[i, :]),  # Must use `@view` or `jac` will not be updated
             model,
             x,
             strategy.backend,
         )
     end
-    return derivatives
+    return jac
 end
 
 fermi_dirac_jac(model, 𝐱, ::Manual) =
     compute_jac(_finalize_fermi_dirac_jac, model, 𝐱, Manual())
 fermi_dirac_jac(model, 𝐱, strategy::Auto) =
     compute_jac(_finalize_fermi_dirac, model, 𝐱, strategy)
-fermi_dirac_jac!(derivatives, model, 𝐱, ::Manual) =
-    compute_jac!(_finalize_fermi_dirac_jac, derivatives, model, 𝐱, Manual())
-fermi_dirac_jac!(derivatives, model, 𝐱, strategy::Auto) =
-    compute_jac!(_finalize_fermi_dirac, derivatives, model, 𝐱, strategy)
+
+fermi_dirac_jac!(jac, model, 𝐱, ::Manual) =
+    compute_jac!(_finalize_fermi_dirac_jac, jac, model, 𝐱, Manual())
+fermi_dirac_jac!(jac, model, 𝐱, strategy::Auto) =
+    compute_jac!(_finalize_fermi_dirac, jac, model, 𝐱, strategy)
 
 electronic_entropy_jac(model, 𝐱, ::Manual) =
     compute_jac(_finalize_electronic_entropy_jac, model, 𝐱, Manual())
 electronic_entropy_jac(model, 𝐱, strategy::Auto) =
     compute_jac(_finalize_electronic_entropy, model, 𝐱, strategy)
-electronic_entropy_jac!(derivatives, model, 𝐱, ::Manual) =
-    compute_jac!(_finalize_electronic_entropy_jac, derivatives, model, 𝐱, Manual())
-electronic_entropy_jac!(derivatives, model, 𝐱, strategy) =
-    compute_jac!(_finalize_electronic_entropy, derivatives, model, 𝐱, strategy)
+
+electronic_entropy_jac!(jac, model, 𝐱, ::Manual) =
+    compute_jac!(_finalize_electronic_entropy_jac, jac, model, 𝐱, Manual())
+electronic_entropy_jac!(jac, model, 𝐱, strategy) =
+    compute_jac!(_finalize_electronic_entropy, jac, model, 𝐱, strategy)
