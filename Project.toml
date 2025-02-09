@@ -32,9 +32,10 @@ NPZ = "0.4"
 julia = "1.6"
 
 [extras]
+Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Mooncake", "Random", "Test"]
+test = ["Enzyme", "Mooncake", "Random", "Test"]
