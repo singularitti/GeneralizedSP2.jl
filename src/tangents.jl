@@ -1,4 +1,4 @@
-using DifferentiationInterface: Constant, derivative
+using DifferentiationInterface: Constant, gradient!
 
 export Manual, Auto, autodiff_model, autodiff_model!, manualdiff_model, manualdiff_model!
 
@@ -8,10 +8,7 @@ struct Auto{T} <: DiffStrategy
     backend::T
 end
 
-function _modify_apply!(parameter, model, index, x)
-    model[index] = parameter
-    return model(x)
-end
+_apply(x) = model -> model(x)
 
 function autodiff_model(f, model, x, backend)
     derivatives = similar(model)
@@ -22,11 +19,8 @@ function autodiff_model!(f, derivatives, model, x, backend)
         throw(DimensionMismatch("the length of derivatives and the model are not equal!"))
     end
     model = Model(model)
-    g = f ∘ _modify_apply!
-    return map!(derivatives, eachindex(model)) do i
-        contexts = Constant(model), Constant(i), Constant(x)
-        derivative(g, backend, model[i], contexts...)
-    end
+    g = f ∘ _apply(x)
+    return gradient!(g, derivatives, backend, model)
 end
 
 function manualdiff_model(f′, model, x)
