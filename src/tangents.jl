@@ -1,4 +1,4 @@
-using DifferentiationInterface: Constant, gradient!
+using DifferentiationInterface: gradient!
 
 export Manual, Auto, autodiff_model, autodiff_model!, manualdiff_model, manualdiff_model!
 
