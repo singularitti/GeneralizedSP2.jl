@@ -1,4 +1,4 @@
-using DifferentiationInterface: Constant, derivative
+using DifferentiationInterface: Constant, gradient!
 
 export Manual, Auto, autodiff_model, autodiff_model!, manualdiff_model, manualdiff_model!
 
@@ -8,13 +8,10 @@ struct Auto{T} <: DiffStrategy
     backend::T
 end
 
-function _modify_apply!(parameter, model, index, x)
-    model[index] = parameter
-    return model(x)
-end
+_apply(x) = model -> model(x)
 
 function autodiff_model(f, model, x, backend)
-    derivatives = similar(model)
+    derivatives = similar(parent(model))
     return autodiff_model!(f, derivatives, model, x, backend)
 end
 function autodiff_model!(f, derivatives, model, x, backend)
@@ -22,15 +19,12 @@ function autodiff_model!(f, derivatives, model, x, backend)
         throw(DimensionMismatch("the length of derivatives and the model are not equal!"))
     end
     model = Model(model)
-    g = f ∘ _modify_apply!
-    return map!(derivatives, eachindex(model)) do i
-        contexts = Constant(model), Constant(i), Constant(x)
-        derivative(g, backend, model[i], contexts...)
-    end
+    g = f ∘ _apply(x)
+    return gradient!(g, derivatives, backend, model)
 end
 
 function manualdiff_model(f′, model, x)
-    derivatives = similar(model)
+    derivatives = similar(parent(model))
     return manualdiff_model!(f′, derivatives, model, x)
 end
 function manualdiff_model!(f′, derivatives::AbstractVecOrMat, model, x)
@@ -72,7 +66,7 @@ _finalize_fermi_dirac_jac(Y) = -one(Y)  # Applies to 1 number at a time
 _finalize_electronic_entropy_jac(Y) = 4log(2) * (oneunit(Y) - 2Y)  # Applies to 1 number at a time
 
 function compute_jac(f_or_f′, model, 𝐱, strategy::DiffStrategy)
-    derivatives = similar(model, length(𝐱), length(model))
+    derivatives = similar(parent(model), length(𝐱), length(model))
     return compute_jac!(f_or_f′, derivatives, model, 𝐱, strategy)
 end
 function compute_jac!(f′, derivatives, model, 𝐱, ::Manual)
