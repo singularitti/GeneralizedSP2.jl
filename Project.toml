@@ -14,11 +14,13 @@ NPZ = "15e1cf62-19b3-5cfa-8e77-841668bca605"
 
 [weakdeps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+EnzymeCore = "f151be2c-9106-41f4-ab19-57ee4f262869"
 NVTX = "5da4648a-3479-48b8-97b9-01cb529c0a1f"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [extensions]
 CUDAExt = ["CUDA", "NVTX"]
+EnzymeExt = "EnzymeCore"
 StaticArraysExt = "StaticArrays"
 
 [compat]
