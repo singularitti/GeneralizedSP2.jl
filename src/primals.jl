@@ -56,19 +56,6 @@ function (model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
     return result
 end
 
-function Base.map!(model::AbstractModel, result::AbstractArray, 𝐱::AbstractArray)
-    map!(result, 𝐱) do x
-        y = x  # `x` and `y` are 2 numbers
-        accumulator = zero(eltype(result))  # Accumulator of the summation
-        for 𝐦 in eachlayer(model)
-            accumulator += 𝐦[4] * y
-            y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
-        end
-        accumulator += oneunit(eltype(model)) * y
-    end
-    return result
-end
-
 _finalize_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
 _finalize_fermi_dirac!(Y::AbstractMatrix) = axpby!(1, oneunit(Y), -1, Y)  # This is the fastest, except for `axpy!(-1, result, oneunit(Y))`, which we cannot use here.
 
