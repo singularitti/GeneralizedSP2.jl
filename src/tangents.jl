@@ -28,13 +28,19 @@ function manualdiff_model(f′, model, x)
     return manualdiff_model!(f′, grad, model, x)
 end
 function manualdiff_model!(f′, grad::AbstractVecOrMat, model, x)
+    𝐲 = zeros(eltype(x), numlayers(model) + 1)
+    return manualdiff_model!(f′, 𝐲, grad, model, x)
+end
+function manualdiff_model!(f′, 𝐲, grad::AbstractVecOrMat, model, x)
     if length(grad) != length(model)
         throw(DimensionMismatch("the length of gradient and the model are not equal!"))
+    end
+    if length(𝐲) != numlayers(model) + 1
+        throw(DimensionMismatch("the length of 𝐲 and the model do not match!"))
     end
     model = Model(model)
     layers = eachlayer(model)
     layerindices = eachindex(layers)
-    𝐲 = zeros(eltype(x), numlayers(model) + 1)
     # Forward calculation
     𝐲[begin] = x
     accumulator = zero(eltype(𝐲))
