@@ -5,7 +5,6 @@ using GeneralizedSP2: fermi_dirac_deriv, fermi_dirac_jac
 using LinearAlgebra: Eigen, Hermitian, diag, eigen, eigvals, norm, tr
 using Roots: Newton, find_zero
 using Plots
-using ProgressMeter: @showprogress
 using Statistics: mean
 using StatsPlots
 using ToyHamiltonians: Hamiltonian, EigvalsSampler, EigvecsSampler, set_isapprox_rtol
@@ -101,7 +100,7 @@ E = eigen(H)
 
 max_iter = 10_000_000
 layers = 18:21
-models = @showprogress map(layers) do nlayers
+models = map(layers) do nlayers
     fit_fermi_dirac(𝛆′, μ′, β′, init_model(μ′, nlayers); max_iter=max_iter).model
 end
 𝐲_fitted = map(models) do model
