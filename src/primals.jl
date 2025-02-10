@@ -56,7 +56,7 @@ function (model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
     return result
 end
 
-function Base.map!(model::AbstractModel, result::AbstractVector, 𝐱::AbstractVector)
+function Base.map!(model::AbstractModel, result::AbstractArray, 𝐱::AbstractArray)
     map!(result, 𝐱) do x
         y = x  # `x` and `y` are 2 numbers
         accumulator = zero(eltype(result))  # Accumulator of the summation
