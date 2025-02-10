@@ -75,12 +75,22 @@ function compute_jac(f_or_f′, model, 𝐱, strategy::DiffStrategy)
     jac = similar(parent(model), length(𝐱), length(model))
     return compute_jac!(f_or_f′, jac, model, 𝐱, strategy)
 end
+# function compute_jac!(f′, jac, model, 𝐱, ::Manual)
+#     if size(jac) != (length(𝐱), length(model))
+#         throw(DimensionMismatch("the size of `jac` is not compatible with `𝐱` & `model`!"))
+#     end
+#     for (i, x) in enumerate(𝐱)
+#         manualdiff_model!(f′, @view(jac[i, :]), model, x)
+#     end
+#     return jac
+# end
 function compute_jac!(f′, jac, model, 𝐱, ::Manual)
     if size(jac) != (length(𝐱), length(model))
         throw(DimensionMismatch("the size of `jac` is not compatible with `𝐱` & `model`!"))
     end
+    𝐲 = similar(𝐱, numlayers(model) + 1)
     for (i, x) in enumerate(𝐱)
-        manualdiff_model!(f′, @view(jac[i, :]), model, x)
+        manualdiff_model!(f′, 𝐲, @view(jac[i, :]), model, x)
     end
     return jac
 end
