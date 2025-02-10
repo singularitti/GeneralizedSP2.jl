@@ -82,8 +82,23 @@ function compute_jac!(f, jac, model, 𝐱, strategy::Auto)
     if size(jac) != (length(𝐱), length(model))
         throw(DimensionMismatch("the size of `jac` is not compatible with `𝐱` & `model`!"))
     end
-    g(model) = map(f ∘ model, 𝐱)
-    jacobian!(g, jac, strategy.backend, model)
+    for (i, x) in enumerate(𝐱)
+        autodiff_model!(
+            f,
+            @view(jac[i, :]),  # Must use `@view` or `jac` will not be updated
+            model,
+            x,
+            strategy.backend,
+        )
+    end
+    return jac
+end
+function compute_jac!(f, 𝐲, jac, model, 𝐱, strategy::Auto)
+    if size(jac) != (length(𝐱), length(model))
+        throw(DimensionMismatch("the size of `jac` is not compatible with `𝐱` & `model`!"))
+    end
+    g(f𝐱, model) = map!(f ∘ model, f𝐱, 𝐱)
+    jacobian!(g, 𝐲, jac, strategy.backend, model)
     return jac
 end
 
@@ -96,6 +111,8 @@ fermi_dirac_jac!(jac, model, 𝐱, ::Manual) =
     compute_jac!(_finalize_fermi_dirac_jac, jac, model, 𝐱, Manual())
 fermi_dirac_jac!(jac, model, 𝐱, strategy::Auto) =
     compute_jac!(_finalize_fermi_dirac, jac, model, 𝐱, strategy)
+fermi_dirac_jac!(𝐲, jac, model, 𝐱, strategy::Auto) =
+    compute_jac!(_finalize_fermi_dirac, 𝐲, jac, model, 𝐱, strategy)
 
 electronic_entropy_jac(model, 𝐱, ::Manual) =
     compute_jac(_finalize_electronic_entropy_jac, model, 𝐱, Manual())
