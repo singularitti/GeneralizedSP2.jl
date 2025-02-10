@@ -1,4 +1,4 @@
-using DifferentiationInterface: gradient!
+using DifferentiationInterface: gradient!, jacobian!
 
 export Manual, Auto, autodiff_model, autodiff_model!, manualdiff_model, manualdiff_model!
 
@@ -82,15 +82,8 @@ function compute_jac!(f, jac, model, 𝐱, strategy::Auto)
     if size(jac) != (length(𝐱), length(model))
         throw(DimensionMismatch("the size of `jac` is not compatible with `𝐱` & `model`!"))
     end
-    for (i, x) in enumerate(𝐱)
-        autodiff_model!(
-            f,
-            @view(jac[i, :]),  # Must use `@view` or `jac` will not be updated
-            model,
-            x,
-            strategy.backend,
-        )
-    end
+    g(model) = map(f ∘ model, 𝐱)
+    jacobian!(g, jac, strategy.backend, model)
     return jac
 end
 
