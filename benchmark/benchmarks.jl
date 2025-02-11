@@ -45,7 +45,7 @@ all_results = Dict()
 
 results = map(max_iters) do max_iter
     timed_results = map(layers) do nlayers
-        println("fitting for max_iter = $max_iter", ", nlayers = $nlayers")
+        println("fitting for max_iter = $max_iter, nlayers = $nlayers, strategy = $strategy")
         model_init = init_model(μ′, nlayers)
         result = Ref{Any}()
         benchmark = @b _ fit_fermi_dirac(
