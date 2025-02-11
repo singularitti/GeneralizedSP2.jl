@@ -18,7 +18,6 @@ function autodiff_model!(f, grad, model, x, backend)
     if length(grad) != length(model)
         throw(DimensionMismatch("the length of gradient and the model are not equal!"))
     end
-    model = Model(model)
     g = f ∘ _apply(x)
     return gradient!(g, grad, backend, model)
 end
