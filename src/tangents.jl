@@ -1,12 +1,20 @@
 using DifferentiationInterface: gradient!
 
-export Manual, Auto, autodiff_model, autodiff_model!, manualdiff_model, manualdiff_model!
+export Manual,
+    Auto,
+    CustomAutoEnzyme,
+    autodiff_model,
+    autodiff_model!,
+    manualdiff_model,
+    manualdiff_model!
 
 abstract type DiffStrategy end
 struct Manual <: DiffStrategy end
 struct Auto{T} <: DiffStrategy
     backend::T
 end
+
+struct CustomAutoEnzyme end
 
 _apply(x) = model -> model(x)
 
