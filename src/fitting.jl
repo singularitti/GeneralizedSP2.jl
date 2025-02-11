@@ -112,10 +112,10 @@ _fermi_dirac!(result, 𝐱, M) = map!(fermi_dirac(FlatModel(M)), result, 𝐱)  
 _electronic_entropy!(result, 𝐱, M) = map!(electronic_entropy(FlatModel(M)), result, 𝐱)  # Only used for fitting
 
 _fermi_dirac_jac!(strategy::DiffStrategy) =
-    (derivatives, 𝐱, M) -> fermi_dirac_jac!(derivatives, M, 𝐱, strategy)  # Only used for fitting
+    (derivatives, 𝐱, M) -> fermi_dirac_jac!(derivatives, FlatModel(M), 𝐱, strategy)  # Only used for fitting
 
 _electronic_entropy_jac!(strategy::DiffStrategy) =
-    (derivatives, 𝐱, M) -> electronic_entropy_jac!(derivatives, M, 𝐱, strategy)  # Only used for fitting
+    (derivatives, 𝐱, M) -> electronic_entropy_jac!(derivatives, FlatModel(M), 𝐱, strategy)  # Only used for fitting
 
 LMResults(method, initial_x::FlatModel, minimizer::FlatModel, args...) =
     LMResults(method, convert(Vector, initial_x), convert(Vector, minimizer), args...)
