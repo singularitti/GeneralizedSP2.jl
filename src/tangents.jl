@@ -30,14 +30,13 @@ function manualdiff_model!(f′, grad::AbstractVecOrMat, model, x)
     𝐲 = zeros(eltype(x), numlayers(model) + 1)
     return manualdiff_model!(f′, 𝐲, grad, model, x)
 end
-function manualdiff_model!(f′, 𝐲, grad::AbstractVecOrMat, model, x)
+function manualdiff_model!(f′, 𝐲, grad::AbstractVecOrMat, model::Model, x)
     if length(grad) != length(model)
         throw(DimensionMismatch("the length of gradient and the model are not equal!"))
     end
     if length(𝐲) != numlayers(model) + 1
         throw(DimensionMismatch("the length of 𝐲 and the model do not match!"))
     end
-    model = Model(model)
     layers = eachlayer(model)
     layerindices = eachindex(layers)
     # Forward calculation
@@ -65,6 +64,8 @@ function manualdiff_model!(f′, 𝐲, grad::AbstractVecOrMat, model, x)
     end
     return grad
 end
+manualdiff_model!(f′, 𝐲, grad::AbstractVecOrMat, model::FlatModel, x) =
+    manualdiff_model!(f′, 𝐲, grad, Model(model), x)
 
 _finalize_fermi_dirac_jac(Y) = -one(Y)  # Applies to 1 number at a time
 
