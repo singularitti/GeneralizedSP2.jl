@@ -38,6 +38,8 @@ PLOT_DEFAULTS = Dict(
 
 layers = 12:20
 max_iters = [1_000, 10_000, 100_000, 1_000_000, 10_000_000]
+strategy = Auto(AutoEnzyme(; mode=Reverse, function_annotation=Const))
+strategy = Manual()
 
 results = map(max_iters) do max_iter
     timed_results = map(layers) do nlayers
@@ -45,7 +47,7 @@ results = map(max_iters) do max_iter
         model_init = init_model(μ′, nlayers)
         result = Ref{Any}()
         benchmark = @b _ fit_fermi_dirac(
-            $𝛆′, $μ′, $β′, $model_init; max_iter=$max_iter, diff=Manual()
+            $𝛆′, $μ′, $β′, $model_init; max_iter=$max_iter, diff=strategy
         ) result[] = _ samples = 1 evals = 1
         value = result[]
         value, benchmark.time
