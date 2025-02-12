@@ -78,50 +78,56 @@ rmse_matrix = hcat([result.rmse for result in results]...)
 
 layout = (1, 3)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(1800, 480))
-plot!(
-    layers,
-    rmse_matrix;
-    subplot=1,
-    label=hcat(("I=$max_iter" for max_iter in max_iters)...),
-    yscale=:log10,
-    xticks=layers,
-    yticks=exp10.((-9):(-3)),
-    xminorticks=0,
-    yminorticks=5,
-    xlabel="number of layers",
-    ylabel="RMSE of fitting",
-    PLOT_DEFAULTS...,
-    legend_position=:bottomleft,
-)
-plot!(
-    layers,
-    time_matrix;
-    subplot=2,
-    label=hcat(("I=$max_iter" for max_iter in max_iters)...),
-    yscale=:log10,
-    xticks=layers,
-    yticks=exp10.(-2:3),
-    xminorticks=0,
-    yminorticks=5,
-    xlabel="number of layers",
-    ylabel="time (s)",
-    PLOT_DEFAULTS...,
-    legend_position=:topleft,
-)
-plot!(
-    layers,
-    time_matrix;
-    subplot=3,
-    label=hcat(("I=$max_iter" for max_iter in max_iters)...),
-    yscale=:log10,
-    xticks=layers,
-    yticks=exp10.(-1:10),
-    xminorticks=0,
-    yminorticks=5,
-    xlabel="number of layers",
-    ylabel="memory (MB)",
-    PLOT_DEFAULTS...,
-    legend_position=:topleft,
-)
+for (strategy, linestyle) in
+    zip(keys(all_results), (:solid, :dash, :dot, :dashdot, :dashdotdot))
+    plot!(
+        layers,
+        rmse_matrix;
+        subplot=1,
+        linestyle=linestyle,
+        label=hcat(("I=$max_iter, by $strategy" for max_iter in max_iters)...),
+        yscale=:log10,
+        xticks=layers,
+        yticks=exp10.((-9):(-3)),
+        xminorticks=0,
+        yminorticks=5,
+        xlabel="number of layers",
+        ylabel="RMSE of fitting",
+        PLOT_DEFAULTS...,
+        legend_position=:bottomleft,
+    )
+    plot!(
+        layers,
+        time_matrix;
+        subplot=2,
+        linestyle=linestyle,
+        label=hcat(("I=$max_iter, by $strategy" for max_iter in max_iters)...),
+        yscale=:log10,
+        xticks=layers,
+        yticks=exp10.(-2:3),
+        xminorticks=0,
+        yminorticks=5,
+        xlabel="number of layers",
+        ylabel="time (s)",
+        PLOT_DEFAULTS...,
+        legend_position=:topleft,
+    )
+    plot!(
+        layers,
+        time_matrix;
+        subplot=3,
+        linestyle=linestyle,
+        label=hcat(("I=$max_iter, by $strategy" for max_iter in max_iters)...),
+        yscale=:log10,
+        xticks=layers,
+        yticks=exp10.(-1:10),
+        xminorticks=0,
+        yminorticks=5,
+        xlabel="number of layers",
+        ylabel="memory (MB)",
+        PLOT_DEFAULTS...,
+        legend_position=:topleft,
+    )
+end
 xlims!(extrema(layers))
 savefig("benchmarks.png")
