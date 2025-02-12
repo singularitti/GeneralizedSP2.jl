@@ -62,7 +62,7 @@ function manualdiff_model!(f′, 𝐲, grad::AbstractVecOrMat, model::Model, x)
     linear_indices = LinearIndices(model)
     for (i, 𝐦) in Iterators.reverse(zip(layerindices, layers))
         y = 𝐲[i]
-        𝟏 = oneunit(y)
+        𝟏 = one(y)  # Not `oneunit(y)`
         # zᵢ₊₁
         grad[linear_indices[1, i]] = α * z * y^2
         grad[linear_indices[2, i]] = α * z * y
