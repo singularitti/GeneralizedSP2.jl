@@ -6,7 +6,8 @@ export Manual,
     autodiff_model,
     autodiff_model!,
     manualdiff_model,
-    manualdiff_model!
+    manualdiff_model!,
+    deriv
 
 abstract type DiffStrategy end
 struct Manual <: DiffStrategy end
@@ -137,3 +138,17 @@ electronic_entropy_jac!(jac, model, 𝐱, ::Manual) =
     compute_jac!(_finalize_electronic_entropy_jac, jac, model, 𝐱, Manual())
 electronic_entropy_jac!(jac, model, 𝐱, strategy) =
     compute_jac!(_finalize_electronic_entropy, jac, model, 𝐱, strategy)
+
+function deriv(model::AbstractModel, x)
+    y = x
+    ∂y➗∂x = one(x)  # ∂y/∂x
+    𝟏, 𝟏′, 𝟏″ = oneunit(eltype(model)), oneunit(x), one(y)
+    accumulator = zero(𝟏 * x)  # For ∂Y/∂x
+    for 𝐦 in eachlayer(model)
+        accumulator += 𝐦[4] * ∂y➗∂x
+        ∂y➗∂x = (2𝐦[1] * y + 𝐦[2] * 𝟏″) * ∂y➗∂x
+        y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * 𝟏′
+    end
+    accumulator += 𝟏 * ∂y➗∂x
+    return accumulator
+end
