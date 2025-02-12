@@ -43,7 +43,12 @@ strategy = Manual()
 
 all_results = Dict()
 
-results = map(max_iters) do max_iter
+results = map(
+    Iterators.takewhile(
+        max_iter -> isa(strategy, Auto) && max_iter < 1e7 || isa(strategy, Manual),
+        max_iters,
+    ),
+) do max_iter
     timed_results = map(layers) do nlayers
         println("fitting for max_iter = $max_iter, nlayers = $nlayers, strategy = $strategy")
         model_init = init_model(μ′, nlayers)
