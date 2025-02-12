@@ -37,8 +37,8 @@ E = eigen(H)
 H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 
 lower_bound, upper_bound = 0, 1
-𝐱′ = chebyshevnodes_1st(1000, (lower_bound, upper_bound))
-fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=1_000_000)
+𝛆′ = sample_by_pdf(bell_distribution(μ′, β′), μ′, (lower_bound, upper_bound))
+fitted = fit_fermi_dirac(𝛆′, μ′, β′, init_model(μ′, 18); max_iter=10_000_000);
 M = fitted.model
 M̄ = fitted.jac
 
@@ -59,12 +59,12 @@ xlabel!("eigenvalues of H")
 ylabel!("Fermi–Dirac distribution")
 savefig("fd.pdf")
 
-manifolds = eachcol(transpose(hcat(basis(M).(𝐱′)...))[:, (end - 5):end])
-plot(𝐱′, manifolds[1]; linestyle=:dot, label="basis", PLOT_DEFAULTS...)
-plot!(𝐱′, manifolds[1]; linestyle=:solid, label="accumulated curve", PLOT_DEFAULTS...)
+manifolds = eachcol(transpose(hcat(basis(M).(𝛆′)...))[:, (end - 5):end])
+plot(𝛆′, manifolds[1]; linestyle=:dot, label="basis", PLOT_DEFAULTS...)
+plot!(𝛆′, manifolds[1]; linestyle=:solid, label="accumulated curve", PLOT_DEFAULTS...)
 animation = @animate for (manifold, summed) in zip(manifolds, cumsum(manifolds))
-    plot!(𝐱′, manifold; linestyle=:dot, label="", PLOT_DEFAULTS...)
-    plot!(𝐱′, summed; linestyle=:solid, label="", PLOT_DEFAULTS...)
+    plot!(𝛆′, manifold; linestyle=:dot, label="", PLOT_DEFAULTS...)
+    plot!(𝛆′, summed; linestyle=:solid, label="", PLOT_DEFAULTS...)
 end
 xlims!(0, 1)
 xlabel!(raw"$x$")
