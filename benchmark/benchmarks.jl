@@ -4,8 +4,11 @@ using DifferentiationInterface
 using Enzyme
 using GeneralizedSP2
 using Mooncake
-using Plots: plot, plot!, xlims!, savefig
+using OrderedCollections: OrderedDict
+using Plots: plot, plot!, palette, xlims!, savefig
 using Statistics: mean
+using Zygote
+using FiniteDiff
 
 PLOT_DEFAULTS = Dict(
     :dpi => 400,
@@ -16,15 +19,15 @@ PLOT_DEFAULTS = Dict(
     :minorticks => 5,
     :guidefontsize => 9,
     :tickfontsize => 7,
-    :legendfontsize => 8,
-    :left_margin => (8, :mm),
-    :bottom_margin => (8, :mm),
+    :legendfontsize => 7,
+    :left_margin => (10, :mm),
+    :bottom_margin => (10, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
-    :legend_position => :bottomright,
+    :legend_position => :outertop,
+    :legend_columns => 5,
     :background_color_inside => nothing,
-    :color_palette => :tab10,
     :legendfontfamily => "Palatino Italic",
     :guidefontfamily => "Palatino Roman",
     :tickfontfamily => "Palatino Roman",
@@ -38,10 +41,11 @@ PLOT_DEFAULTS = Dict(
 
 layers = 12:20
 max_iters = [1_000, 10_000, 100_000, 1_000_000, 10_000_000]
-strategy = Auto(AutoEnzyme(; mode=Reverse, function_annotation=Const))
 strategy = Manual()
+strategy = Auto(AutoEnzyme(; mode=Reverse, function_annotation=Const))
+strategy = Auto(AutoFiniteDiff())
 
-all_results = Dict()
+all_results = OrderedDict()
 
 results = map(
     Iterators.takewhile(
@@ -77,62 +81,73 @@ results = map(
 end
 all_results[strategy] = results
 
-layout = (1, 3)
-plot(; layout=layout, PLOT_DEFAULTS..., size=(1800, 480))
-for (strategy, linestyle) in
-    zip(keys(all_results), (:solid, :dash, :dot, :dashdot, :dashdotdot))
+plot(; layout=(1, 3), PLOT_DEFAULTS..., size=(2200, 600))
+for (strategy, strategy_str, linestyle, markershape) in zip(
+    keys(all_results),
+    ("opt", "Ez", "FD"),
+    (:solid, :dash, :dot, :dashdot, :dashdotdot),
+    (:circle, :diamond, :cross, :star4, :star5),
+)
     results = all_results[strategy]
-    time_matrix = hcat([result.times for result in results]...)  # In seconds
-    mem_matrix = hcat([result.bytes for result in results]...) / 1024^2  # In MB
-    rmse_matrix = hcat([result.rmse for result in results]...)
-    plot!(
-        layers,
-        rmse_matrix;
-        subplot=1,
-        linestyle=linestyle,
-        label=hcat(("I=$max_iter, by $strategy" for max_iter in max_iters)...),
-        yscale=:log10,
-        xticks=layers,
-        yticks=exp10.((-9):(-3)),
-        xminorticks=0,
-        yminorticks=5,
-        xlabel="number of layers",
-        ylabel="RMSE of fitting",
-        PLOT_DEFAULTS...,
-        legend_position=:bottomleft,
-    )
-    plot!(
-        layers,
-        time_matrix;
-        subplot=2,
-        linestyle=linestyle,
-        label=hcat(("I=$max_iter, by $strategy" for max_iter in max_iters)...),
-        yscale=:log10,
-        xticks=layers,
-        yticks=exp10.(-2:3),
-        xminorticks=0,
-        yminorticks=5,
-        xlabel="number of layers",
-        ylabel="time (s)",
-        PLOT_DEFAULTS...,
-        legend_position=:topleft,
-    )
-    plot!(
-        layers,
-        mem_matrix;
-        subplot=3,
-        linestyle=linestyle,
-        label=hcat(("I=$max_iter, by $strategy" for max_iter in max_iters)...),
-        yscale=:log10,
-        xticks=layers,
-        yticks=exp10.(-1:10),
-        xminorticks=0,
-        yminorticks=5,
-        xlabel="number of layers",
-        ylabel="memory (MB)",
-        PLOT_DEFAULTS...,
-        legend_position=:topleft,
-    )
+    time = [result.times for result in results]  # In seconds
+    memory = [result.bytes for result in results] / 1024^2  # In MB
+    rmse = [result.rmse for result in results]
+    for (iterindex, seriescolor) in zip(1:length(results), palette(:tab10))
+        plot!(
+            layers,
+            rmse[iterindex];
+            subplot=1,
+            seriestype=:path,
+            linestyle=linestyle,
+            markershape=markershape,
+            seriescolor=seriescolor,
+            label="I=$(max_iters[iterindex]), $strategy_str",
+            yscale=:log10,
+            xticks=layers,
+            yticks=exp10.((-9):(-3)),
+            xminorticks=0,
+            yminorticks=5,
+            xlabel="number of layers",
+            ylabel="RMSE of fitting",
+            PLOT_DEFAULTS...,
+        )
+        plot!(
+            layers,
+            time[iterindex];
+            subplot=2,
+            seriestype=:path,
+            linestyle=linestyle,
+            markershape=markershape,
+            seriescolor=seriescolor,
+            label="I=$(max_iters[iterindex]), $strategy_str",
+            yscale=:log10,
+            xticks=layers,
+            yticks=exp10.(-2:3),
+            xminorticks=0,
+            yminorticks=5,
+            xlabel="number of layers",
+            ylabel="time (s)",
+            PLOT_DEFAULTS...,
+        )
+        plot!(
+            layers,
+            memory[iterindex];
+            subplot=3,
+            seriestype=:path,
+            linestyle=linestyle,
+            markershape=markershape,
+            seriescolor=seriescolor,
+            label="I=$(max_iters[iterindex]), $strategy_str",
+            yscale=:log10,
+            xticks=layers,
+            yticks=exp10.(-1:10),
+            xminorticks=0,
+            yminorticks=5,
+            xlabel="number of layers",
+            ylabel="memory (MB)",
+            PLOT_DEFAULTS...,
+        )
+    end
 end
 xlims!(extrema(layers))
 savefig("benchmarks.png")
