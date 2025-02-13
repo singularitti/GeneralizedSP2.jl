@@ -82,7 +82,7 @@ results = map(
     end
     (rmse=rmse, times=times, bytes=bytes)
 end
-all_results[strategy] = results
+all_results[string(strategy)] = results
 
 plot(; layout=(1, 3), PLOT_DEFAULTS..., size=(2200, 600))
 for (strategy, strategy_str, linestyle, markershape) in zip(
