@@ -84,6 +84,8 @@ results = map(
 end
 all_results[string(strategy)] = results
 
+benchtime = [result.times for result in all_results[string(Manual())]]
+
 plot(; layout=(1, 3), PLOT_DEFAULTS..., size=(2200, 600))
 for (strategy, strategy_str, linestyle, markershape) in zip(
     keys(all_results),
@@ -134,7 +136,7 @@ for (strategy, strategy_str, linestyle, markershape) in zip(
         )
         plot!(
             layers,
-            memory[iterindex];
+            time[iterindex] ./ benchtime[iterindex];
             subplot=3,
             seriestype=:path,
             linestyle=linestyle,
