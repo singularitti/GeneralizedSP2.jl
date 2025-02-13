@@ -87,7 +87,7 @@ all_results[string(strategy)] = results
 plot(; layout=(1, 3), PLOT_DEFAULTS..., size=(2200, 600))
 for (strategy, strategy_str, linestyle, markershape) in zip(
     keys(all_results),
-    ("opt", "Ez", "FD"),
+    ("opt", "Ez", "FD", "none"),
     (:solid, :dash, :dot, :dashdot, :dashdotdot),
     (:circle, :diamond, :cross, :star4, :star5),
 )
