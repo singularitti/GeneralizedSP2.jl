@@ -139,6 +139,9 @@ electronic_entropy_jac!(jac, model, 𝐱, ::Manual) =
 electronic_entropy_jac!(jac, model, 𝐱, strategy) =
     compute_jac!(_finalize_electronic_entropy, jac, model, 𝐱, strategy)
 
+Base.show(io::IO, ::Manual) = print(io, "manual")
+Base.show(io::IO, strategy::Auto) = print(io, typeof(strategy.backend))
+
 function deriv(model::AbstractModel, x)
     y = x
     ∂y➗∂x = one(x)  # ∂y/∂x
