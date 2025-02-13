@@ -77,14 +77,14 @@ results = map(
 end
 all_results[strategy] = results
 
-time_matrix = hcat([result.times for result in results]...)  # In seconds
-mem_matrix = hcat([result.bytes for result in results]...) / 1024^2  # In MB
-rmse_matrix = hcat([result.rmse for result in results]...)
-
 layout = (1, 3)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(1800, 480))
 for (strategy, linestyle) in
     zip(keys(all_results), (:solid, :dash, :dot, :dashdot, :dashdotdot))
+    results = all_results[strategy]
+    time_matrix = hcat([result.times for result in results]...)  # In seconds
+    mem_matrix = hcat([result.bytes for result in results]...) / 1024^2  # In MB
+    rmse_matrix = hcat([result.rmse for result in results]...)
     plot!(
         layers,
         rmse_matrix;
@@ -119,7 +119,7 @@ for (strategy, linestyle) in
     )
     plot!(
         layers,
-        time_matrix;
+        mem_matrix;
         subplot=3,
         linestyle=linestyle,
         label=hcat(("I=$max_iter, by $strategy" for max_iter in max_iters)...),
