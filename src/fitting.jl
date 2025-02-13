@@ -20,21 +20,38 @@ function fit_fermi_dirac(
     kwargs...,
 )
     fd = fermi_dirac.(𝛆′, μ′, β′)
-    result = curve_fit(
-        _fermi_dirac!,
-        _fermi_dirac_jac!(diff),
-        𝛆′,  # xdata
-        fd,  # ydata
-        model_init;  # p0
-        maxIter=max_iter,
-        maxTime=max_time,
-        x_tol=x_tol,
-        g_tol=grad_tol,
-        inplace=true,
-        show_trace=show_trace,
-        store_trace=store_trace,
-        kwargs...,
-    )
+    result = if diff isa NoDiff
+        curve_fit(
+            _fermi_dirac!,
+            𝛆′,  # xdata
+            fd,  # ydata
+            model_init;  # p0
+            maxIter=max_iter,
+            maxTime=max_time,
+            x_tol=x_tol,
+            g_tol=grad_tol,
+            inplace=true,
+            show_trace=show_trace,
+            store_trace=store_trace,
+            kwargs...,
+        )
+    else
+        curve_fit(
+            _fermi_dirac!,
+            _fermi_dirac_jac!(diff),
+            𝛆′,  # xdata
+            fd,  # ydata
+            model_init;  # p0
+            maxIter=max_iter,
+            maxTime=max_time,
+            x_tol=x_tol,
+            g_tol=grad_tol,
+            inplace=true,
+            show_trace=show_trace,
+            store_trace=store_trace,
+            kwargs...,
+        )
+    end
     if !isconverged(result)
         @warn "the curve fitting did not converge!"
     end
