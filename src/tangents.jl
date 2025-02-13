@@ -2,6 +2,7 @@ using DifferentiationInterface: gradient!
 
 export Manual,
     Auto,
+    NoDiff,
     CustomAutoEnzyme,
     autodiff_model,
     autodiff_model!,
@@ -14,6 +15,7 @@ struct Manual <: DiffStrategy end
 struct Auto{T} <: DiffStrategy
     backend::T
 end
+struct NoDiff <: DiffStrategy end  # Only for debugging
 
 struct CustomAutoEnzyme end
 
