@@ -19,8 +19,6 @@ struct NoDiff <: DiffStrategy end  # Only for debugging
 
 struct CustomAutoEnzyme end
 
-_apply(x) = model -> model(x)
-
 function autodiff_model(f, model, x, backend)
     grad = similar(parent(model))
     return autodiff_model!(f, grad, model, x, backend)
@@ -29,7 +27,7 @@ function autodiff_model!(f, grad, model, x, backend)
     if length(grad) != length(model)
         throw(DimensionMismatch("the length of gradient and the model are not equal!"))
     end
-    g = f ∘ _apply(x)
+    g(model′) = f(model′(x))
     return gradient!(g, grad, backend, model)
 end
 
