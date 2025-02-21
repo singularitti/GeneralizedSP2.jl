@@ -7,25 +7,29 @@ using Printf
 using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
+    :size => (900, 500),
     :dpi => 400,
     :framestyle => :box,
-    :linewidth => 2,
-    :markersize => 2,
+    :linewidth => 1.5,
+    :markersize => 4,
     :markerstrokewidth => 0,
-    :markerstrokealpha => 0,
     :minorticks => 5,
-    :titlefontsize => 8,
-    :plot_titlefontsize => 8,
-    :guidefontsize => 8,
-    :tickfontsize => 6,
+    :titlefontsize => 10,
+    :guidefontsize => 10,
+    :tickfontsize => 8,
     :legendfontsize => 8,
-    :left_margin => (1, :mm),
+    :left_margin => (2, :mm),
+    :bottom_margin => (2, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
     :legend_position => :topright,
     :background_color_inside => nothing,
     :color_palette => :tab10,
+    :plot_titlefontfamily => "Palatino Roman",
+    :legendfontfamily => "Palatino Italic",
+    :guidefontfamily => "Palatino Italic",
+    :tickfontfamily => "Palatino Roman",
 )
 
 β = 1.25
@@ -73,7 +77,7 @@ for μ_init in (ϵₘᵢₙ + 10):50:(ϵₘₐₓ - 10)
 
     plot!(
         recover_mu_history(μ′_history, spectral_bounds_history);
-        label="μᵢₙᵢₜ=" * Printf.format(Printf.Format("%.4f"), μ_init),
+        label=raw"\mu_\textnormal{init}=" * Printf.format(Printf.Format("%.4f"), μ_init),
         PLOT_DEFAULTS...,
     )
 end
