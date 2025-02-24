@@ -94,15 +94,6 @@ function modelgpu(N; preheat=3)  # Julia model
     CUDA.@profile fermi_dirac!(model)(DM, X)  # Only profile the last run
     return DM
 end
-function modelgpu(N, precision::Precision; preheat=3)  # CUDA
-    X = CuMatrix(H[1:N, 1:N])
-    DM = zero(X)
-    for _ in 1:preheat
-        model(DM, X, precision, (εₘᵢₙ, εₘₐₓ))  # Preheating GPU
-    end
-    CUDA.@profile model(DM, X, precision, (εₘᵢₙ, εₘₐₓ))
-    return DM
-end
 
 function exactgpu(N, μ, β; preheat=3)  # Julia
     X = CuMatrix(H[1:N, 1:N])
