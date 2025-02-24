@@ -85,7 +85,7 @@ end
 # cpu_N = tr(cpu_model)
 # cpu_fd = diag(inv(V) * cpu_model * V)
 
-function modelcu(N; preheat=3)  # Julia model
+function modelgpu(N; preheat=3)  # Julia model
     X = CuMatrix(H_scaled[1:N, 1:N])
     DM = similar(X)
     for _ in 1:preheat
