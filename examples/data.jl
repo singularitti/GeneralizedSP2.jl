@@ -50,6 +50,12 @@ function process_file(file_path, rows_of_interest)
         filtered[!, range_instances_col] .* filtered[!, proj_avg_col]
     filtered[!, var_total_time_col] =
         filtered[!, range_instances_col] .* (filtered[!, proj_stddev_col] .^ 2)
+    return filtered
+end
+
+function count_time(filtered)
+    total_time_col = Symbol("Total Time")
+    var_total_time_col = Symbol("Var Total Time")
     # Calculate sum of total projection times (S) and its variance
     S = sum(filtered[!, total_time_col])
     Var_S = sum(filtered[!, var_total_time_col])
@@ -79,7 +85,7 @@ end
 function process_file_with_mapping(folder, filename)
     file_path = joinpath(folder, filename)
     rows_of_interest = get_rows_of_interest(filename)
-    return process_file(file_path, rows_of_interest)
+    return count_time(process_file(file_path, rows_of_interest))
 end
 
 nospace(s::AbstractString) = replace(s, r"\s+" => "")
