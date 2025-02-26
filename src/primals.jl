@@ -33,11 +33,7 @@ function apply(model, x)
     accumulator += 𝟏 * y
     return accumulator
 end
-(model::AbstractModel)(x) = apply(model, x)
-function (model::AbstractModel)(X::AbstractMatrix)
-    result = similar(X, typeof(oneunit(eltype(model)) * oneunit(eltype(X))))  # Prepare for in-place result
-    return apply!(result, model, X)
-end
+
 function apply!(result::AbstractMatrix, model, X::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
     if size(result) != size(X)
@@ -58,7 +54,13 @@ function apply!(result::AbstractMatrix, model, X::AbstractMatrix)
     axpy!(oneunit(eltype(model)), Y, result)  # result .+= oneunit(eltype(model)) * Y
     return result
 end
+
+(model::AbstractModel)(x) = apply(model, x)
 (model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix) = apply!(result, model, X)
+function (model::AbstractModel)(X::AbstractMatrix)
+    result = similar(X, typeof(oneunit(eltype(model)) * oneunit(eltype(X))))  # Prepare for in-place result
+    return apply!(result, model, X)
+end
 
 _finalize_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
 _finalize_fermi_dirac!(Y::AbstractMatrix) = axpby!(1, oneunit(Y), -1, Y)  # This is the fastest, except for `axpy!(-1, result, oneunit(Y))`, which we cannot use here.
