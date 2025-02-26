@@ -2,7 +2,7 @@ using LinearAlgebra: checksquare, axpy!, axpby!, mul!
 using LinearAlgebra.BLAS: scal!
 # using Enzyme: Reverse, Const, Duplicated, autodiff
 
-export basis, fermi_dirac!, electronic_entropy, electronic_entropy!
+export basis, apply, apply!, fermi_dirac!, electronic_entropy, electronic_entropy!
 
 const FOUR_LOG_TWO = 4log(2)
 
@@ -22,7 +22,7 @@ function basis(model::AbstractModel)
     return _collect
 end
 
-function (model::AbstractModel)(x)
+function apply(model, x)
     y = x  # `x` and `y` are 2 numbers (not big numbers)
     𝟏, 𝟏′ = oneunit(eltype(model)), oneunit(y)
     accumulator = zero(𝟏 * x)  # Accumulator of the summation
@@ -33,11 +33,12 @@ function (model::AbstractModel)(x)
     accumulator += 𝟏 * y
     return accumulator
 end
+(model::AbstractModel)(x) = apply(model, x)
 function (model::AbstractModel)(X::AbstractMatrix)
     result = similar(X, typeof(oneunit(eltype(model)) * oneunit(eltype(X))))  # Prepare for in-place result
-    return model(result, X)
+    return apply!(result, model, X)
 end
-function (model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
+function apply!(result::AbstractMatrix, model, X::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
     checksquare(result)
     if !iszero(X)  # Very fast
@@ -55,6 +56,7 @@ function (model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix)
     axpy!(oneunit(eltype(model)), Y, result)  # result .+= oneunit(eltype(model)) * Y
     return result
 end
+(model::AbstractModel)(result::AbstractMatrix, X::AbstractMatrix) = apply!(result, model, X)
 
 _finalize_fermi_dirac(Y) = oneunit(Y) - Y  # Applies to 1 number/matrix at a time
 _finalize_fermi_dirac!(Y::AbstractMatrix) = axpby!(1, oneunit(Y), -1, Y)  # This is the fastest, except for `axpy!(-1, result, oneunit(Y))`, which we cannot use here.
