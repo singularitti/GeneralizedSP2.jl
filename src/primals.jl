@@ -40,7 +40,9 @@ function (model::AbstractModel)(X::AbstractMatrix)
 end
 function apply!(result::AbstractMatrix, model, X::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
-    checksquare(result)
+    if size(result) != size(X)
+        throw(DimensionMismatch("the size of `result` is not compatible with `X`!"))
+    end
     if !iszero(X)  # Very fast
         map!(zero, result, result)
     end
