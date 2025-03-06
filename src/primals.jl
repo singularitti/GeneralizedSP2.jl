@@ -34,6 +34,22 @@ function apply(model, x)
     return accumulator
 end
 
+function apply!(𝐲::AbstractVector, model, x)
+    if length(𝐲) != numlayers(model) + 1
+        throw(DimensionMismatch("the length of 𝐲 and the model do not match!"))
+    end
+    layers = eachlayer(model)
+    layerindices = eachindex(layers)
+    𝐲[begin] = x
+    accumulator = zero(eltype(𝐲))
+    for (i, 𝐦) in zip(layerindices, layers)
+        y = 𝐲[i]
+        accumulator += 𝐦[4] * y
+        𝐲[i + 1] = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * oneunit(y)
+    end
+    accumulator += 𝐲[end]
+    return accumulator
+end
 function apply!(result::AbstractMatrix, model, X::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
     if size(result) != size(X)
