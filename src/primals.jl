@@ -23,7 +23,7 @@ function basis(model::AbstractModel)
 end
 
 function apply(model, x)
-    y = x  # `x` and `y` are 2 numbers (not big numbers)
+    y = x  # `x` and `y` are 2 numbers
     𝟏, 𝟏′ = oneunit(eltype(model)), oneunit(y)
     accumulator = zero(𝟏 * x)  # Accumulator of the summation
     for 𝐦 in eachlayer(model)
