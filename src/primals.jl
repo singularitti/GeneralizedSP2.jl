@@ -33,6 +33,18 @@ function apply(model, x)
     accumulator += 𝟏ₘ * y
     return accumulator
 end
+function apply(model, x)
+    T = promote_type(typeof(x^2), typeof(x))
+    𝟏ₘ, 𝟏ₓ = oneunit(eltype(model)), oneunit(T)
+    accumulator = zero(𝟏ₘ * 𝟏ₓ)  # Accumulator of the summation
+    y = x  # `x` and `y` are 2 numbers
+    for 𝐦 in eachlayer(model)
+        accumulator += 𝐦[4] * y
+        y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * 𝟏ₓ
+    end
+    accumulator += 𝟏ₘ * y
+    return accumulator
+end
 
 function apply!(𝐲::AbstractVector, model, x)
     if length(𝐲) != numlayers(model) + 1
