@@ -33,18 +33,18 @@ function apply(model, x)
     accumulator += 𝟏ₘ * y
     return accumulator
 end
-function apply(model, x)
-    T = promote_type(typeof(x^2), typeof(x))
-    𝟏ₘ, 𝟏ₓ = oneunit(eltype(model)), oneunit(T)
-    accumulator = zero(𝟏ₘ * 𝟏ₓ)  # Accumulator of the summation
-    y = x  # `x` and `y` are 2 numbers
-    for 𝐦 in eachlayer(model)
-        accumulator += 𝐦[4] * y
-        y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * 𝟏ₓ
-    end
-    accumulator += 𝟏ₘ * y
-    return accumulator
-end
+# function apply(model, x)
+#     T = promote_type(typeof(x^2), typeof(x))
+#     𝟏ₘ, 𝟏ₓ = oneunit(eltype(model)), oneunit(T)
+#     accumulator = zero(𝟏ₘ * 𝟏ₓ)  # Accumulator of the summation
+#     y = x  # `x` and `y` are 2 numbers
+#     for 𝐦 in eachlayer(model)
+#         accumulator += 𝐦[4] * y
+#         y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * 𝟏ₓ
+#     end
+#     accumulator += 𝟏ₘ * y
+#     return accumulator
+# end
 
 function apply!(𝐲::AbstractVector, model, x)
     if length(𝐲) != numlayers(model) + 1
@@ -62,20 +62,20 @@ function apply!(𝐲::AbstractVector, model, x)
     accumulator += 𝐲[end]
     return accumulator
 end
-function apply!(𝐲::AbstractVector, model, x)
-    @assert isempty(𝐲)
-    y = x  # `x` and `y` are 2 numbers
-    push!(𝐲, y)
-    𝟏, 𝟏′ = oneunit(eltype(model)), oneunit(y)
-    accumulator = zero(𝟏 * x)  # Accumulator of the summation
-    for 𝐦 in eachlayer(model)
-        accumulator += 𝐦[4] * y
-        y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * 𝟏′
-        push!(𝐲, y)
-    end
-    accumulator += 𝟏 * y
-    return accumulator
-end
+# function apply!(𝐲::AbstractVector, model, x)
+#     @assert isempty(𝐲)
+#     y = x  # `x` and `y` are 2 numbers
+#     push!(𝐲, y)
+#     𝟏, 𝟏′ = oneunit(eltype(model)), oneunit(y)
+#     accumulator = zero(𝟏 * x)  # Accumulator of the summation
+#     for 𝐦 in eachlayer(model)
+#         accumulator += 𝐦[4] * y
+#         y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * 𝟏′
+#         push!(𝐲, y)
+#     end
+#     accumulator += 𝟏 * y
+#     return accumulator
+# end
 function apply!(result::AbstractMatrix, model, X::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
     if size(result) != size(X)
