@@ -64,16 +64,16 @@ function apply!(𝐲::AbstractVector, model, x)
 end
 # function apply!(𝐲::AbstractVector, model, x)
 #     @assert isempty(𝐲)
+#     𝟏ₘ, 𝟏ₓ = oneunit(eltype(model)), oneunit(x)
+#     accumulator = zero(𝟏ₘ * 𝟏ₓ)  # Accumulator of the summation
 #     y = x  # `x` and `y` are 2 numbers
 #     push!(𝐲, y)
-#     𝟏, 𝟏′ = oneunit(eltype(model)), oneunit(y)
-#     accumulator = zero(𝟏 * x)  # Accumulator of the summation
 #     for 𝐦 in eachlayer(model)
 #         accumulator += 𝐦[4] * y
-#         y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * 𝟏′
+#         y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * 𝟏ₓ
 #         push!(𝐲, y)
 #     end
-#     accumulator += 𝟏 * y
+#     accumulator += 𝟏ₘ * y
 #     return accumulator
 # end
 function apply!(result::AbstractMatrix, model, X::AbstractMatrix)
