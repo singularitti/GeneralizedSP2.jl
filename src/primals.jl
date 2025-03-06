@@ -51,6 +51,7 @@ function apply!(𝐲::AbstractVector, model, x)
     return accumulator
 end
 function apply!(𝐲::AbstractVector, model, x)
+    @assert isempty(𝐲)
     y = x  # `x` and `y` are 2 numbers
     push!(𝐲, y)
     𝟏, 𝟏′ = oneunit(eltype(model)), oneunit(y)
