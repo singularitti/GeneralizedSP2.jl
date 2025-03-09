@@ -51,14 +51,15 @@ end
 
 β = 1.25  # Physical
 μ = 11.5  # Physical
-sys_size = 4096
+sys_size = 16384
 dist = LogUniform(1, 20)
 Λ = rand(EigvalsSampler(dist), sys_size)
 V = rand(EigvecsSampler(dist), sys_size, sys_size)
 set_isapprox_rtol(1e-10)
-H = (Hamiltonian(Eigen(Λ, V)))
-𝛌 = eigvals(H)
-εₘᵢₙ, εₘₐₓ = floor(minimum(𝛌)), ceil(maximum(𝛌))
+H = Hamiltonian(Eigen(Λ, V))
+# 𝛌 = eigvals(H)
+# εₘᵢₙ, εₘₐₓ = floor(minimum(𝛌)), ceil(maximum(𝛌))
+εₘᵢₙ, εₘₐₓ = 1, 20
 β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
 μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
