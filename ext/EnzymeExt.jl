@@ -1,7 +1,7 @@
 module EnzymeExt
 
 using EnzymeCore: Reverse, Active, Duplicated, autodiff
-using GeneralizedSP2: AbstractModel, CustomAutoEnzyme, _apply
+using GeneralizedSP2: AbstractModel, CustomAutoEnzyme
 
 import GeneralizedSP2: autodiff_model!
 
