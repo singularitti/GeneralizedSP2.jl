@@ -8,11 +8,11 @@ PLOT_DEFAULTS = Dict(
     :linewidth => 1.5,
     :markerstrokewidth => 0,
     :minorticks => 5,
-    :titlefontsize => 10,
+    :titlefontsize => 12,
     :guidefontsize => 10,
     :tickfontsize => 8,
     :legendfontsize => 8,
-    :margin => (4, :mm),
+    :margin => (6, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
@@ -22,6 +22,7 @@ PLOT_DEFAULTS = Dict(
     :legendfontfamily => "Palatino Italic",
     :guidefontfamily => "Palatino Roman",
     :tickfontfamily => "Palatino Roman",
+    :titlefontfamily => "Palatino Roman",
 )
 
 # Function to compute TFLOPS from a CSV file
