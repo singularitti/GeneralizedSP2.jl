@@ -6,7 +6,6 @@ PLOT_DEFAULTS = Dict(
     :dpi => 400,
     :framestyle => :box,
     :linewidth => 1.5,
-    :markersize => 4,
     :markerstrokewidth => 0,
     :minorticks => 5,
     :titlefontsize => 10,
@@ -114,16 +113,11 @@ l = @layout [
 
 plt = plot(; size=(1800, 1200), layout=l, PLOT_DEFAULTS..., right_margin=(20, :mm))
 
-# Define marker shapes for each precision
-marker_shapes = Dict("f32" => :circle, "f64" => :square, "mixed" => :diamond)
-
-# Right column (subplot 5) - peak TFLOPS vs system size for all combinations
 for t in types
     for p in precisions
         df_plot = filter(row -> row.Type == t && row.Precision == p, results)
         if !isempty(df_plot)  # Only plot if we have data for this combination
             linestyle = t == "exactgpu" ? :solid : :dash
-            marker = marker_shapes[p]
 
             plot!(
                 plt,
@@ -132,7 +126,6 @@ for t in types
                 subplot=5,
                 label="$(type_display[t]), $(precision_display[p])",
                 linestyle=linestyle,
-                markershape=marker,
                 xlabel=raw"system size $N$",
                 ylabel="peak teraFLOPS",
                 xscale=:log2,
@@ -149,7 +142,6 @@ title!(plt, "peak teraFLOPS versus system size"; subplot=5)
 # Function to plot a specific type+precision combination
 function plot_type_precision!(plt, type, precision, subplot_idx, custom_title=nothing)
     linestyle = type == "exactgpu" ? :solid : :dash
-    marker = marker_shapes[precision]
 
     # Use the display names for the title if no custom title is provided
     if isnothing(custom_title)
@@ -179,7 +171,6 @@ function plot_type_precision!(plt, type, precision, subplot_idx, custom_title=no
                 subplot=subplot_idx,
                 label="N=$s",
                 linestyle=linestyle,
-                markershape=marker,
                 xlabel="profiling trace identifier (ID)",
                 ylabel="instant teraFLOPS",
                 PLOT_DEFAULTS...,
@@ -188,7 +179,8 @@ function plot_type_precision!(plt, type, precision, subplot_idx, custom_title=no
             println("Error processing $filename: $e")
         end
     end
-    return title!(plt, display_title; subplot=subplot_idx)
+    title!(plt, display_title; subplot=subplot_idx)
+    return plt
 end
 
 # Plot each type+precision combination in its own subplot
