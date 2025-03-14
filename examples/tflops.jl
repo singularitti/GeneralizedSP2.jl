@@ -17,7 +17,6 @@ PLOT_DEFAULTS = Dict(
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
-    :legend_position => :outerright,
     :legend_columns => 2,
     :background_color_inside => nothing,
     :color_palette => :tab10,
@@ -101,17 +100,24 @@ precisions = ["f32", "f64", "mixed"]
 sizes = [512, 1024, 2048, 4096, 8192, 16384]
 results = compute_peak_tflops(types, precisions, sizes)
 
-plt = plot(;
-    size=(1200, 1200),
-    layout=grid(3, 1; heights=[0.34, 0.33, 0.33]),
-    PLOT_DEFAULTS...,
-    right_margin=(20, :mm),
+# Define display names for types and precisions
+type_display = Dict("exactgpu" => "exact diagonalization", "modelgpu" => "model")
+
+precision_display = Dict(
+    "f32" => "single precision", "f64" => "double precision", "mixed" => "mixed precision"
 )
+
+# Define the custom layout
+l = @layout [
+    [a{0.25h}; b{0.25h}; c{0.25h}; d{0.25h}] e{0.5w};
+]
+
+plt = plot(; size=(1800, 1200), layout=l, PLOT_DEFAULTS..., right_margin=(20, :mm))
 
 # Define marker shapes for each precision
 marker_shapes = Dict("f32" => :circle, "f64" => :square, "mixed" => :diamond)
 
-# First subplot - peak TFLOPS vs system size for all combinations
+# Right column (subplot 5) - peak TFLOPS vs system size for all combinations
 for t in types
     for p in precisions
         df_plot = filter(row -> row.Type == t && row.Precision == p, results)
@@ -123,8 +129,8 @@ for t in types
                 plt,
                 df_plot.Size,
                 df_plot.Peak_TFLOPS;
-                subplot=1,
-                label="$t, $p",
+                subplot=5,
+                label="$(type_display[t]), $(precision_display[p])",
                 linestyle=linestyle,
                 markershape=marker,
                 xlabel=raw"system size $N$",
@@ -132,34 +138,47 @@ for t in types
                 xscale=:log2,
                 yscale=:log10,
                 xticks=sizes,
+                legend_position=:bottomright,
                 PLOT_DEFAULTS...,
             )
         end
     end
 end
-title!(plt, "peak teraFLOPS versus system size"; subplot=1)
+title!(plt, "peak teraFLOPS versus system size"; subplot=5)
 
-# Second subplot - exact diagonalization
-for s in sizes
-    for p in precisions
-        filename = "exactgpu_$(p)_$s.csv"
-        # Skip if file doesn't exist
+# Function to plot a specific type+precision combination
+function plot_type_precision!(plt, type, precision, subplot_idx, custom_title=nothing)
+    linestyle = type == "exactgpu" ? :solid : :dash
+    marker = marker_shapes[precision]
+
+    # Use the display names for the title if no custom title is provided
+    if isnothing(custom_title)
+        display_title = "$(type_display[type]) with $(precision_display[precision])"
+    else
+        display_title = custom_title
+    end
+
+    for s in sizes
+        filename = "$(type)_$(precision)_$s.csv"
         if !isfile(filename)
             continue
         end
 
         try
             df, tflops_df = compute_tflops(filename)
-            marker = marker_shapes[p]
-            endindex = length(df.ID) >= 200 ? 200 : length(df.ID)
+            if isnothing(df) || isnothing(tflops_df)
+                continue
+            end
+
+            endindex = min(200, length(df.ID))
 
             plot!(
                 plt,
                 df.ID[1:endindex],
                 tflops_df.TFLOPS_Total[1:endindex];
-                subplot=2,
-                label="exact, $p, N=$s",
-                linestyle=:solid,
+                subplot=subplot_idx,
+                label="N=$s",
+                linestyle=linestyle,
                 markershape=marker,
                 xlabel="profiling trace identifier (ID)",
                 ylabel="instant teraFLOPS",
@@ -169,40 +188,14 @@ for s in sizes
             println("Error processing $filename: $e")
         end
     end
+    return title!(plt, display_title; subplot=subplot_idx)
 end
-title!(plt, "teraFLOPS versus each timestep for exact diagonalization"; subplot=2)
 
-# Third subplot - model
-for s in sizes
-    for p in precisions
-        filename = "modelgpu_$(p)_$s.csv"
-        # Skip if file doesn't exist
-        if !isfile(filename)
-            continue
-        end
+# Plot each type+precision combination in its own subplot
+plot_type_precision!(plt, "exactgpu", "f32", 1)
+plot_type_precision!(plt, "exactgpu", "f64", 2)
+plot_type_precision!(plt, "modelgpu", "f32", 3)
+plot_type_precision!(plt, "modelgpu", "f64", 4)
 
-        try
-            df, tflops_df = compute_tflops(filename)
-            marker = marker_shapes[p]
-            endindex = length(df.ID) >= 200 ? 200 : length(df.ID)
-
-            plot!(
-                plt,
-                df.ID[1:endindex],
-                tflops_df.TFLOPS_Total[1:endindex];
-                subplot=3,
-                label="model, $p, N=$s",
-                linestyle=:dash,
-                markershape=marker,
-                xlabel="profiling trace identifier (ID)",
-                ylabel="instant teraFLOPS",
-                PLOT_DEFAULTS...,
-            )
-        catch e
-            println("Error processing $filename: $e")
-        end
-    end
-end
-title!(plt, "teraFLOPS versus each timestep for model"; subplot=3)
-# savefig("tflops.png")
+savefig("tflops.png")
 # plot!(plt)
