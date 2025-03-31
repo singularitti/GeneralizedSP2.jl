@@ -88,10 +88,11 @@ function apply!(result::AbstractMatrix, model, X::AbstractMatrix)
     Y² = similar(Y)
     𝟙 = oneunit(Y)  # Identity matrix
     for 𝐦 in eachlayer(model)  # All operations are in-place, significantly reducing allocations.
-        axpy!(𝐦[4], Y, result)  # result .+= 𝐦[4] * Y
+        m₁, m₂, m₃, m₄ = 𝐦
+        axpy!(m₄, Y, result)  # result .+= 𝐦[4] * Y
         mul!(Y², Y, Y)  # Y² .= Y^2
-        axpby!(𝐦[1], Y², 𝐦[2], Y)  # Y .+= 𝐦[1] * Y^2 + 𝐦[2] * Y
-        axpy!(𝐦[3], 𝟙, Y)  # Y .+= 𝐦[3] * 𝟙
+        axpby!(m₁, Y², m₂, Y)  # Y .+= 𝐦[1] * Y^2 + 𝐦[2] * Y
+        axpy!(m₃, 𝟙, Y)  # Y .+= 𝐦[3] * 𝟙
     end
     axpy!(oneunit(eltype(model)), Y, result)  # result .+= oneunit(eltype(model)) * Y
     return result
