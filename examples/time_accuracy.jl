@@ -87,12 +87,12 @@ function benchmark_errors(matrices)
 end
 
 types = ["modelgpu", "exactgpu"]
-precisions = [16, 32, 64]
+precisions = [16, 24, 32, 64]
 sizes = [512, 1024, 2048, 4096, 8192, 16384]
-
+basedir = "~/Downloads/dms_calculations_bench"
 results, unstacked = process_csv_files(types, precisions, sizes, basedir)
 
-colors = Dict(16 => "#1f77b4", 32 => "#ff7f0e", 64 => "#2ca02c")
+colors = Dict(16 => "#1f77b4", 24 => "#d62728", 32 => "#ff7f0e", 64 => "#2ca02c")
 line_styles = Dict("exactgpu" => :solid, "modelgpu" => :dash)
 plt = plot(; size=(450, 625), layout=(2, 1), xscale=:log2, yscale=:log10)
 for type in unique(results.type)
@@ -113,19 +113,19 @@ for type in unique(results.type)
         end
     end
 end
-yticks!(plt, exp10.(0:8); subplot=1)
+yticks!(plt, exp10.(0:9); subplot=1)
 ylabel!("total time (μs)"; subplot=1)
 
 # errors = benchmark_errors(matrices_df)
 sort!(errors, [:type, :precision, :size])
 for type in ["modelgpu", "exactgpu"]
-    for precision in [16, 32, 64]
+    for precision in [16, 24, 32, 64]
         # Skip exactgpu_64 as it's the benchmark
         if type == "exactgpu" && precision == 64
             continue
         end
         # Skip exactgpu_16 as it doesn't exist
-        if type == "exactgpu" && precision == 16
+        if type == "exactgpu" && precision in (16, 24)
             continue
         end
         # Filter data for this combination
@@ -148,7 +148,7 @@ for type in ["modelgpu", "exactgpu"]
     end
 end
 xticks!(plt, sizes)
-yticks!(plt, exp10.((-10):2:(-1)); subplot=2)
+yticks!(plt, exp10.((-10):(-1)); subplot=2)
 xlims!(plt, extrema(sizes))
 xlabel!(plt, "system size (N)"; subplot=2)
 ylabel!("relative errors (infinity norm)"; subplot=2)
