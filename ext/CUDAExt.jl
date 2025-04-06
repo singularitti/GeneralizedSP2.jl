@@ -242,18 +242,4 @@ function (model::Model)(
     return DM
 end
 
-function compute_exact_fermi_dirac!(DM::CuMatrix, H::CuMatrix, μ, β)
-    if size(DM) != size(H)
-        throw(DimensionMismatch("DM and H must have the same size!"))
-    end
-    M, N = size(H)
-    if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
-        throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
-    end
-    @ccall libpath.compute_exact_fermi_dirac(
-        H::CuPtr{Cdouble}, N::Cint, β::Cdouble, μ::Cdouble, DM::CuPtr{Cdouble}
-    )::Cvoid
-    return DM
-end
-
 end

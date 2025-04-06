@@ -42,5 +42,3 @@ function fill_diagonal(D::AbstractVector)
     A = similar(D, length(D), length(D))
     return fill_diagonal!(A, D)
 end
-
-function compute_exact_fermi_dirac! end
