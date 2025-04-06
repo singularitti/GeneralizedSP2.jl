@@ -213,27 +213,4 @@ function fermi_dirac(H::CuMatrix, μ, β)
     return fermi_dirac!(DM, H, μ, β)
 end
 
-function (model::Model)(
-    DM::CuMatrix, H::CuMatrix, precision, spectral_bounds=extrema(H)
-)
-    M, N = size(H)
-    if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
-        throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
-    end
-    nlayers = numlayers(model)
-    model = parent(model)
-    ϵₘᵢₙ, ϵₘₐₓ = extrema(spectral_bounds)
-    @ccall libpath.dm_mlsp2(
-        model::Ptr{Cdouble},
-        H::CuPtr{Cdouble},
-        DM::CuPtr{Cdouble},
-        nlayers::Cint,
-        N::Cint,
-        precision::Cint,
-        ϵₘᵢₙ::Cdouble,
-        ϵₘₐₓ::Cdouble,
-    )::Cvoid
-    return DM
-end
-
 end
