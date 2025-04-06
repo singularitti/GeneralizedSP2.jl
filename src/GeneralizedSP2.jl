@@ -9,6 +9,6 @@ include("sp2.jl")
 include("fitting.jl")
 include("mu.jl")
 include("io.jl")
-include("cuda.jl")
+include("gpu.jl")
 
 end
