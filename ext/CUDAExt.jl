@@ -29,15 +29,16 @@ using CUDA.CUBLAS: axpy!, axpby!, gemm!, mul!
 using LinearAlgebra: Diagonal, checksquare
 using NVTX: @range
 
-using GeneralizedSP2: Model, CUDAError, Precision, eachlayer, numlayers
+using GeneralizedSP2: Model, eachlayer, numlayers
 
-import GeneralizedSP2:
-    diagonalize,
-    diagonalize!,
-    fill_diagonal!,
-    fermi_dirac,
-    fermi_dirac!,
-    compute_exact_fermi_dirac!
+import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac, fermi_dirac!
+
+struct CUDAError
+    at::Symbol
+    msg::String
+end
+
+Base.showerror(io::IO, e::CUDAError) = print(io, "CUDA error in `$(e.at)`: $(e.msg)")
 
 function diagonalize!(
     evals::CuVector{Cdouble,DeviceMemory},
@@ -217,43 +218,6 @@ end
 function fermi_dirac(H::CuMatrix, μ, β)
     DM = similar(H)
     return fermi_dirac!(DM, H, μ, β)
-end
-
-function (model::Model)(
-    DM::CuMatrix, H::CuMatrix, precision, spectral_bounds=extrema(H)
-)
-    M, N = size(H)
-    if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
-        throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
-    end
-    nlayers = numlayers(model)
-    model = parent(model)
-    ϵₘᵢₙ, ϵₘₐₓ = extrema(spectral_bounds)
-    @ccall libpath.dm_mlsp2(
-        model::Ptr{Cdouble},
-        H::CuPtr{Cdouble},
-        DM::CuPtr{Cdouble},
-        nlayers::Cint,
-        N::Cint,
-        precision::Cint,
-        ϵₘᵢₙ::Cdouble,
-        ϵₘₐₓ::Cdouble,
-    )::Cvoid
-    return DM
-end
-
-function compute_exact_fermi_dirac!(DM::CuMatrix, H::CuMatrix, μ, β)
-    if size(DM) != size(H)
-        throw(DimensionMismatch("DM and H must have the same size!"))
-    end
-    M, N = size(H)
-    if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
-        throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
-    end
-    @ccall libpath.compute_exact_fermi_dirac(
-        H::CuPtr{Cdouble}, N::Cint, β::Cdouble, μ::Cdouble, DM::CuPtr{Cdouble}
-    )::Cvoid
-    return DM
 end
 
 end

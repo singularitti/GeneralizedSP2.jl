@@ -106,16 +106,6 @@ function exactgpu(N, μ, β; preheat=3)  # Julia
     return DM
 end
 
-function exactcuda(N, μ, β; preheat=3)  # CUDA
-    X = CuMatrix(H[1:N, 1:N])
-    DM = zero(X)
-    for _ in 1:preheat
-        compute_exact_fermi_dirac!(DM, X, μ, β)  # Preheating GPU
-    end
-    CUDA.@profile compute_exact_fermi_dirac!(DM, X, μ, β)
-    return DM
-end
-
 # layout = (2, 1)
 # plot(; layout=layout, PLOT_DEFAULTS..., size=(1600 / 3, 800))
 # scatter!(𝛌, fd_benchmark; subplot=1, label="target Fermi–Dirac", PLOT_DEFAULTS...)
