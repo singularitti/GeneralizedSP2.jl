@@ -29,15 +29,9 @@ using CUDA.CUBLAS: axpy!, axpby!, gemm!, mul!
 using LinearAlgebra: Diagonal, checksquare
 using NVTX: @range
 
-using GeneralizedSP2: Model, CUDAError, Precision, eachlayer, numlayers
+using GeneralizedSP2: Model, CUDAError, eachlayer, numlayers
 
-import GeneralizedSP2:
-    diagonalize,
-    diagonalize!,
-    fill_diagonal!,
-    fermi_dirac,
-    fermi_dirac!,
-    compute_exact_fermi_dirac!
+import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac, fermi_dirac!
 
 function diagonalize!(
     evals::CuVector{Cdouble,DeviceMemory},
