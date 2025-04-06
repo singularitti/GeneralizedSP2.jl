@@ -29,9 +29,16 @@ using CUDA.CUBLAS: axpy!, axpby!, gemm!, mul!
 using LinearAlgebra: Diagonal, checksquare
 using NVTX: @range
 
-using GeneralizedSP2: Model, CUDAError, eachlayer, numlayers
+using GeneralizedSP2: Model, eachlayer, numlayers
 
 import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac, fermi_dirac!
+
+struct CUDAError
+    at::Symbol
+    msg::String
+end
+
+Base.showerror(io::IO, e::CUDAError) = print(io, "CUDA error in `$(e.at)`: $(e.msg)")
 
 function diagonalize!(
     evals::CuVector{Cdouble,DeviceMemory},
