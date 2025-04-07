@@ -3,7 +3,6 @@ using BenchmarkTools: @btimed
 using CUDA
 using Distributions: LogUniform
 using GeneralizedSP2
-using GeneralizedSP2: DOUBLE, SINGLE, MIXED
 using LinearAlgebra
 # using Plots
 using ToyHamiltonians
