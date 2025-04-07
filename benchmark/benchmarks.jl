@@ -13,23 +13,21 @@ using FiniteDiff
 PLOT_DEFAULTS = Dict(
     :dpi => 400,
     :framestyle => :box,
-    :linewidth => 1.5,
+    :linewidth => 2,
     :markersize => 4,
     :markerstrokewidth => 0,
     :minorticks => 5,
-    :guidefontsize => 9,
-    :tickfontsize => 7,
-    :legendfontsize => 7,
-    :left_margin => (10, :mm),
-    :bottom_margin => (10, :mm),
+    :guidefontsize => 15,
+    :tickfontsize => 12,
+    :legendfontsize => 12,
+    :left_margin => (8, :mm),
+    :bottom_margin => (8, :mm),
     :grid => nothing,
     :legend_foreground_color => nothing,
     :legend_background_color => nothing,
-    :legend_position => :outertop,
-    :legend_columns => 5,
     :background_color_inside => nothing,
     :legendfontfamily => "Palatino Italic",
-    :guidefontfamily => "Palatino Roman",
+    :guidefontfamily => "Palatino Italic",
     :tickfontfamily => "Palatino Roman",
 )
 
@@ -40,7 +38,7 @@ PLOT_DEFAULTS = Dict(
 𝐲̂ = fermi_dirac.(𝛆′, μ′, β′)
 
 layers = 12:20
-max_iters = [1_000, 10_000, 100_000, 1_000_000, 10_000_000]
+max_iters = [1_000, 10_000, 100_000, 1_000_000, 10_000_000, 100_000_000]
 strategy = Manual()
 strategy = Auto(AutoEnzyme(; mode=Reverse, function_annotation=Const))
 strategy = Auto(AutoFiniteDiff())
@@ -86,7 +84,7 @@ all_results[string(strategy)] = results
 
 benchtime = [result.times for result in all_results[string(Manual())]]
 
-plot(; layout=(1, 3), PLOT_DEFAULTS..., size=(2200, 600))
+plot(; layout=(1, 2), PLOT_DEFAULTS..., size=(1300, 500))
 for (strategy, strategy_str, linestyle, markershape) in zip(
     keys(all_results),
     ("opt", "Ez", "FD", "none"),
@@ -97,7 +95,7 @@ for (strategy, strategy_str, linestyle, markershape) in zip(
     time = [result.times for result in results]  # In seconds
     memory = [result.bytes for result in results] / 1024^2  # In MB
     rmse = [result.rmse for result in results]
-    for (iterindex, seriescolor) in zip(1:length(results), palette(:tab10))
+    for (iterindex, seriescolor) in zip(1:length(results), palette(:seaborn_bright))
         plot!(
             layers,
             rmse[iterindex];
@@ -112,8 +110,10 @@ for (strategy, strategy_str, linestyle, markershape) in zip(
             yticks=exp10.((-9):(-3)),
             xminorticks=0,
             yminorticks=5,
-            xlabel="number of layers",
+            legend_position=:bottomleft,
+            xlabel="L",
             ylabel="RMSE of fitting",
+            yguidefontfamily="Palatino Roman",
             PLOT_DEFAULTS...,
         )
         plot!(
@@ -130,28 +130,30 @@ for (strategy, strategy_str, linestyle, markershape) in zip(
             yticks=exp10.(-2:3),
             xminorticks=0,
             yminorticks=5,
-            xlabel="number of layers",
+            legend_position=:topleft,
+            xlabel="L",
             ylabel="time (s)",
+            yguidefontfamily="Palatino Roman",
             PLOT_DEFAULTS...,
         )
-        plot!(
-            layers,
-            time[iterindex] ./ benchtime[iterindex];
-            subplot=3,
-            seriestype=:path,
-            linestyle=linestyle,
-            markershape=markershape,
-            seriescolor=seriescolor,
-            label="I=$(max_iters[iterindex]), $strategy_str",
-            yscale=:log10,
-            xticks=layers,
-            yticks=exp10.(-1:10),
-            xminorticks=0,
-            yminorticks=5,
-            xlabel="number of layers",
-            ylabel="memory (MB)",
-            PLOT_DEFAULTS...,
-        )
+        # plot!(
+        #     layers,
+        #     time[iterindex] ./ benchtime[iterindex];
+        #     subplot=3,
+        #     seriestype=:path,
+        #     linestyle=linestyle,
+        #     markershape=markershape,
+        #     seriescolor=seriescolor,
+        #     label="I=$(max_iters[iterindex]), $strategy_str",
+        #     yscale=:log10,
+        #     xticks=layers,
+        #     yticks=exp10.(-1:10),
+        #     xminorticks=0,
+        #     yminorticks=5,
+        #     xlabel="number of layers",
+        #     ylabel="memory (MB)",
+        #     PLOT_DEFAULTS...,
+        # )
     end
 end
 xlims!(extrema(layers))
