@@ -47,7 +47,7 @@ function manualdiff_model!(f′, 𝐲, grad::AbstractVecOrMat, model::Model, x)
         throw(DimensionMismatch("the length of 𝐲 and the model do not match!"))
     end
     layers = eachlayer(model)
-    layerindices = eachindex(layers)
+    layerindices = eachlayerindex(model)
     # Forward calculation
     𝐲[begin] = x
     accumulator = zero(eltype(𝐲))

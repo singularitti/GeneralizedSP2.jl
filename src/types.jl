@@ -1,4 +1,4 @@
-export Model, FlatModel, layerwidth, numlayers, eachlayer
+export Model, FlatModel, layerwidth, numlayers, eachlayer, eachlayerindex
 
 const LAYER_WIDTH = 4
 
@@ -64,6 +64,9 @@ numlayers(model::FlatModel) = numlayers(Model(model))
 
 eachlayer(model::Model) = eachcol(model)
 eachlayer(model::FlatModel) = eachcol(Model(model))
+
+eachlayerindex(model::Model) = axes(model, 2)
+eachlayerindex(model::FlatModel) = axes(Model(model), 2)
 
 Base.parent(model::AbstractModel) = model.data
 
