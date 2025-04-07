@@ -1,14 +1,11 @@
 module CUDAExt
 
 using CUDA:
-    CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
     CUDA,
     CuMatrix,
     CuVector,
     CuDeviceMatrix,
     CuDeviceVector,
-    CuPtr,
-    DeviceMemory,
     blockIdx,
     blockDim,
     gridDim,
@@ -25,8 +22,7 @@ using CUDA.CUSOLVER:
     cusolverDnHandle_t,
     cusolverDnSsyevd,
     cusolverDnSsyevd_bufferSize
-using CUDA.CUBLAS: axpy!, axpby!, gemm!, mul!
-using LinearAlgebra: Diagonal, checksquare
+using LinearAlgebra: Diagonal
 using NVTX: @range
 
 using GeneralizedSP2: Model, eachlayer, numlayers
