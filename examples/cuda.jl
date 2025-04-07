@@ -90,9 +90,9 @@ function modelgpu(N; preheat=3)  # Julia model
     X = CuMatrix(H_scaled[1:N, 1:N])
     DM = similar(X)
     for _ in 1:preheat
-        fermi_dirac!(model)(DM, X)  # Preheating GPU
+        fermi_dirac!(DM, model, X)  # Preheating GPU
     end
-    CUDA.@profile fermi_dirac!(model)(DM, X)  # Only profile the last run
+    CUDA.@profile fermi_dirac!(DM, model, X)  # Only profile the last run
     return DM
 end
 
