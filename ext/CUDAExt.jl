@@ -40,14 +40,10 @@ end
 
 Base.showerror(io::IO, e::CUDAError) = print(io, "CUDA error in `$(e.at)`: $(e.msg)")
 
-function diagonalize!(
-    evals::CuVector{Cdouble,DeviceMemory},
-    evecs::CuMatrix{Cdouble,DeviceMemory},
-    H::CuMatrix{Cdouble},
-)
+function diagonalize!(evals::CuVector{T}, evecs::CuMatrix{T}, H::CuMatrix{T}) where {T}
     M, N = size(H)
     if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
-        throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
+        throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(H))"))
     end
     H′ = similar(H)  # Allocate a new `CuMatrix` on the GPU
     copyto!(H′, H)  # Efficiently copy data from `H` to `H′` on the GPU
@@ -59,60 +55,21 @@ function diagonalize!(
     uplo = convert(cublasFillMode_t, 'L')  # `CUBLAS_FILL_MODE_LOWER`, see https://github.com/JuliaGPU/CUDA.jl/blob/45571e9/lib/cublas/util.jl#L49-L57
     # Determine the buffer size required
     lwork = Ref{Cint}(0)
-    cusolverDnDsyevd_bufferSize(cusolver_handle[], jobz, uplo, N, H′, N, evals, lwork)
+    _eigsolver_buffersize(T)(cusolver_handle[], jobz, uplo, N, H′, N, evals, lwork)
     # Allocate temporary workspace and device info array
-    work = CuVector{Cdouble}(undef, lwork[])
+    work = CuVector{T}(undef, lwork[])
     devInfo = CuVector{Cint}(undef, 1)
     # Diagonalize the matrix
-    cusolverDnDsyevd(cusolver_handle[], jobz, uplo, N, H′, N, evals, work, lwork[], devInfo)
+    solver = _eigsolver(T)
+    solver(cusolver_handle[], jobz, uplo, N, H′, N, evals, work, lwork[], devInfo)
     # Handle errors
     retcode = only(Vector(devInfo))  # Copy memory from the GPU
     if retcode < 0
-        throw(CUDAError(:cusolverDnDsyevd, "$(-retcode)th parameter is invalid!"))
+        throw(CUDAError(nameof(solver), "$(-retcode)th parameter is invalid!"))
     elseif retcode > 0
         throw(
             CUDAError(
-                :cusolverDnDsyevd, "$(retcode)th off-diagonal elements did not converge!"
-            ),
-        )
-    end
-    copyto!(evecs, H′)  # Copy the eigenvectors to `evecs`
-    cusolverDnDestroy(cusolver_handle[])  # Clean up resources
-    return evals, evecs
-end
-function diagonalize!(
-    evals::CuVector{Cfloat,DeviceMemory},
-    evecs::CuMatrix{Cfloat,DeviceMemory},
-    H::CuMatrix{Cfloat},
-)
-    M, N = size(H)
-    if M != N  # See https://github.com/JuliaLang/LinearAlgebra.jl/blob/d2872f9/src/LinearAlgebra.jl#L300-L304
-        throw(DimensionMismatch(lazy"matrix is not square: dimensions are $(size(A))"))
-    end
-    H′ = similar(H)  # Allocate a new `CuMatrix` on the GPU
-    copyto!(H′, H)  # Efficiently copy data from `H` to `H′` on the GPU
-    # Create cuSOLVER handle
-    cusolver_handle = Ref{cusolverDnHandle_t}(C_NULL)
-    cusolverDnCreate(cusolver_handle)
-    # Specify cuSOLVER diag flags
-    jobz = CUSOLVER_EIG_MODE_VECTOR  # Compute both singular values and singular vectors
-    uplo = convert(cublasFillMode_t, 'L')  # `CUBLAS_FILL_MODE_LOWER`, see https://github.com/JuliaGPU/CUDA.jl/blob/45571e9/lib/cublas/util.jl#L49-L57
-    # Determine the buffer size required
-    lwork = Ref{Cint}(0)
-    cusolverDnSsyevd_bufferSize(cusolver_handle[], jobz, uplo, N, H′, N, evals, lwork)
-    # Allocate temporary workspace and device info array
-    work = CuVector{Cfloat}(undef, lwork[])
-    devInfo = CuVector{Cint}(undef, 1)
-    # Diagonalize the matrix
-    cusolverDnSsyevd(cusolver_handle[], jobz, uplo, N, H′, N, evals, work, lwork[], devInfo)
-    # Handle errors
-    retcode = only(Vector(devInfo))  # Copy memory from the GPU
-    if retcode < 0
-        throw(CUDAError(:cusolverDnSsyevd, "$(-retcode)th parameter is invalid!"))
-    elseif retcode > 0
-        throw(
-            CUDAError(
-                :cusolverDnSsyevd, "$(retcode)th off-diagonal elements did not converge!"
+                nameof(solver), "$(retcode)th off-diagonal elements did not converge!"
             ),
         )
     end
@@ -126,6 +83,12 @@ function diagonalize(H::CuMatrix)
     evecs = CuMatrix{eltype(H)}(undef, N, N)
     return diagonalize!(evals, evecs, H)
 end
+
+_eigsolver_buffersize(::Type{Cdouble}) = cusolverDnDsyevd_bufferSize
+_eigsolver_buffersize(::Type{Cfloat}) = cusolverDnSsyevd_bufferSize
+
+_eigsolver(::Type{Cdouble}) = cusolverDnDsyevd
+_eigsolver(::Type{Cfloat}) = cusolverDnSsyevd
 
 # Kernel to fill diagonal elements of a square matrix
 function _fill_diagonal!(A::CuDeviceMatrix{T}, D::CuDeviceVector{T}, N) where {T}
