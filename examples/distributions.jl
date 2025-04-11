@@ -31,26 +31,6 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-function estimate_mu(H_scaled, β′, Nocc)
-    Nocc = floor(Int, Nocc)
-    diagonal = sort(diag(H_scaled))
-    homo, lumo = diagonal[Nocc], diagonal[Nocc + 1]
-    μ₀ = (homo + lumo) / 2
-    g(μ) = Nocc - sum(fermi_dirac.(diagonal, μ, β′))
-    g′(μ) = sum(fermi_dirac_deriv.(diagonal, μ, β′))
-    return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=false)
-end
-
-function compute_mu(H_scaled, β′, Nocc)
-    Nocc = floor(Int, Nocc)
-    evals = eigvals(H_scaled)
-    homo, lumo = evals[Nocc], evals[Nocc + 1]
-    μ₀ = (homo + lumo) / 2
-    g(μ) = Nocc - sum(fermi_dirac.(evals, μ, β′))
-    g′(μ) = sum(fermi_dirac_deriv.(evals, μ, β′))
-    return find_zero((g, g′), μ₀, Newton(); atol=1e-8, maxiters=50, verbose=false)
-end
-
 function hamiltonian(dist, sys_size=2048; rtol=1e-13)
     set_isapprox_rtol(rtol)
     Λ = rand(EigvalsSampler(dist), sys_size)
@@ -58,11 +38,13 @@ function hamiltonian(dist, sys_size=2048; rtol=1e-13)
     return Hamiltonian(Eigen(Λ, V))
 end
 
-function rescale_hamiltonian(H::AbstractMatrix)
-    # εₘᵢₙ, εₘₐₓ = eigvals_extrema(H)
+function rescale_hamiltonian(H::AbstractMatrix, μ, β)
     𝚲 = eigvals(H)  # Must be all reals
     εₘᵢₙ, εₘₐₓ = floor(minimum(𝚲)), ceil(maximum(𝚲))
-    return rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H), εₘᵢₙ, εₘₐₓ
+    H′ = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
+    β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
+    μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
+    return H′, μ′, β′, εₘᵢₙ, εₘₐₓ
 end
 
 # dist = Cauchy(0.35, 0.2)
@@ -83,10 +65,7 @@ dist_name = "loguniform"
 H = hamiltonian(dist, 512)
 # H = diagonalhamil(1024, 40)
 β = 1.25  # Physical
-H_scaled, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H)
-μ = mean((εₘᵢₙ, εₘₐₓ))  # Physical
-β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
-μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
+H_scaled, μ′, β′, εₘᵢₙ, εₘₐₓ = rescale_hamiltonian(H, μ, β)
 
 exact_densitymatrix = fermi_dirac(H, μ, β, (εₘᵢₙ, εₘₐₓ))
 exact_occupation = tr(exact_densitymatrix)
@@ -125,9 +104,6 @@ fd_distributions = map(densitymatrices) do densitymatrix
 end
 occupations = map(densitymatrices) do densitymatrix
     tr(densitymatrix)
-end
-estimated_mu = map(occupations) do occupation
-    estimate_mu(H_scaled, β′, occupation)
 end
 exact_band_energies = tr(exact_densitymatrix * H)
 band_energies_diff = map(densitymatrices) do densitymatrix
@@ -249,36 +225,12 @@ ylabel!(
 )
 savefig("$(dist_name)_$(β)_$(μ)_$(max_iter)_norm.png")
 
-layout = (1, 2)
+layout = (1, 1)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(3200 / 3, 400))
-
 scatter!(layers, derivative_norms; subplot=1, xticks=layers, label="", PLOT_DEFAULTS...)
 xlabel!(raw"number of layers $L$"; subplot=1)
 ylabel!(raw"$| \dot{\theta} |_\infty$"; subplot=1)
-
-hline!([μ′]; subplot=2, xticks=layers, label="preset", PLOT_DEFAULTS...)
-hline!(
-    [compute_mu(H_scaled, β′, exact_occupation)];
-    subplot=2,
-    linestyle=:dash,
-    xticks=layers,
-    label="reversely solved",
-    PLOT_DEFAULTS...,
-)
-scatter!(
-    layers,
-    estimated_mu;
-    subplot=2,
-    markershape=:circle,
-    xticks=layers,
-    legend_position=:left,
-    label="estimatd",
-    PLOT_DEFAULTS...,
-)
-xlims!(extrema(layers); subplot=2)
-xlabel!(raw"number of layers $L$"; subplot=2)
-ylabel!(raw"rescaled $\mu$"; subplot=2)
-savefig("$(dist_name)_$(β)_$(μ)_$(max_iter)_mu.png")
+savefig("$(dist_name)_$(β)_$(μ)_$(max_iter)_derivnorm.png")
 
 layout = (1, 1)
 plot(; layout=layout, PLOT_DEFAULTS..., size=(1600 / 3, 400))
