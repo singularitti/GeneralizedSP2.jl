@@ -1,5 +1,6 @@
 using CSV
 using DataFrames
+using NsightCompute: compute_flops
 using Plots
 
 PLOT_DEFAULTS = Dict(
@@ -25,55 +26,6 @@ PLOT_DEFAULTS = Dict(
     :titlefontfamily => "Palatino Roman",
 )
 
-# Function to compute TFLOPS from a CSV file
-function compute_tflops(filepath::String)
-    if !isfile(filepath)
-        return nothing, nothing
-    end
-    # Read CSV skipping the 2nd row (units)
-    df = CSV.read(filepath, DataFrame; header=1, skipto=3)
-    # GPU frequency (Hz) from SM average frequency (GHz)
-    gpu_freq_hz = df[!, "sm__cycles_elapsed.avg.per_second"] .* 1e9
-    # Instruction counts per cycle (inst/cycle)
-    inst_dadd = df[
-        !, "smsp__sass_thread_inst_executed_op_dadd_pred_on.sum.per_cycle_elapsed"
-    ]
-    inst_dmul = df[
-        !, "smsp__sass_thread_inst_executed_op_dmul_pred_on.sum.per_cycle_elapsed"
-    ]
-    inst_dfma = df[
-        !, "smsp__sass_thread_inst_executed_op_dfma_pred_on.sum.per_cycle_elapsed"
-    ]
-
-    inst_fadd = df[
-        !, "smsp__sass_thread_inst_executed_op_fadd_pred_on.sum.per_cycle_elapsed"
-    ]
-    inst_fmul = df[
-        !, "smsp__sass_thread_inst_executed_op_fmul_pred_on.sum.per_cycle_elapsed"
-    ]
-    inst_ffma = df[
-        !, "smsp__sass_thread_inst_executed_op_ffma_pred_on.sum.per_cycle_elapsed"
-    ]
-
-    inst_hfma = df[
-        !, "smsp__sass_thread_inst_executed_op_hfma_pred_on.sum.per_cycle_elapsed"
-    ]
-    # Compute FLOPS in teraFLOPS (1 TFLOPS = 1e12 FLOPS)
-    TFLOPS_DP = (inst_dfma .* 2 .+ inst_dadd .+ inst_dmul) .* gpu_freq_hz ./ 1e12
-    TFLOPS_SP = (inst_ffma .* 2 .+ inst_fadd .+ inst_fmul) .* gpu_freq_hz ./ 1e12
-    TFLOPS_HP = (inst_hfma .* 2) .* gpu_freq_hz ./ 1e12
-    # Total TFLOPS
-    TFLOPS_Total = TFLOPS_DP .+ TFLOPS_SP .+ TFLOPS_HP
-    # Create a new DataFrame with just the TFLOPS values
-    tflops_df = DataFrame(;
-        TFLOPS_DP=TFLOPS_DP,
-        TFLOPS_SP=TFLOPS_SP,
-        TFLOPS_HP=TFLOPS_HP,
-        TFLOPS_Total=TFLOPS_Total,
-    )
-    return df, tflops_df
-end
-
 # Prepare parameters
 function compute_peak_tflops(
     types::Vector{String}, precisions::Vector{String}, sizes::Vector{Int}
@@ -84,12 +36,12 @@ function compute_peak_tflops(
     # Loop through files, compute TFLOPS and record peak values
     for t in types, p in precisions, s in sizes
         filename = "$(t)_$(p)_$s.csv"
-        _, tflops_df = compute_tflops(filename)
+        _, tflops_df = compute_flops(filename)
         if isnothing(tflops_df)
             continue
         end
         # Record peak TFLOPS (max across all rows)
-        peak_tflops = maximum(tflops_df.TFLOPS_Total)
+        peak_tflops = maximum(tflops_df.TFLOPS_Total) ./ 10^12
         push!(results, (t, p, s, peak_tflops))
     end
     return results
