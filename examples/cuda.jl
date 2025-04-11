@@ -29,25 +29,6 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-function direct_sum(matrices::Matrix...)
-    # Calculate the total size of the resulting matrix
-    total_rows = sum(size(mat, 1) for mat in matrices)
-    total_cols = sum(size(mat, 2) for mat in matrices)
-    # Initialize a zero matrix of the required size
-    result = zeros(eltype(matrices[1]), total_rows, total_cols)
-    # Place each matrix in its corresponding block
-    row_offset = 0
-    col_offset = 0
-    for mat in matrices
-        rows, cols = size(mat)
-        result[(row_offset + 1):(row_offset + rows), (col_offset + 1):(col_offset + cols)] =
-            mat
-        row_offset += rows
-        col_offset += cols
-    end
-    return result
-end
-
 β = 1.25  # Physical
 μ = 11.5  # Physical
 sys_size = 16384
