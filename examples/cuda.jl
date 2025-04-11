@@ -49,41 +49,37 @@ lower_bound, upper_bound = 0, 1
 fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=1000000)
 model = fitted.model
 
-function exactcpu(N)
-    X = H_scaled[1:N, 1:N]
-    return @btimed fermi_dirac($X, $μ′, $β′)
+function exactcpu(H′)
+    return @btimed fermi_dirac($H′, $μ′, $β′)
 end
 # cpu_exact = exactcpu(N)
 # exact_N = tr(cpu_exact)
 # exact_fd = diag(inv(V′) * cpu_exact * V′)
 
-function modelcpu(N)
-    X = H_scaled[1:N, 1:N]
+function modelcpu(H′)
     f = fermi_dirac(model)
-    return @btimed $f($X)
+    return @btimed $f($H′)
 end
 # cpu_model = modelcpu(N)
 # cpu_N = tr(cpu_model)
 # cpu_fd = diag(inv(V) * cpu_model * V)
 
-function modelgpu(N; preheat=3)  # Julia model
-    X = CuMatrix(H_scaled[1:N, 1:N])
-    DM = similar(X)
+function modelgpu(H′::CuMatrix, model; preheat=3)  # Julia model
+    𝞀 = similar(H′)
     for _ in 1:preheat
-        fermi_dirac!(DM, model, X)  # Preheating GPU
+        fermi_dirac!(𝞀, model, H′)  # Preheating GPU
     end
-    CUDA.@profile fermi_dirac!(DM, model, X)  # Only profile the last run
-    return DM
+    CUDA.@profile fermi_dirac!(𝞀, model, H′)  # Only profile the last run
+    return 𝞀
 end
 
-function exactgpu(N, μ, β; preheat=3)  # Julia
-    X = CuMatrix(H[1:N, 1:N])
-    DM = zero(X)
+function exactgpu(H′::CuMatrix)  # Julia
+    𝞀 = zero(H′)
     for _ in 1:preheat
-        fermi_dirac!(DM, X, μ, β)  # Preheating GPU
+        fermi_dirac!(𝞀, H′, μ, β)  # Preheating GPU
     end
-    CUDA.@profile fermi_dirac!(DM, X, μ, β)
-    return DM
+    CUDA.@profile fermi_dirac!(𝞀, H′, μ, β)
+    return 𝞀
 end
 
 # layout = (2, 1)
