@@ -26,7 +26,7 @@ StaticArraysExt = "StaticArrays"
 [compat]
 AffineScaler = "0.1"
 CEnum = "0.5"
-DifferentiationInterface = "0.1, 0.2, 0.3, 0.4, 0.5, 0.6"
+DifferentiationInterface = "0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7"
 IsApprox = "2"
 LinearAlgebra = "1"
 LsqFit = "0.15"
