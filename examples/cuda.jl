@@ -73,7 +73,7 @@ function modelgpu(H′::CuMatrix, model; preheat=3)  # Julia model
     return 𝞀
 end
 
-function exactgpu(H′::CuMatrix)  # Julia
+function exactgpu(H′::CuMatrix; preheat=3)  # Julia
     𝞀 = zero(H′)
     for _ in 1:preheat
         fermi_dirac!(𝞀, H′, μ, β)  # Preheating GPU
