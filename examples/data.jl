@@ -63,14 +63,6 @@ function count_time(filtered)
     return (S, Std_S)
 end
 
-function compute_flops(filtered)
-    total_time_col = Symbol("Total Time")
-    total_gpu_ops_col = Symbol("Total GPU Ops")
-    filtered[!, :GFLOPS] =
-        filtered[!, total_gpu_ops_col] ./ (filtered[!, total_time_col] / 1e6 * 1e9)
-    return (maximum(filtered[!, :GFLOPS]), 0)
-end
-
 function get_rows_of_interest(filename)
     return Dict(
         "exactcuda.csv" => [
