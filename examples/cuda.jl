@@ -37,8 +37,6 @@ dist = LogUniform(1, 20)
 V = rand(EigvecsSampler(dist), sys_size, sys_size)
 set_isapprox_rtol(1e-10)
 H = Hamiltonian(Eigen(Λ, V))
-# 𝛌 = eigvals(H)
-# εₘᵢₙ, εₘₐₓ = floor(minimum(𝛌)), ceil(maximum(𝛌))
 εₘᵢₙ, εₘₐₓ = 1, 20
 β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
 μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
