@@ -1,5 +1,4 @@
-using Chairmarks
-using BenchmarkTools
+using ChairmarksExtras: @btimed
 using DifferentiationInterface
 using Enzyme
 using GeneralizedSP2
@@ -57,12 +56,10 @@ results = map(
     timed_results = map(layers) do nlayers
         println("fitting for max_iter = $max_iter, nlayers = $nlayers, strategy = $strategy")
         model_init = init_model(μ′, nlayers)
-        result = Ref{Any}()
-        benchmark = @b _ fit_fermi_dirac(
-            $𝛆′, $μ′, $β′, $model_init; max_iter=$max_iter, diff=strategy
-        ) result[] = _ samples = 1 evals = 1
-        value = result[]
-        value, benchmark.time, benchmark.bytes
+        result = @btimed fit_fermi_dirac(
+            𝛆′, μ′, β′, model_init; max_iter=max_iter, diff=strategy
+        ) samples = 1 evals = 1
+        result.value, result.time, result.bytes
     end
     models = map(timed_results) do timed_result
         timed_result[1].model
