@@ -31,9 +31,9 @@ PLOT_DEFAULTS = Dict(
 )
 
 μ′ = 0.6
-β′_vals = [0.01, 0.1, 1, 10, 20, 40, 50]
+β′_vals = [0.01, 0.05, 0.1, 0.5, 1, 5, 10, 20, 40, 50, 60, 80, 100, 200, 400, 800, 1600]
 layers = 18:20
-max_iters = [1_000_000, 100_000_000]
+max_iters = [1_000_000, 10_000_000]
 strategy = Manual()
 𝛆′ = chebyshevnodes_1st(350, (0, 1))
 
@@ -49,7 +49,7 @@ for β′ in β′_vals
             model_init = init_model(μ′, nlayers)
             result = @btimed fit_fermi_dirac(
                 𝛆′, μ′, β′, model_init; max_iter=max_iter, diff=strategy
-            ) samples = 1 evals = 1
+            ) samples = 3, evals = 1
             model = result.value.model
             time = result.time
             bytes = result.bytes
@@ -88,7 +88,7 @@ for (i, nlayers) in enumerate(layers)
             label=label,
             scale=:log10,
             xticks=β′_vals,
-            xlabel=raw"𝛽′",
+            xlabel=raw"β′",
             ylabel=raw"RMSE of fitting",
             PLOT_DEFAULTS...,
         )
@@ -103,7 +103,7 @@ for (i, nlayers) in enumerate(layers)
             label=label,
             scale=:log10,
             xticks=β′_vals,
-            xlabel=raw"𝛽′",
+            xlabel=raw"β′",
             ylabel=raw"time (s)",
             PLOT_DEFAULTS...,
         )
