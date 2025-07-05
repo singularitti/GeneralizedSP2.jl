@@ -49,7 +49,7 @@ for β′ in β′_vals
             model_init = init_model(μ′, nlayers)
             result = @btimed fit_fermi_dirac(
                 𝛆′, μ′, β′, model_init; max_iter=max_iter, diff=strategy
-            ) samples = 3, evals = 1
+            ) samples = 3 evals = 1
             model = result.value.model
             time = result.time
             bytes = result.bytes
