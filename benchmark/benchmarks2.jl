@@ -38,6 +38,7 @@ strategy = Manual()
 𝛆′ = chebyshevnodes_1st(350, (0, 1))
 
 all_results = OrderedDict{}()
+all_models = OrderedDict{}()
 for β′ in β′_vals
     𝐲̂ = fermi_dirac.(𝛆′, μ′, β′)
     for max_iter in max_iters
@@ -56,7 +57,9 @@ for β′ in β′_vals
             residuals = 𝐲_fitted - 𝐲̂
             rmse = sqrt(mean(abs2, residuals))
             all_results[(β′, max_iter, nlayers)] = (rmse=rmse, time=time, bytes=bytes)
+            all_models[(β′, max_iter, nlayers)] = model
             serialize("table.jls", all_results)
+            serialize("all_models.jls", all_models)
         end
     end
 end
