@@ -116,3 +116,30 @@ xlabel!(raw"β′")
 ylabel!(raw"RMSE of fitting"; subplot=1)
 ylabel!(raw"time (s)"; subplot=2)
 savefig("errors_time.png")
+
+𝛆′ = chebyshevnodes_1st(1000, (0, 1))
+plot(; size=(650, 500), PLOT_DEFAULTS...)
+for (i, β′) in enumerate(β′_vals)
+    for (j, nlayers) in enumerate(layers)
+        for max_iter in max_iters
+            key = (β′, max_iter, nlayers)
+            haskey(all_models, key) || continue
+            model = all_models[key]
+            𝐲_fitted = fermi_dirac(model).(𝛆′)
+            seriescolor = colors[mod1(i, length(colors))]
+            linestyle = get(linestyles, max_iter, :solid)
+            plot!(
+                𝛆′,
+                𝐲_fitted;
+                label="β′=$(β′), I=$(max_iter), L=$(nlayers)",
+                seriescolor=seriescolor,
+                linestyle=linestyle,
+                PLOT_DEFAULTS...,
+                legend=nothing,
+            )
+        end
+    end
+end
+xlabel!("𝛆′")
+ylabel!("Fermi–Dirac function")
+savefig("fitted.png")
