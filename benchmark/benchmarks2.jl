@@ -1,7 +1,7 @@
 using ChairmarksExtras: @btimed
 using GeneralizedSP2
 using OrderedCollections: OrderedDict
-using Plots: plot, plot!, palette, xlims!, savefig
+using Plots: plot, plot!, palette, xticks!, xlabel!, yticks!, ylabel!, savefig
 using Printf: @sprintf
 using Statistics: mean
 using Serialization: serialize
@@ -16,7 +16,11 @@ PLOT_DEFAULTS = Dict(
     :markersize => 4,
     :markerstrokewidth => 0,
     :minorticks => 5,
-    :xformatter => x -> x < 0.1 ? string(x) : @sprintf("%0.0f", x),
+    :xformatter => x -> if x < 0.1
+        @sprintf("%0.2f", x)
+    else
+        x > 1 ? @sprintf("%0.0f", x) : @sprintf("%0.1f", x)
+    end,
     :guidefontsize => 15,
     :tickfontsize => 12,
     :legendfontsize => 12,
@@ -65,8 +69,8 @@ for β′ in β′_vals
 end
 
 colors = palette(:seaborn_bright)
-linestyles = Dict(1_000_000 => :solid, 10_000_000 => :dashdot, 100_000_000 => :dot)
-markers = Dict(1_000_000 => :circle, 10_000_000 => :star5, 100_000_000 => :cross)
+linestyles = Dict(1_000_000 => :solid, 10_000_000 => :dot, 100_000_000 => :dash)
+markers = Dict(1_000_000 => :circle, 10_000_000 => :diamond, 100_000_000 => :cross)
 plot(; layout=(1, 2), PLOT_DEFAULTS..., size=(1300, 500))
 for (i, nlayers) in enumerate(layers)
     for (j, max_iter) in enumerate(max_iters)
@@ -81,32 +85,34 @@ for (i, nlayers) in enumerate(layers)
             β′_vals,
             rmse;
             subplot=1,
-            seriestype=:path,
             linestyle=linestyle,
             markershape=markershape,
             seriescolor=seriescolor,
             label=label,
             scale=:log10,
-            xticks=β′_vals,
-            xlabel=raw"β′",
-            ylabel=raw"RMSE of fitting",
+            xrotation=90,
             PLOT_DEFAULTS...,
+            xtickfontsize=7,
         )
         plot!(
             β′_vals,
             time;
             subplot=2,
-            seriestype=:path,
             linestyle=linestyle,
             markershape=markershape,
             seriescolor=seriescolor,
             label=label,
             scale=:log10,
-            xticks=β′_vals,
-            xlabel=raw"β′",
-            ylabel=raw"time (s)",
+            xrotation=90,
             PLOT_DEFAULTS...,
+            xtickfontsize=7,
         )
     end
 end
-savefig("benchmarks_by_beta.png")
+xticks!(β′_vals)
+yticks!(exp10.(-11:-7); subplot=1)
+yticks!(exp10.(0:3); subplot=2)
+xlabel!(raw"β′")
+ylabel!(raw"RMSE of fitting"; subplot=1)
+ylabel!(raw"time (s)"; subplot=2)
+savefig("errors_time.png")
