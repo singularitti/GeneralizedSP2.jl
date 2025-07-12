@@ -1,5 +1,5 @@
 using AffineScaler: rescale_one_zero
-using BenchmarkTools: @btimed
+using ChairmarksExtras: @btimed
 using CUDA
 using Distributions: LogUniform
 using GeneralizedSP2
@@ -29,9 +29,17 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
+const INPUT_ELTYPE = Ref(Float32)
+set_input_eltype(t::DataType) = INPUT_ELTYPE[] = t
+get_input_eltype() = INPUT_ELTYPE[]
+
+const OUTPUT_ELTYPE = Ref(Float32)
+set_output_eltype(t::DataType) = OUTPUT_ELTYPE[] = t
+get_output_eltype() = OUTPUT_ELTYPE[]
+
 β = 1.25  # Physical
 μ = 11.5  # Physical
-sys_size = 16384
+sys_size = 2048
 dist = LogUniform(1, 20)
 Λ = rand(EigvalsSampler(dist), sys_size)
 V = rand(EigvecsSampler(dist), sys_size, sys_size)
@@ -41,44 +49,49 @@ H = Hamiltonian(Eigen(Λ, V))
 β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
 μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
+H′ = get_input_eltype().(H_scaled)
 
-lower_bound, upper_bound = 0, 1
-𝐱′ = chebyshevnodes_1st(1000, (lower_bound, upper_bound))
+lower_bound, upper_bound = zero(get_input_eltype()), one(get_input_eltype())
+𝐱′ = get_input_eltype().(chebyshevnodes_1st(1000, (0, 1)))  # Assuming this returns Float64; convert accordingly
+μ′ = get_input_eltype()(μ′)
+β′ = get_input_eltype()(β′)
 fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=1000000)
 model = fitted.model
 
 function exactcpu(H′)
-    return @btimed fermi_dirac($H′, $μ′, $β′)
+    return @btimed fermi_dirac(H′, μ′, β′)
 end
-# cpu_exact = exactcpu(N)
+# cpu_exact = exactcpu(H′)
 # exact_N = tr(cpu_exact)
 # exact_fd = diag(inv(V′) * cpu_exact * V′)
 
 function modelcpu(H′)
-    f = fermi_dirac(model)
-    return @btimed $f($H′)
+    𝞀 = similar(H′, get_output_eltype())
+    return @btimed fermi_dirac!(𝞀, model, H′)
 end
-# cpu_model = modelcpu(N)
+# cpu_model = modelcpu(H′)
 # cpu_N = tr(cpu_model)
 # cpu_fd = diag(inv(V) * cpu_model * V)
 
 function modelgpu(H′::CuMatrix, model; preheat=3)  # Julia model
-    𝞀 = similar(H′)
+    𝞀 = similar(H′, get_output_eltype())
     for _ in 1:preheat
         fermi_dirac!(𝞀, model, H′)  # Preheating GPU
     end
     CUDA.@profile fermi_dirac!(𝞀, model, H′)  # Only profile the last run
     return 𝞀
 end
+modelgpu(H′::Matrix, model; kwargs...) = modelgpu(CuMatrix(H′), model; kwargs...)
 
 function exactgpu(H′::CuMatrix; preheat=3)  # Julia
-    𝞀 = zero(H′)
+    𝞀 = similar(H′, get_output_eltype())
     for _ in 1:preheat
         fermi_dirac!(𝞀, H′, μ, β)  # Preheating GPU
     end
     CUDA.@profile fermi_dirac!(𝞀, H′, μ, β)
     return 𝞀
 end
+exactgpu(H′::Matrix; kwargs...) = exactgpu(CuMatrix(H′); kwargs...)
 
 # layout = (2, 1)
 # plot(; layout=layout, PLOT_DEFAULTS..., size=(1600 / 3, 800))
