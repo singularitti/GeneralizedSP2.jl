@@ -1,4 +1,3 @@
-using CEnum: @cenum
 using LinearAlgebra: diagind
 
 export diagonalize, diagonalize!, fill_diagonal, fill_diagonal!
