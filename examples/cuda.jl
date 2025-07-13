@@ -52,20 +52,20 @@ H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 H′ = get_input_eltype().(H_scaled)
 
 lower_bound, upper_bound = zero(get_input_eltype()), one(get_input_eltype())
-𝐱′ = get_input_eltype().(chebyshevnodes_1st(1000, (0, 1)))  # Assuming this returns Float64; convert accordingly
+𝐱′ = get_input_eltype().(chebyshevnodes_1st(1000, (0, 1)))
 μ′ = get_input_eltype()(μ′)
 β′ = get_input_eltype()(β′)
 fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=1000000)
-model = fitted.model
+model = convert(Model{get_input_eltype()}, fitted.model)
 
-function exactcpu(H′)
+function exactcpu(H′::Matrix)
     return @btimed fermi_dirac(H′, μ′, β′)
 end
 # cpu_exact = exactcpu(H′)
 # exact_N = tr(cpu_exact)
 # exact_fd = diag(inv(V′) * cpu_exact * V′)
 
-function modelcpu(H′)
+function modelcpu(H′::Matrix)
     𝞀 = similar(H′, get_output_eltype())
     return @btimed fermi_dirac!(𝞀, model, H′)
 end
