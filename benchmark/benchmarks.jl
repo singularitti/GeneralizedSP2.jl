@@ -57,7 +57,7 @@ results = map(
         println("fitting for max_iter = $max_iter, nlayers = $nlayers, strategy = $strategy")
         model_init = init_model(μ′, nlayers)
         result = @btimed fit_fermi_dirac(
-            𝛆′, μ′, β′, model_init; max_iter=max_iter, diff=strategy
+            𝛆′, μ′, β′, model_init; maxiters=max_iter, diff=strategy
         ) samples = 1 evals = 1
         result.value, result.time, result.bytes
     end

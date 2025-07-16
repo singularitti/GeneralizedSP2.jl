@@ -10,7 +10,7 @@ function fit_fermi_dirac(
     β′,
     model_init=init_model(μ′, 20);
     diff=Manual(),
-    max_iter=1000,
+    maxiters=1000,
     max_time=Inf,
     x_tol=1e-8,
     grad_tol=1e-12,
@@ -26,7 +26,7 @@ function fit_fermi_dirac(
             𝛆′,  # xdata
             fd,  # ydata
             model_init;  # p0
-            maxIter=max_iter,
+            maxIter=maxiters,
             maxTime=max_time,
             x_tol=x_tol,
             g_tol=grad_tol,
@@ -42,7 +42,7 @@ function fit_fermi_dirac(
             𝛆′,  # xdata
             fd,  # ydata
             model_init;  # p0
-            maxIter=max_iter,
+            maxIter=maxiters,
             maxTime=max_time,
             x_tol=x_tol,
             g_tol=grad_tol,
@@ -72,7 +72,7 @@ function fit_electronic_entropy(
     β′,
     model_init=init_model(μ′, 20);
     diff=Manual(),
-    max_iter=1000,
+    maxiters=1000,
     max_time=Inf,
     x_tol=1e-8,
     grad_tol=1e-12,
@@ -88,7 +88,7 @@ function fit_electronic_entropy(
         𝛆′,  # xdata
         𝐬,  # ydata
         model_init;  # p0
-        maxIter=max_iter,
+        maxIter=maxiters,
         maxTime=max_time,
         x_tol=x_tol,
         g_tol=grad_tol,
