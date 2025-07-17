@@ -80,9 +80,9 @@ modelgpu(H′::Matrix, model; kwargs...) = modelgpu(CuMatrix(H′), model; kwarg
 function exactgpu(H′::CuMatrix; preheat=3)  # Julia
     𝞀 = similar(H′, OUTPUT_ELTYPE)
     for _ in 1:preheat
-        fermi_dirac!(𝞀, H′, μ, β)  # Preheating GPU
+        fermi_dirac!(𝞀, H′, μ′, β′)  # Preheating GPU
     end
-    return @btimed fermi_dirac!(𝞀, H′, μ, β)
+    return @btimed fermi_dirac!(𝞀, H′, μ′, β′)
 end
 exactgpu(H′::Matrix; kwargs...) = exactgpu(CuMatrix(H′); kwargs...)
 
