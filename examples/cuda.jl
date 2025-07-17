@@ -73,8 +73,7 @@ function modelgpu(H′::CuMatrix, model; preheat=3)  # Julia model
     for _ in 1:preheat
         fermi_dirac!(𝞀, model, H′)  # Preheating GPU
     end
-    CUDA.@profile fermi_dirac!(𝞀, model, H′)  # Only profile the last run
-    return 𝞀
+    return @btimed fermi_dirac!(𝞀, model, H′)  # Only profile the last run
 end
 modelgpu(H′::Matrix, model; kwargs...) = modelgpu(CuMatrix(H′), model; kwargs...)
 
@@ -83,8 +82,7 @@ function exactgpu(H′::CuMatrix; preheat=3)  # Julia
     for _ in 1:preheat
         fermi_dirac!(𝞀, H′, μ, β)  # Preheating GPU
     end
-    CUDA.@profile fermi_dirac!(𝞀, H′, μ, β)
-    return 𝞀
+    return @btimed fermi_dirac!(𝞀, H′, μ, β)
 end
 exactgpu(H′::Matrix; kwargs...) = exactgpu(CuMatrix(H′); kwargs...)
 
