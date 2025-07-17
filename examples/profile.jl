@@ -29,6 +29,16 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
+const ELTYPE_PAIRS = [
+    (Float16, Float16), (Float16, Float32), (Float32, Float32), (Float64, Float64)
+]
+# Define math modes and precisions
+const MATH_MODES = [
+    (CUDA.DEFAULT_MATH, nothing),
+    (CUDA.PEDANTIC_MATH, nothing),
+    (CUDA.FAST_MATH, :Float16),
+    (CUDA.FAST_MATH, :TensorFloat32),
+]
 INPUT_ELTYPE = Float32
 OUTPUT_ELTYPE = Float32
 
@@ -46,12 +56,12 @@ H = Hamiltonian(Eigen(Λ, V))
 H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 H′ = INPUT_ELTYPE.(H_scaled)
 
-lower_bound, upper_bound = zero(INPUT_ELTYPE), one(INPUT_ELTYPE)
-𝐱′ = INPUT_ELTYPE.(chebyshevnodes_1st(1000, (0, 1)))
-μ′ = INPUT_ELTYPE(μ′)
-β′ = INPUT_ELTYPE(β′)
+lower_bound, upper_bound = 0, 1
+𝐱′ = chebyshevnodes_1st(1000, (0, 1))
 fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=1000000)
 model = convert(Model{INPUT_ELTYPE}, fitted.model)
+μ′ = INPUT_ELTYPE(μ′)
+β′ = INPUT_ELTYPE(β′)
 
 function exactcpu(H′::Matrix)
     return @btimed fermi_dirac(H′, μ′, β′)
@@ -85,6 +95,35 @@ function exactgpu(H′::CuMatrix; preheat=3)  # Julia
     return @btimed fermi_dirac!(𝞀, H′, μ′, β′)
 end
 exactgpu(H′::Matrix; kwargs...) = exactgpu(CuMatrix(H′); kwargs...)
+
+# Iterate over element type pairs and math modes
+for (INPUT_ELTYPE, OUTPUT_ELTYPE) in ELTYPE_PAIRS
+    H′ = INPUT_ELTYPE.(H_scaled)
+    μ′ = INPUT_ELTYPE(μ′)
+    β′ = INPUT_ELTYPE(β′)
+    model = convert(Model{INPUT_ELTYPE}, model)
+    for (math_mode, precision) in MATH_MODES
+        # Skip FAST_MATH for non-Float32 input-output pairs
+        if math_mode == CUDA.FAST_MATH && INPUT_ELTYPE != Float32
+            continue
+        end
+        # Set the math mode
+        if math_mode == CUDA.FAST_MATH
+            CUDA.math_mode!(math_mode; precision=precision)
+        else
+            CUDA.math_mode!(math_mode)
+        end
+        # Run the functions and store results
+        key = (INPUT_ELTYPE, OUTPUT_ELTYPE, math_mode, precision)
+        result = (
+            exactcpu=exactcpu(H′),
+            modelcpu=modelcpu(H′),
+            modelgpu=modelgpu(H′, model),
+            exactgpu=exactgpu(H′),
+        )
+        results[key] = result
+    end
+end
 
 # layout = (2, 1)
 # plot(; layout=layout, PLOT_DEFAULTS..., size=(1600 / 3, 800))
