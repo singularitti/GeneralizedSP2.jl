@@ -119,9 +119,14 @@ for (INPUT_ELTYPE, OUTPUT_ELTYPE) in ELTYPE_PAIRS
         key = (INPUT_ELTYPE, OUTPUT_ELTYPE, math_mode, precision)
         result = (
             exactcpu=exactcpu(H′_typed, μ′_typed, β′_typed),
-            exactgpu=exactgpu(H′_typed, μ′_typed, β′_typed),
             modelcpu=modelcpu(H′_typed, model_typed),
             modelgpu=modelgpu(H′_typed, model_typed),
+            exactgpu=if (INPUT_ELTYPE, OUTPUT_ELTYPE) in
+                ((Float32, Float32), (Float64, Float64))
+                exactgpu(H′_typed, μ′_typed, β′_typed)
+            else
+                missing
+            end,
         )
         results[key] = result
     end
