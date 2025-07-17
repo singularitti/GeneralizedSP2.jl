@@ -40,8 +40,6 @@ const MATH_MODES = [
     (CUDA.FAST_MATH, :Float16),
     (CUDA.FAST_MATH, :TensorFloat32),
 ]
-INPUT_ELTYPE = Float32
-OUTPUT_ELTYPE = Float32
 
 β = 1.25  # Physical
 μ = 11.5  # Physical
@@ -55,14 +53,10 @@ H = Hamiltonian(Eigen(Λ, V))
 β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
 μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
-H′ = INPUT_ELTYPE.(H_scaled)
 
 lower_bound, upper_bound = 0, 1
 𝐱′ = chebyshevnodes_1st(1000, (0, 1))
 fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); maxiters=1000)
-model = convert(Model{INPUT_ELTYPE}, fitted.model)
-μ′ = INPUT_ELTYPE(μ′)
-β′ = INPUT_ELTYPE(β′)
 
 function exactcpu(H′::Matrix, μ′, β′)
     return @btimed fermi_dirac(H′, μ′, β′)
@@ -71,39 +65,38 @@ end
 # exact_N = tr(cpu_exact)
 # exact_fd = diag(inv(V′) * cpu_exact * V′)
 
-function modelcpu(H′::Matrix, model)
-    𝞀 = similar(H′, OUTPUT_ELTYPE)
-    return @btimed fermi_dirac!(𝞀, model, H′)
+function modelcpu!(rho, H′::Matrix, model)
+    return @btimed fermi_dirac!(rho, model, H′)
 end
 # cpu_model = modelcpu(H′)
 # cpu_N = tr(cpu_model)
 # cpu_fd = diag(inv(V) * cpu_model * V)
 
-function modelgpu(H′::CuMatrix, model; preheat=3)  # Julia model
-    𝞀 = similar(H′, OUTPUT_ELTYPE)
+function modelgpu!(rho::CuMatrix, H′::CuMatrix, model; preheat=3)  # Julia model
     for _ in 1:preheat
-        fermi_dirac!(𝞀, model, H′)  # Preheating GPU
+        fermi_dirac!(rho, model, H′)  # Preheating GPU
     end
-    return @btimed fermi_dirac!(𝞀, model, H′)  # Only profile the last run
+    return @btimed fermi_dirac!(rho, model, H′)  # Only profile the last run
 end
-modelgpu(H′::Matrix, model; kwargs...) = modelgpu(CuMatrix(H′), model; kwargs...)
+modelgpu!(rho::Matrix, H′::Matrix, model; kwargs...) =
+    modelgpu!(rho, CuMatrix(H′), model; kwargs...)
 
-function exactgpu(H′::CuMatrix, μ′, β′; preheat=3)  # Julia
-    𝞀 = similar(H′, OUTPUT_ELTYPE)
+function exactgpu!(rho::CuMatrix, H′::CuMatrix, μ′, β′; preheat=3)  # Julia
     for _ in 1:preheat
-        fermi_dirac!(𝞀, H′, μ′, β′)  # Preheating GPU
+        fermi_dirac!(rho, H′, μ′, β′)  # Preheating GPU
     end
-    return @btimed fermi_dirac!(𝞀, H′, μ′, β′)
+    return @btimed fermi_dirac!(rho, H′, μ′, β′)
 end
-exactgpu(H′::Matrix, μ′, β′; kwargs...) = exactgpu(CuMatrix(H′), μ′, β′; kwargs...)
+exactgpu!(rho::Matrix, H′::Matrix, μ′, β′; kwargs...) =
+    exactgpu!(rho, CuMatrix(H′), μ′, β′; kwargs...)
 
 results = OrderedDict{}()
 # Iterate over element type pairs and math modes
 for (INPUT_ELTYPE, OUTPUT_ELTYPE) in ELTYPE_PAIRS
-    H′_typed = INPUT_ELTYPE.(H_scaled)
-    μ′_typed = INPUT_ELTYPE(μ′)
-    β′_typed = INPUT_ELTYPE(β′)
-    model_typed = convert(Model{INPUT_ELTYPE}, model)
+    H″ = INPUT_ELTYPE.(H_scaled)
+    μ″ = INPUT_ELTYPE(μ′)
+    β″ = INPUT_ELTYPE(β′)
+    model = convert(Model{INPUT_ELTYPE}, fitted.model)
     for (math_mode, precision) in MATH_MODES
         # Skip FAST_MATH for non-Float32 input-output pairs
         if math_mode == CUDA.FAST_MATH && INPUT_ELTYPE != Float32
@@ -118,12 +111,12 @@ for (INPUT_ELTYPE, OUTPUT_ELTYPE) in ELTYPE_PAIRS
         # Run the functions and store results
         key = (INPUT_ELTYPE, OUTPUT_ELTYPE, math_mode, precision)
         result = (
-            exactcpu=exactcpu(H′_typed, μ′_typed, β′_typed),
-            modelcpu=modelcpu(H′_typed, model_typed),
-            modelgpu=modelgpu(H′_typed, model_typed),
+            exactcpu=exactcpu(H″, μ″, β″),
+            modelcpu=modelcpu!(similar(H″, OUTPUT_ELTYPE), H″, model),
+            modelgpu=modelgpu!(similar(H″, OUTPUT_ELTYPE), H″, model),
             exactgpu=if (INPUT_ELTYPE, OUTPUT_ELTYPE) in
                 ((Float32, Float32), (Float64, Float64))
-                exactgpu(H′_typed, μ′_typed, β′_typed)
+                exactgpu!(similar(H″, OUTPUT_ELTYPE), H″, μ″, β″)
             else
                 missing
             end,
