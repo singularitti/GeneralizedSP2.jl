@@ -175,7 +175,7 @@ function fermi_dirac!(rho::CuMatrix{T}, H::CuMatrix{T}, μ::T, β::T) where {T}
     return rho
 end
 function fermi_dirac(H::CuMatrix, μ, β)
-    rho = similar(H)
+    rho = similar(H, typeof(fermi_dirac(oneunit(eltype(H)), μ, β)))
     return fermi_dirac!(rho, H, μ, β)
 end
 
