@@ -1,6 +1,7 @@
 using AffineScaler: rescale_one_zero
 using ChairmarksExtras: @btimed
 using CUDA
+using DataFrames: DataFrame
 using Distributions: LogUniform
 using GeneralizedSP2
 using LinearAlgebra
@@ -122,6 +123,67 @@ for (INPUT_ELTYPE, OUTPUT_ELTYPE) in ELTYPE_PAIRS
             end,
         )
         results[key] = result
+    end
+end
+
+df = DataFrame(;
+    INPUT_ELTYPE=DataType[],
+    OUTPUT_ELTYPE=DataType[],
+    math_mode=CUDA.MathMode[],
+    precision=Union{Symbol,Nothing}[],
+    function_name=String[],
+    time=Union{Missing,Float64}[],
+    evals=Union{Missing,Int}[],
+    samples=Union{Missing,Int}[],
+    time_per_eval_sample=Union{Missing,Float64}[],
+)
+
+for (key, result) in results
+    input_eltype, output_eltype, math_mode, precision = key
+    # Process each function's benchmark
+    for (func_name, bench) in [
+        ("exactcpu", result.exactcpu),
+        ("modelcpu", result.modelcpu),
+        ("modelgpu", result.modelgpu),
+        ("exactgpu", result.exactgpu),
+    ]
+        # Handle missing exactgpu results
+        if ismissing(bench)
+            push!(
+                df,
+                (
+                    input_eltype,
+                    output_eltype,
+                    math_mode,
+                    precision,
+                    func_name,
+                    missing,
+                    missing,
+                    missing,
+                    missing,
+                ),
+            )
+        else
+            time = bench.time
+            evals = bench.evals
+            samples = bench.samples
+            time_per_eval_sample =
+                (evals * samples == 0) ? missing : time / (evals * samples)
+            push!(
+                df,
+                (
+                    input_eltype,
+                    output_eltype,
+                    math_mode,
+                    precision,
+                    func_name,
+                    time,
+                    evals,
+                    samples,
+                    time_per_eval_sample,
+                ),
+            )
+        end
     end
 end
 
