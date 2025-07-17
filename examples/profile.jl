@@ -44,7 +44,6 @@ const MATH_MODES = [
 
 lower_bound, upper_bound = 0, 1
 𝐱′ = chebyshevnodes_1st(1000, (0, 1))
-fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); maxiters=1000)
 
 β = 1.25  # Physical
 μ = 11.5  # Physical
@@ -58,6 +57,7 @@ H = Hamiltonian(Eigen(Λ, V))
 β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
 μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
+fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); maxiters=1000)
 
 function exactcpu(H′::Matrix, μ′, β′)
     return @btimed fermi_dirac(H′, μ′, β′)
