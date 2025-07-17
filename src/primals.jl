@@ -110,8 +110,7 @@ _finalize_fermi_dirac!(Y::AbstractMatrix) = axpby!(1, oneunit(Y), -1, Y)  # This
 
 fermi_dirac(model::AbstractModel) = _finalize_fermi_dirac ∘ model
 
-fermi_dirac!(density_matrix, model, hamilton) =
-    _finalize_fermi_dirac!(apply!(density_matrix, model, hamilton))
+fermi_dirac!(rho, model, H) = _finalize_fermi_dirac!(apply!(rho, model, H))
 
 _finalize_electronic_entropy(Y) = FOUR_LOG_TWO * (Y - Y^2)  # Applies to 1 number/matrix at a time
 function _finalize_electronic_entropy!(Y::AbstractMatrix)
