@@ -4,6 +4,7 @@ using CUDA
 using Distributions: LogUniform
 using GeneralizedSP2
 using LinearAlgebra
+using OrderedCollections: OrderedDict
 # using Plots
 using ToyHamiltonians
 
@@ -63,14 +64,14 @@ model = convert(Model{INPUT_ELTYPE}, fitted.model)
 μ′ = INPUT_ELTYPE(μ′)
 β′ = INPUT_ELTYPE(β′)
 
-function exactcpu(H′::Matrix)
+function exactcpu(H′::Matrix, μ′, β′)
     return @btimed fermi_dirac(H′, μ′, β′)
 end
 # cpu_exact = exactcpu(H′)
 # exact_N = tr(cpu_exact)
 # exact_fd = diag(inv(V′) * cpu_exact * V′)
 
-function modelcpu(H′::Matrix)
+function modelcpu(H′::Matrix, model)
     𝞀 = similar(H′, OUTPUT_ELTYPE)
     return @btimed fermi_dirac!(𝞀, model, H′)
 end
@@ -87,21 +88,22 @@ function modelgpu(H′::CuMatrix, model; preheat=3)  # Julia model
 end
 modelgpu(H′::Matrix, model; kwargs...) = modelgpu(CuMatrix(H′), model; kwargs...)
 
-function exactgpu(H′::CuMatrix; preheat=3)  # Julia
+function exactgpu(H′::CuMatrix, μ′, β′; preheat=3)  # Julia
     𝞀 = similar(H′, OUTPUT_ELTYPE)
     for _ in 1:preheat
         fermi_dirac!(𝞀, H′, μ′, β′)  # Preheating GPU
     end
     return @btimed fermi_dirac!(𝞀, H′, μ′, β′)
 end
-exactgpu(H′::Matrix; kwargs...) = exactgpu(CuMatrix(H′); kwargs...)
+exactgpu(H′::Matrix, μ′, β′; kwargs...) = exactgpu(CuMatrix(H′), μ′, β′; kwargs...)
 
+results = OrderedDict{}()
 # Iterate over element type pairs and math modes
 for (INPUT_ELTYPE, OUTPUT_ELTYPE) in ELTYPE_PAIRS
-    H′ = INPUT_ELTYPE.(H_scaled)
-    μ′ = INPUT_ELTYPE(μ′)
-    β′ = INPUT_ELTYPE(β′)
-    model = convert(Model{INPUT_ELTYPE}, model)
+    H′_typed = INPUT_ELTYPE.(H_scaled)
+    μ′_typed = INPUT_ELTYPE(μ′)
+    β′_typed = INPUT_ELTYPE(β′)
+    model_typed = convert(Model{INPUT_ELTYPE}, model)
     for (math_mode, precision) in MATH_MODES
         # Skip FAST_MATH for non-Float32 input-output pairs
         if math_mode == CUDA.FAST_MATH && INPUT_ELTYPE != Float32
@@ -116,10 +118,10 @@ for (INPUT_ELTYPE, OUTPUT_ELTYPE) in ELTYPE_PAIRS
         # Run the functions and store results
         key = (INPUT_ELTYPE, OUTPUT_ELTYPE, math_mode, precision)
         result = (
-            exactcpu=exactcpu(H′),
-            modelcpu=modelcpu(H′),
-            modelgpu=modelgpu(H′, model),
-            exactgpu=exactgpu(H′),
+            exactcpu=exactcpu(H′_typed, μ′_typed, β′_typed),
+            exactgpu=exactgpu(H′_typed, μ′_typed, β′_typed),
+            modelcpu=modelcpu(H′_typed, model_typed),
+            modelgpu=modelgpu(H′_typed, model_typed),
         )
         results[key] = result
     end
