@@ -58,7 +58,7 @@ H′ = INPUT_ELTYPE.(H_scaled)
 
 lower_bound, upper_bound = 0, 1
 𝐱′ = chebyshevnodes_1st(1000, (0, 1))
-fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=1000000)
+fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); maxiters=1000)
 model = convert(Model{INPUT_ELTYPE}, fitted.model)
 μ′ = INPUT_ELTYPE(μ′)
 β′ = INPUT_ELTYPE(β′)
