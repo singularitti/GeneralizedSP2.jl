@@ -29,13 +29,8 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-const INPUT_ELTYPE = Ref(Float32)
-set_input_eltype(t::DataType) = INPUT_ELTYPE[] = t
-get_input_eltype() = INPUT_ELTYPE[]
-
-const OUTPUT_ELTYPE = Ref(Float32)
-set_output_eltype(t::DataType) = OUTPUT_ELTYPE[] = t
-get_output_eltype() = OUTPUT_ELTYPE[]
+INPUT_ELTYPE = Float32
+OUTPUT_ELTYPE = Float32
 
 β = 1.25  # Physical
 μ = 11.5  # Physical
@@ -49,14 +44,14 @@ H = Hamiltonian(Eigen(Λ, V))
 β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
 μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
-H′ = get_input_eltype().(H_scaled)
+H′ = INPUT_ELTYPE.(H_scaled)
 
-lower_bound, upper_bound = zero(get_input_eltype()), one(get_input_eltype())
-𝐱′ = get_input_eltype().(chebyshevnodes_1st(1000, (0, 1)))
-μ′ = get_input_eltype()(μ′)
-β′ = get_input_eltype()(β′)
+lower_bound, upper_bound = zero(INPUT_ELTYPE), one(INPUT_ELTYPE)
+𝐱′ = INPUT_ELTYPE.(chebyshevnodes_1st(1000, (0, 1)))
+μ′ = INPUT_ELTYPE(μ′)
+β′ = INPUT_ELTYPE(β′)
 fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); max_iter=1000000)
-model = convert(Model{get_input_eltype()}, fitted.model)
+model = convert(Model{INPUT_ELTYPE}, fitted.model)
 
 function exactcpu(H′::Matrix)
     return @btimed fermi_dirac(H′, μ′, β′)
@@ -66,7 +61,7 @@ end
 # exact_fd = diag(inv(V′) * cpu_exact * V′)
 
 function modelcpu(H′::Matrix)
-    𝞀 = similar(H′, get_output_eltype())
+    𝞀 = similar(H′, OUTPUT_ELTYPE)
     return @btimed fermi_dirac!(𝞀, model, H′)
 end
 # cpu_model = modelcpu(H′)
@@ -74,7 +69,7 @@ end
 # cpu_fd = diag(inv(V) * cpu_model * V)
 
 function modelgpu(H′::CuMatrix, model; preheat=3)  # Julia model
-    𝞀 = similar(H′, get_output_eltype())
+    𝞀 = similar(H′, OUTPUT_ELTYPE)
     for _ in 1:preheat
         fermi_dirac!(𝞀, model, H′)  # Preheating GPU
     end
@@ -84,7 +79,7 @@ end
 modelgpu(H′::Matrix, model; kwargs...) = modelgpu(CuMatrix(H′), model; kwargs...)
 
 function exactgpu(H′::CuMatrix; preheat=3)  # Julia
-    𝞀 = similar(H′, get_output_eltype())
+    𝞀 = similar(H′, OUTPUT_ELTYPE)
     for _ in 1:preheat
         fermi_dirac!(𝞀, H′, μ, β)  # Preheating GPU
     end
