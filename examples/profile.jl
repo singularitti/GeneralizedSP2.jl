@@ -79,7 +79,7 @@ function modelgpu!(rho::CuMatrix, H′::CuMatrix, model; preheat=3)  # Julia mod
     return @btimed fermi_dirac!(rho, model, H′)  # Only profile the last run
 end
 modelgpu!(rho::Matrix, H′::Matrix, model; kwargs...) =
-    modelgpu!(rho, CuMatrix(H′), model; kwargs...)
+    modelgpu!(CuMatrix(rho), CuMatrix(H′), model; kwargs...)
 
 function exactgpu!(rho::CuMatrix, H′::CuMatrix, μ′, β′; preheat=3)  # Julia
     for _ in 1:preheat
@@ -88,7 +88,7 @@ function exactgpu!(rho::CuMatrix, H′::CuMatrix, μ′, β′; preheat=3)  # Ju
     return @btimed fermi_dirac!(rho, H′, μ′, β′)
 end
 exactgpu!(rho::Matrix, H′::Matrix, μ′, β′; kwargs...) =
-    exactgpu!(rho, CuMatrix(H′), μ′, β′; kwargs...)
+    exactgpu!(CuMatrix(rho), CuMatrix(H′), μ′, β′; kwargs...)
 
 results = OrderedDict{}()
 # Iterate over element type pairs and math modes
