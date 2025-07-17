@@ -110,7 +110,7 @@ for (INPUT_ELTYPE, OUTPUT_ELTYPE) in ELTYPE_PAIRS
             CUDA.math_mode!(math_mode)
         end
         # Run the functions and store results
-        key = (INPUT_ELTYPE, OUTPUT_ELTYPE, math_mode, precision)
+        key = (INPUT_ELTYPE, OUTPUT_ELTYPE, math_mode, precision, sys_size)
         result = (
             exactcpu=exactcpu(H″, μ″, β″),
             modelcpu=modelcpu!(similar(H″, OUTPUT_ELTYPE), H″, model),
@@ -131,15 +131,15 @@ df = DataFrame(;
     OUTPUT_ELTYPE=DataType[],
     math_mode=CUDA.MathMode[],
     precision=Union{Symbol,Nothing}[],
+    sys_size=Int[],
     function_name=String[],
     time=Union{Missing,Float64}[],
     evals=Union{Missing,Int}[],
     samples=Union{Missing,Int}[],
     time_per_eval_sample=Union{Missing,Float64}[],
 )
-
 for (key, result) in results
-    input_eltype, output_eltype, math_mode, precision = key
+    input_eltype, output_eltype, math_mode, precision, sys_size = key
     # Process each function's benchmark
     for (func_name, bench) in [
         ("exactcpu", result.exactcpu),
@@ -156,6 +156,7 @@ for (key, result) in results
                     output_eltype,
                     math_mode,
                     precision,
+                    sys_size,
                     func_name,
                     missing,
                     missing,
@@ -176,6 +177,7 @@ for (key, result) in results
                     output_eltype,
                     math_mode,
                     precision,
+                    sys_size,
                     func_name,
                     time,
                     evals,
