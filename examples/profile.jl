@@ -42,22 +42,22 @@ const MATH_MODES = [
     (CUDA.FAST_MATH, :TensorFloat32),
 ]
 
+lower_bound, upper_bound = 0, 1
+𝐱′ = chebyshevnodes_1st(1000, (0, 1))
+fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); maxiters=1000)
+
 β = 1.25  # Physical
 μ = 11.5  # Physical
 sys_size = 2048
-dist = LogUniform(1, 20)
+εₘᵢₙ, εₘₐₓ = 1, 20
+dist = LogUniform(εₘᵢₙ, εₘₐₓ)
 Λ = rand(EigvalsSampler(dist), sys_size)
 V = rand(EigvecsSampler(dist), sys_size, sys_size)
 set_isapprox_rtol(1e-10)
 H = Hamiltonian(Eigen(Λ, V))
-εₘᵢₙ, εₘₐₓ = 1, 20
 β′ = rescale_beta((εₘᵢₙ, εₘₐₓ))(β)
 μ′ = rescale_mu((εₘᵢₙ, εₘₐₓ))(μ)
 H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
-
-lower_bound, upper_bound = 0, 1
-𝐱′ = chebyshevnodes_1st(1000, (0, 1))
-fitted = fit_fermi_dirac(𝐱′, μ′, β′, init_model(μ′, 18); maxiters=1000)
 
 function exactcpu(H′::Matrix, μ′, β′)
     return @btimed fermi_dirac(H′, μ′, β′)
