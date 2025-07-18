@@ -1,7 +1,7 @@
 using AffineScaler: rescale_one_zero
 using ChairmarksExtras: @btimed
 using CUDA: DEFAULT_MATH, FAST_MATH, PEDANTIC_MATH, MathMode, CuMatrix, math_mode!
-using DataFrames: DataFrame
+using DataFrames: DataFrame, dropmissing
 using Distributions: LogUniform
 using GeneralizedSP2
 using LinearAlgebra
@@ -31,16 +31,15 @@ PLOT_DEFAULTS = Dict(
     :color_palette => :tab10,
 )
 
-const ELTYPE_PAIRS = [
+const ELTYPE_PAIRS = (
     (Float16, Float16), (Float16, Float32), (Float32, Float32), (Float64, Float64)
-]
-# Define math modes and precisions
-const MATH_MODES = [
+)
+const MATH_MODES = (
     (DEFAULT_MATH, nothing),
     (PEDANTIC_MATH, nothing),
     (FAST_MATH, :Float16),
     (FAST_MATH, :TensorFloat32),
-]
+)
 
 lower_bound, upper_bound = 0, 1
 𝐱′ = chebyshevnodes_1st(1000, (0, 1))
@@ -188,6 +187,7 @@ for (key, result) in results
         end
     end
 end
+df = dropmissing(df, :time_per_eval_sample)
 
 # layout = (2, 1)
 # plot(; layout=layout, PLOT_DEFAULTS..., size=(1600 / 3, 800))
