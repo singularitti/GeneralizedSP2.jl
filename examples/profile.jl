@@ -277,34 +277,39 @@ markers = Dict(
 plt = plot(; layout=(1, 2), PLOT_DEFAULTS..., size=(1300, 500))
 
 # Plot error_norm in subplot 1
-for func_name in reverse(unique(df.function_name))
-    df_func = filter(row -> row.function_name == func_name, df)
-    for ((input_eltype, output_eltype), color) in zip(keys(labels), colors)
-        label = labels[(input_eltype, output_eltype)]
-        df_pair = filter(
-            row -> row.INPUT_ELTYPE == input_eltype && row.OUTPUT_ELTYPE == output_eltype,
-            df_func,
-        )
-        for math_mode in unique(df_pair.math_mode)
-            df_mode = filter(row -> row.math_mode == math_mode, df_pair)
-            for precision in unique(df_mode.precision)
+for ((input_eltype, output_eltype), color) in zip(reverse(collect(keys(labels))), colors)
+    label = labels[(input_eltype, output_eltype)]
+    df_pair = filter(
+        row -> row.INPUT_ELTYPE == input_eltype && row.OUTPUT_ELTYPE == output_eltype, df
+    )
+    for func_name in ("modelgpu", "exactgpu")
+        df_func = filter(row -> row.function_name == func_name, df_pair)
+        for math_mode in (FAST_MATH, DEFAULT_MATH)
+            df_mode = filter(row -> row.math_mode == math_mode, df_func)
+            for precision in (:TensorFloat32, nothing)
                 df_subset = filter(row -> row.precision == precision, df_mode)
                 # Sort by sys_size to ensure correct line plotting
                 sort!(df_subset, :sys_size)
                 if !isempty(df_subset)
-                    display(df_subset)
+                    # Skip plotting if all error_norms in this subset are zero (i.e., this is the benchmark configuration)
+                    if all(df_subset.error_norm .== 0)
+                        continue
+                    end
                     # Use solid line for model functions, dot for exact functions
                     linestyle = occursin("exact", func_name) ? :dot : :solid
                     # Get marker for this math_mode/precision combination
                     marker = markers[(math_mode, precision)]
-                    combined_label = "$func_name, $label, $math_mode"
+                    combined_label = "$func_name, $label"
                     if !isnothing(precision)
                         combined_label *= " ($precision)"
                     end
+                    # Replace zero error_norms with eps(Float64) for log-scale compatibility
+                    plot_error = copy(df_subset.error_norm)
+                    plot_error[plot_error .== 0] .= 10^(-13)
                     plot!(
                         plt,
                         df_subset.sys_size,
-                        df_subset.error_norm;
+                        plot_error;
                         xscale=:log2,
                         yscale=:log10,
                         subplot=1,
@@ -312,6 +317,7 @@ for func_name in reverse(unique(df.function_name))
                         color=color,
                         linestyle=linestyle,
                         marker=marker,
+                        legend_position=(0.1, 0.4),
                         PLOT_DEFAULTS...,
                     )
                 end
@@ -319,6 +325,10 @@ for func_name in reverse(unique(df.function_name))
         end
     end
 end
+xticks!(exp2.(9:15); subplot=1)
+yticks!(exp10.(-15:1); subplot=1)
+xlabel!(raw"system size"; subplot=1)
+ylabel!(raw"norm difference ratio"; subplot=1)
 
 # Plot time_per_eval_sample in subplot 2
 for func_name in reverse(unique(df.function_name))
