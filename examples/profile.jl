@@ -138,6 +138,7 @@ df = DataFrame(;
     evals=Union{Missing,Int}[],
     samples=Union{Missing,Int}[],
     time_per_eval_sample=Union{Missing,Float64}[],
+    value=Union{Missing,Any}[],
 )
 for (key, result) in results
     input_eltype, output_eltype, math_mode, precision, sys_size = key
@@ -163,6 +164,7 @@ for (key, result) in results
                     missing,
                     missing,
                     missing,
+                    missing,
                 ),
             )
         else
@@ -184,6 +186,7 @@ for (key, result) in results
                     evals,
                     samples,
                     time_per_eval_sample,
+                    bench.value,
                 ),
             )
         end
@@ -191,15 +194,73 @@ for (key, result) in results
 end
 df = dropmissing(df, :time_per_eval_sample)
 
-# Plotting
-df = filter(
-    row ->
-        row.function_name in ("modelgpu", "exactgpu") && (
-            row.math_mode == DEFAULT_MATH && isnothing(row.precision) ||
-            row.math_mode == FAST_MATH && row.precision == :TensorFloat32
-        ),
-    df,
-)
+# Compute error_norm for each row
+df[!, :error_norm] = zeros(nrow(df))
+for sys in unique(df.sys_size)
+    df_sys = filter(row -> row.sys_size == sys, df)
+
+    # Find accurate benchmark value: prefer exactcpu (Float64, Float64) with PEDANTIC_MATH, then DEFAULT_MATH;
+    # if not, exactgpu (Float64, Float64) with PEDANTIC_MATH, then DEFAULT_MATH
+    bench_value = nothing
+    ped_cpu = filter(
+        row ->
+            row.function_name == "exactcpu" &&
+                row.math_mode == PEDANTIC_MATH &&
+                isnothing(row.precision) &&
+                row.INPUT_ELTYPE == Float64 &&
+                row.OUTPUT_ELTYPE == Float64,
+        df_sys,
+    )
+    if !isempty(ped_cpu)
+        bench_value = ped_cpu.value[1]
+    else
+        def_cpu = filter(
+            row ->
+                row.function_name == "exactcpu" &&
+                    row.math_mode == DEFAULT_MATH &&
+                    isnothing(row.precision) &&
+                    row.INPUT_ELTYPE == Float64 &&
+                    row.OUTPUT_ELTYPE == Float64,
+            df_sys,
+        )
+        if !isempty(def_cpu)
+            bench_value = def_cpu.value[1]
+        else
+            ped_gpu = filter(
+                row ->
+                    row.function_name == "exactgpu" &&
+                        row.math_mode == PEDANTIC_MATH &&
+                        isnothing(row.precision) &&
+                        row.INPUT_ELTYPE == Float64 &&
+                        row.OUTPUT_ELTYPE == Float64,
+                df_sys,
+            )
+            if !isempty(ped_gpu)
+                bench_value = ped_gpu.value[1]
+            else
+                def_gpu = filter(
+                    row ->
+                        row.function_name == "exactgpu" &&
+                            row.math_mode == DEFAULT_MATH &&
+                            isnothing(row.precision) &&
+                            row.INPUT_ELTYPE == Float64 &&
+                            row.OUTPUT_ELTYPE == Float64,
+                    df_sys,
+                )
+                if !isempty(def_gpu)
+                    bench_value = def_gpu.value[1]
+                end
+            end
+        end
+    end
+
+    # Compute norm differences
+    sys_indices = findall(row -> row.sys_size == sys, eachrow(df))
+    for idx in sys_indices
+        df.error_norm[idx] = norm(Matrix{Float64}(df.value[idx]) - bench_value)
+    end
+end
+
 labels = OrderedDict(
     (Float64, Float64) => "FP64 → FP64",
     (Float32, Float32) => "FP32 → FP32",
@@ -214,6 +275,52 @@ markers = Dict(
     (FAST_MATH, :TensorFloat32) => :circle,
 )
 plt = plot(; layout=(1, 2), PLOT_DEFAULTS..., size=(1300, 500))
+
+# Plot error_norm in subplot 1
+for func_name in reverse(unique(df.function_name))
+    df_func = filter(row -> row.function_name == func_name, df)
+    for ((input_eltype, output_eltype), color) in zip(keys(labels), colors)
+        label = labels[(input_eltype, output_eltype)]
+        df_pair = filter(
+            row -> row.INPUT_ELTYPE == input_eltype && row.OUTPUT_ELTYPE == output_eltype,
+            df_func,
+        )
+        for math_mode in unique(df_pair.math_mode)
+            df_mode = filter(row -> row.math_mode == math_mode, df_pair)
+            for precision in unique(df_mode.precision)
+                df_subset = filter(row -> row.precision == precision, df_mode)
+                # Sort by sys_size to ensure correct line plotting
+                sort!(df_subset, :sys_size)
+                if !isempty(df_subset)
+                    display(df_subset)
+                    # Use solid line for model functions, dot for exact functions
+                    linestyle = occursin("exact", func_name) ? :dot : :solid
+                    # Get marker for this math_mode/precision combination
+                    marker = markers[(math_mode, precision)]
+                    combined_label = "$func_name, $label, $math_mode"
+                    if !isnothing(precision)
+                        combined_label *= " ($precision)"
+                    end
+                    plot!(
+                        plt,
+                        df_subset.sys_size,
+                        df_subset.error_norm;
+                        xscale=:log2,
+                        yscale=:log10,
+                        subplot=1,
+                        label=combined_label,
+                        color=color,
+                        linestyle=linestyle,
+                        marker=marker,
+                        PLOT_DEFAULTS...,
+                    )
+                end
+            end
+        end
+    end
+end
+
+# Plot time_per_eval_sample in subplot 2
 for func_name in reverse(unique(df.function_name))
     df_func = filter(row -> row.function_name == func_name, df)
     for ((input_eltype, output_eltype), color) in zip(keys(labels), colors)
