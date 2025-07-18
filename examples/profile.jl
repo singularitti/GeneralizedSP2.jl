@@ -196,7 +196,6 @@ df = dropmissing(df, :time_per_eval_sample)
 df[!, :error_norm] = zeros(nrow(df))
 for sys in unique(df.sys_size)
     df_sys = filter(row -> row.sys_size == sys, df)
-
     # Find accurate benchmark value: prefer exactcpu (Float64, Float64) with PEDANTIC_MATH, then DEFAULT_MATH;
     # if not, exactgpu (Float64, Float64) with PEDANTIC_MATH, then DEFAULT_MATH
     bench_value = nothing
@@ -251,7 +250,6 @@ for sys in unique(df.sys_size)
             end
         end
     end
-
     # Compute norm differences
     sys_indices = findall(row -> row.sys_size == sys, eachrow(df))
     for idx in sys_indices
@@ -267,10 +265,7 @@ labels = OrderedDict(
 )
 colors = palette(:tab10)
 markers = Dict(
-    (DEFAULT_MATH, nothing) => :utriangle,
-    (PEDANTIC_MATH, nothing) => :+,
-    (FAST_MATH, :Float16) => :star4,
-    (FAST_MATH, :TensorFloat32) => :circle,
+    (DEFAULT_MATH, nothing) => :utriangle, (FAST_MATH, :TensorFloat32) => :circle
 )
 plt = plot(; layout=(1, 2), PLOT_DEFAULTS..., size=(1300, 500))
 
