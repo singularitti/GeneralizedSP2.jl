@@ -6,29 +6,31 @@ using Distributions: LogUniform
 using GeneralizedSP2
 using LinearAlgebra
 using OrderedCollections: OrderedDict
-# using Plots
+using Plots
 using ToyHamiltonians
 
 PLOT_DEFAULTS = Dict(
-    :size => (400, 300),
     :dpi => 400,
+    :background_color_inside => nothing,
     :framestyle => :box,
-    :linewidth => 1,
-    :markersize => 1,
+    :grid => nothing,
+    :left_margin => (0, :mm),
+    :linewidth => 2,
+    :markersize => 4,
     :markerstrokewidth => 0,
-    :minorticks => 5,
+    :minorticks => 10,
     :titlefontsize => 9,
     :plot_titlefontsize => 9,
     :guidefontsize => 9,
     :tickfontsize => 7,
     :legendfontsize => 7,
-    :left_margin => (0, :mm),
-    :grid => nothing,
-    :legend_foreground_color => nothing,
     :legend_background_color => nothing,
-    :legend_position => :bottomleft,
-    :background_color_inside => nothing,
-    :color_palette => :tab10,
+    :legend_foreground_color => nothing,
+    :legend_position => :topleft,
+    :legendfontfamily => "Palatino Roman",
+    :xguidefontfamily => "Palatino Italic",
+    :yguidefontfamily => "Palatino Roman",
+    :tickfontfamily => "Palatino Roman",
 )
 
 const ELTYPE_PAIRS = (
@@ -189,22 +191,74 @@ for (key, result) in results
 end
 df = dropmissing(df, :time_per_eval_sample)
 
-# layout = (2, 1)
-# plot(; layout=layout, PLOT_DEFAULTS..., size=(1600 / 3, 800))
-# scatter!(𝛌, fd_benchmark; subplot=1, label="target Fermi–Dirac", PLOT_DEFAULTS...)
-# scatter!(𝛌, fd_cpu; subplot=1, label="MLSP2 model", PLOT_DEFAULTS...)
-# scatter!(𝛌, fd_gpu; subplot=1, label="MLSP2 model CUDA", PLOT_DEFAULTS...)
-# xlabel!("eigenvalues of H"; subplot=1)
-# ylabel!("Fermi–Dirac distribution"; subplot=1)
-
-# hline!(
-#     [zero(eltype(fd_benchmark))];
-#     subplot=2,
-#     seriescolor=:black,
-#     primary=false,
-#     PLOT_DEFAULTS...,
-# )
-# scatter!(𝛌, fd_benchmark - fd_cpu; subplot=2, label="MLSP2 model", PLOT_DEFAULTS...)
-# scatter!(𝛌, fd_benchmark - fd_gpu; subplot=2, label="MLSP2 model CUDA", PLOT_DEFAULTS...)
-# xlabel!("eigenvalues of H"; subplot=2)
-# ylabel!("Fermi–Dirac distribution difference"; subplot=2)
+# Plotting
+df = filter(
+    row ->
+        row.function_name in ("modelgpu", "exactgpu") && (
+            row.math_mode == DEFAULT_MATH && isnothing(row.precision) ||
+            row.math_mode == FAST_MATH && row.precision == :TensorFloat32
+        ),
+    df,
+)
+labels = OrderedDict(
+    (Float64, Float64) => "FP64 → FP64",
+    (Float32, Float32) => "FP32 → FP32",
+    (Float16, Float32) => "FP16 → FP32",
+    (Float16, Float16) => "FP16 → FP16",
+)
+colors = palette(:tab10)
+markers = Dict(
+    (DEFAULT_MATH, nothing) => :utriangle,
+    (PEDANTIC_MATH, nothing) => :+,
+    (FAST_MATH, :Float16) => :star4,
+    (FAST_MATH, :TensorFloat32) => :circle,
+)
+plt = plot(; layout=(1, 2), PLOT_DEFAULTS..., size=(1300, 500))
+for func_name in reverse(unique(df.function_name))
+    df_func = filter(row -> row.function_name == func_name, df)
+    for ((input_eltype, output_eltype), color) in zip(keys(labels), colors)
+        label = labels[(input_eltype, output_eltype)]
+        df_pair = filter(
+            row -> row.INPUT_ELTYPE == input_eltype && row.OUTPUT_ELTYPE == output_eltype,
+            df_func,
+        )
+        for math_mode in unique(df_pair.math_mode)
+            df_mode = filter(row -> row.math_mode == math_mode, df_pair)
+            for precision in unique(df_mode.precision)
+                df_subset = filter(row -> row.precision == precision, df_mode)
+                # Sort by sys_size to ensure correct line plotting
+                sort!(df_subset, :sys_size)
+                if !isempty(df_subset)
+                    display(df_subset)
+                    # Use solid line for model functions, dot for exact functions
+                    linestyle = occursin("exact", func_name) ? :dot : :solid
+                    # Get marker for this math_mode/precision combination
+                    marker = markers[(math_mode, precision)]
+                    combined_label = "$func_name, $label"
+                    if !isnothing(precision)
+                        combined_label *= " ($precision)"
+                    end
+                    plot!(
+                        plt,
+                        df_subset.sys_size,
+                        df_subset.time_per_eval_sample;
+                        xscale=:log2,
+                        yscale=:log10,
+                        subplot=2,
+                        label=combined_label,
+                        color=color,
+                        linestyle=linestyle,
+                        marker=marker,
+                        PLOT_DEFAULTS...,
+                    )
+                end
+            end
+        end
+    end
+end
+xticks!(exp2.(9:15); subplot=2)
+yticks!(exp10.(-6:6); subplot=2)
+xlabel!(raw"system size $N$"; subplot=2)
+ylabel!(raw"RMSE of fitting"; subplot=1)
+ylabel!(raw"time (s)"; subplot=2)
+savefig("profile.png")
