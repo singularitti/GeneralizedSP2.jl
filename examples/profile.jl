@@ -329,7 +329,7 @@ xlabel!(raw"system size"; subplot=1)
 ylabel!(raw"norm difference ratio"; subplot=1)
 
 # Plot time_per_eval_sample in subplot 2
-for func_name in reverse(unique(df.function_name))
+for func_name in ("exactgpu", "modelgpu")
     df_func = filter(row -> row.function_name == func_name, df)
     for ((input_eltype, output_eltype), color) in zip(keys(labels), colors)
         label = labels[(input_eltype, output_eltype)]
@@ -337,14 +337,13 @@ for func_name in reverse(unique(df.function_name))
             row -> row.INPUT_ELTYPE == input_eltype && row.OUTPUT_ELTYPE == output_eltype,
             df_func,
         )
-        for math_mode in unique(df_pair.math_mode)
+        for math_mode in (DEFAULT_MATH, FAST_MATH)
             df_mode = filter(row -> row.math_mode == math_mode, df_pair)
-            for precision in unique(df_mode.precision)
+            for precision in (nothing, :TensorFloat32)
                 df_subset = filter(row -> row.precision == precision, df_mode)
                 # Sort by sys_size to ensure correct line plotting
                 sort!(df_subset, :sys_size)
                 if !isempty(df_subset)
-                    display(df_subset)
                     # Use solid line for model functions, dot for exact functions
                     linestyle = occursin("exact", func_name) ? :dot : :solid
                     # Get marker for this math_mode/precision combination
@@ -364,6 +363,7 @@ for func_name in reverse(unique(df.function_name))
                         color=color,
                         linestyle=linestyle,
                         marker=marker,
+                        legend_position=(0.1, 0.96),
                         PLOT_DEFAULTS...,
                     )
                 end
@@ -373,7 +373,6 @@ for func_name in reverse(unique(df.function_name))
 end
 xticks!(exp2.(9:15); subplot=2)
 yticks!(exp10.(-6:6); subplot=2)
-xlabel!(raw"system size $N$"; subplot=2)
-ylabel!(raw"RMSE of fitting"; subplot=1)
+xlabel!(raw"system size"; subplot=2)
 ylabel!(raw"time (s)"; subplot=2)
 savefig("profile.png")
