@@ -1,7 +1,7 @@
 using AffineScaler: rescale_one_zero
 using ChairmarksExtras: @btimed
 using CUDA: DEFAULT_MATH, FAST_MATH, PEDANTIC_MATH, MathMode, CuMatrix, math_mode!
-using DataFrames: DataFrame, dropmissing
+using DataFrames: DataFrame, dropmissing, nrow
 using Distributions: LogUniform
 using GeneralizedSP2
 using LinearAlgebra
