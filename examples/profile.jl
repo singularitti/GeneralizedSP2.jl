@@ -144,7 +144,7 @@ df = DataFrame(;
     evals=Union{Missing,Int}[],
     samples=Union{Missing,Int}[],
     time_per_eval_sample=Union{Missing,Float64}[],
-    value=Union{Missing,Any}[],
+    value=Union{Missing,Matrix}[],
 )
 for (key, result) in results
     input_eltype, output_eltype, math_mode, precision, sys_size = key
@@ -200,13 +200,15 @@ for (key, result) in results
 end
 df = dropmissing(df, :time_per_eval_sample)
 
-# Compute error_norm for each row
+# Add a new column for error_norm, initialized to zeros for all rows
 df[!, :error_norm] = zeros(nrow(df))
+# Loop over each unique system size to compute errors independently
 for sys in unique(df.sys_size)
+    # Filter the DataFrame to rows matching the current system size
     df_sys = filter(row -> row.sys_size == sys, df)
-    # Find accurate benchmark value: prefer exactcpu (Float64, Float64) with PEDANTIC_MATH, then DEFAULT_MATH;
-    # if not, exactgpu (Float64, Float64) with PEDANTIC_MATH, then DEFAULT_MATH
+    # Initialize benchmark value as nothing; it will be set based on priority
     bench_value = nothing
+    # First preference: exactcpu with PEDANTIC_MATH in Float64 (strict precision on CPU)
     ped_cpu = filter(
         row ->
             row.function_name == "exactcpu" &&
@@ -219,6 +221,7 @@ for sys in unique(df.sys_size)
     if !isempty(ped_cpu)
         bench_value = ped_cpu.value[1]
     else
+        # Second: exactcpu with DEFAULT_MATH in Float64 (optimized but precise on CPU)
         def_cpu = filter(
             row ->
                 row.function_name == "exactcpu" &&
@@ -231,6 +234,7 @@ for sys in unique(df.sys_size)
         if !isempty(def_cpu)
             bench_value = def_cpu.value[1]
         else
+            # Third: exactgpu with PEDANTIC_MATH in Float64 (strict precision on GPU)
             ped_gpu = filter(
                 row ->
                     row.function_name == "exactgpu" &&
@@ -243,6 +247,7 @@ for sys in unique(df.sys_size)
             if !isempty(ped_gpu)
                 bench_value = ped_gpu.value[1]
             else
+                # Fourth: exactgpu with DEFAULT_MATH in Float64 (optimized on GPU)
                 def_gpu = filter(
                     row ->
                         row.function_name == "exactgpu" &&
@@ -258,10 +263,15 @@ for sys in unique(df.sys_size)
             end
         end
     end
-    # Compute norm differences
+    # Compute relative norm differences for all rows matching the current system size
     sys_indices = findall(row -> row.sys_size == sys, eachrow(df))
     for idx in sys_indices
-        df.error_norm[idx] = norm(Matrix{Float64}(df.value[idx]) - bench_value)
+        # Calculate relative error: norm(computed - benchmark) / norm(benchmark)
+        # Convert computed value to Matrix{Float64} for consistent comparison
+        computed_value = Matrix{Float64}(df.value[idx])
+        abs_diff_norm = norm(computed_value - bench_value)
+        bench_norm = norm(bench_value)
+        df.error_norm[idx] = (bench_norm > 0) ? abs_diff_norm / bench_norm : abs_diff_norm  # Avoid division by zero
     end
 end
 
