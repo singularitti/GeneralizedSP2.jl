@@ -1,6 +1,6 @@
 using AffineScaler: rescale_one_zero
 using ChairmarksExtras: @btimed
-using CUDA
+using CUDA: DEFAULT_MATH, FAST_MATH, PEDANTIC_MATH, MathMode, CuMatrix, math_mode!
 using DataFrames: DataFrame
 using Distributions: LogUniform
 using GeneralizedSP2
@@ -36,10 +36,10 @@ const ELTYPE_PAIRS = [
 ]
 # Define math modes and precisions
 const MATH_MODES = [
-    (CUDA.DEFAULT_MATH, nothing),
-    (CUDA.PEDANTIC_MATH, nothing),
-    (CUDA.FAST_MATH, :Float16),
-    (CUDA.FAST_MATH, :TensorFloat32),
+    (DEFAULT_MATH, nothing),
+    (PEDANTIC_MATH, nothing),
+    (FAST_MATH, :Float16),
+    (FAST_MATH, :TensorFloat32),
 ]
 
 lower_bound, upper_bound = 0, 1
@@ -100,14 +100,14 @@ for (INPUT_ELTYPE, OUTPUT_ELTYPE) in ELTYPE_PAIRS
     model = convert(Model{INPUT_ELTYPE}, fitted.model)
     for (math_mode, precision) in MATH_MODES
         # Skip FAST_MATH for non-Float32 input-output pairs
-        if math_mode == CUDA.FAST_MATH && INPUT_ELTYPE != Float32
+        if math_mode == FAST_MATH && INPUT_ELTYPE != Float32
             continue
         end
         # Set the math mode
-        if math_mode == CUDA.FAST_MATH
-            CUDA.math_mode!(math_mode; precision=precision)
+        if math_mode == FAST_MATH
+            math_mode!(math_mode; precision=precision)
         else
-            CUDA.math_mode!(math_mode)
+            math_mode!(math_mode)
         end
         # Run the functions and store results
         key = (INPUT_ELTYPE, OUTPUT_ELTYPE, math_mode, precision, sys_size)
@@ -129,7 +129,7 @@ end
 df = DataFrame(;
     INPUT_ELTYPE=DataType[],
     OUTPUT_ELTYPE=DataType[],
-    math_mode=CUDA.MathMode[],
+    math_mode=MathMode[],
     precision=Union{Symbol,Nothing}[],
     sys_size=Int[],
     function_name=String[],
