@@ -111,8 +111,16 @@ for (INPUT_ELTYPE, OUTPUT_ELTYPE) in ELTYPE_PAIRS
         # Run the functions and store results
         key = (INPUT_ELTYPE, OUTPUT_ELTYPE, math_mode, precision, sys_size)
         result = (
-            exactcpu=exactcpu(H″, μ″, β″),
-            modelcpu=modelcpu!(similar(H″, OUTPUT_ELTYPE), H″, model),
+            exactcpu=if sys_size < 8192
+                exactcpu(H″, μ″, β″)
+            else
+                missing  # Skip large systems for exactcpu
+            end,
+            modelcpu=if sys_size < 8192
+                modelcpu!(similar(H″, OUTPUT_ELTYPE), H″, model)
+            else
+                missing  # Skip large systems for modelcpu
+            end,
             modelgpu=modelgpu!(similar(H″, OUTPUT_ELTYPE), H″, model),
             exactgpu=if (INPUT_ELTYPE, OUTPUT_ELTYPE) in
                 ((Float32, Float32), (Float64, Float64))
