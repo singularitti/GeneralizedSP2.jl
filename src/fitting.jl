@@ -20,7 +20,7 @@ function fit_fermi_dirac(
     kwargs...,
 )
     fd = fermi_dirac.(𝛆′, μ′, β′)
-    result = if diff isa NoDiff
+    result = if diff isa Default
         curve_fit(
             _fermi_dirac!,
             𝛆′,  # xdata

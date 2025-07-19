@@ -41,14 +41,14 @@ max_iters = [1_000, 10_000, 100_000, 1_000_000, 10_000_000, 100_000_000]
 strategy = Manual()
 strategy = Auto(AutoEnzyme(; mode=Reverse, function_annotation=Const))
 strategy = Auto(AutoFiniteDiff())
-strategy = NoDiff()
+strategy = Default()
 
 all_results = OrderedDict()
 
 results = map(
     Iterators.takewhile(
         max_iter ->
-            (isa(strategy, Auto) || isa(strategy, NoDiff) && max_iter < 1e7) ||
+            (isa(strategy, Auto) || isa(strategy, Default) && max_iter < 1e7) ||
                 isa(strategy, Manual),
         max_iters,
     ),
