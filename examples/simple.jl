@@ -38,7 +38,7 @@ H_scaled = rescale_one_zero(εₘᵢₙ, εₘₐₓ)(H)
 
 lower_bound, upper_bound = 0, 1
 𝛆′ = sample_by_pdf(bell_distribution(μ′, β′), μ′, (lower_bound, upper_bound))
-fitted = fit_fermi_dirac(𝛆′, μ′, β′, init_model(μ′, 18); max_iter=10_000_000);
+fitted = fit_fermi_dirac(𝛆′, μ′, β′, init_model(μ′, 18); maxiters=10_000_000);
 M = fitted.model
 M̄ = fitted.jac
 
