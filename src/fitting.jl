@@ -1,8 +1,13 @@
+using CommonSolve: init, solve!
+using CurveFit: NonlinearCurveFitProblem, __wrap_nonlinear_function
 using LsqFit: curve_fit, isconverged, coef, residuals, mse, stderror, vcov
+using NonlinearSolve: NonlinearFunction, TraceAll, solve
+using NonlinearSolveFirstOrder: LevenbergMarquardt
+using SciMLBase: NonlinearLeastSquaresProblem, successful_retcode
 
 import LsqFit: LMResults
 
-export init_model, fit_fermi_dirac, fit_electronic_entropy
+export init_model, fit_fermi_dirac, fit_electronic_entropy, fit_fermi_dirac2
 
 function fit_fermi_dirac(
     𝛆′,
@@ -64,6 +69,37 @@ function fit_fermi_dirac(
         covar=vcov(result),
         trace=result.trace,
     )
+end
+function fit_fermi_dirac2(
+    𝛆′,
+    μ′,
+    β′,
+    model_init=init_model(μ′, 20);
+    maxiters=1000,
+    show_trace=false,
+    trace_level=TraceAll(),
+    store_trace=true,
+    kwargs...,
+)
+    fd = fermi_dirac.(𝛆′, μ′, β′)
+    nlfunc = NonlinearFunction((model, 𝛆) -> model.(𝛆))
+    prob = NonlinearCurveFitProblem(nlfunc, model_init, 𝛆′, fd)
+    cache = init(
+        NonlinearLeastSquaresProblem(
+            __wrap_nonlinear_function(prob.nlfunc, prob.y), prob.u0, prob.x
+        ),
+        LevenbergMarquardt();
+        maxiters=maxiters,
+        show_trace=Val(show_trace),
+        trace_level=trace_level,
+        store_trace=Val(store_trace),
+        kwargs...,
+    )
+    sol = solve!(cache)
+    if !successful_retcode(sol.retcode)
+        @warn "the curve fitting did not converge! retcode: $(sol.retcode)"
+    end
+    return (model=Model(sol.u), resid=sol.resid)
 end
 
 function fit_electronic_entropy(
