@@ -1,9 +1,9 @@
 module StaticArraysExt
 
-using StaticArrays: StaticArray
+using StaticArraysCore: StaticArray
 using GeneralizedSP2: AbstractModel, FlatModel, Model
 
-import StaticArrays: Size, similar_type
+import StaticArraysCore: Size, similar_type
 
 function similar_type(
     ::Type{<:AbstractModel{R,N,A}}, ::Type{T}, s::Size{S}
