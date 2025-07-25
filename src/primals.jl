@@ -34,10 +34,20 @@ function apply(model, x)
     return accumulator
 end
 
+abstract type _ArrayTrait end
+struct _Empty <: _ArrayTrait end
+struct _Preallocated <: _ArrayTrait end
+
 function apply!(𝐲::AbstractVector, model, x)
-    if length(𝐲) != numlayers(model) + 1
+    if length(𝐲) >= numlayers(model) + 1
+        return _apply!(𝐲, model, x, _Preallocated())
+    elseif isempty(𝐲)
+        return _apply!(𝐲, model, x, _Empty())
+    else
         throw(DimensionMismatch("the length of 𝐲 and the model do not match!"))
     end
+end
+function _apply!(𝐲::AbstractVector, model, x, ::_Preallocated)
     layers = eachlayer(model)
     layerindices = eachindex(layers)
     𝐲[begin] = x
@@ -50,20 +60,19 @@ function apply!(𝐲::AbstractVector, model, x)
     accumulator += 𝐲[end]
     return accumulator
 end
-# function apply!(𝐲::AbstractVector, model, x)
-#     @assert isempty(𝐲)
-#     𝟏ₘ, 𝟏ₓ = oneunit(eltype(model)), oneunit(x)
-#     accumulator = zero(𝟏ₘ * 𝟏ₓ)  # Accumulator of the summation
-#     y = x  # `x` and `y` are 2 numbers
-#     push!(𝐲, y)
-#     for 𝐦 in eachlayer(model)
-#         accumulator += 𝐦[4] * y
-#         y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * 𝟏ₓ
-#         push!(𝐲, y)
-#     end
-#     accumulator += 𝟏ₘ * y
-#     return accumulator
-# end
+function _apply!(𝐲::AbstractVector, model, x, ::_Empty)
+    𝟏ₘ, 𝟏ₓ = oneunit(eltype(model)), oneunit(x)
+    accumulator = zero(𝟏ₘ * 𝟏ₓ)
+    y = x
+    push!(𝐲, y)
+    for 𝐦 in eachlayer(model)
+        accumulator += 𝐦[4] * y
+        y = 𝐦[1] * y^2 + 𝐦[2] * y + 𝐦[3] * 𝟏ₓ
+        push!(𝐲, y)
+    end
+    accumulator += 𝟏ₘ * y
+    return accumulator
+end
 function apply!(result::AbstractMatrix, model, X::AbstractMatrix)
     checksquare(X)  # See https://discourse.julialang.org/t/120556/2
     if size(result) != size(X)
