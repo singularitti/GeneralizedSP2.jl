@@ -2,14 +2,14 @@ using LinearAlgebra: tr, diag
 
 export newton_raphson_step, estimate_mu, update_spectral_bounds, recover_mu_history
 
-ojbective(D::AbstractMatrix, target_occupation) = target_occupation - tr(D)
+objective(D::AbstractMatrix, target_occupation) = target_occupation - tr(D)
 
-ojbective_deriv(D::AbstractMatrix, β) = tr(fermi_dirac_deriv(D, β))
+objective_deriv(D::AbstractMatrix, β) = tr(fermi_dirac_deriv(D, β))
 
 function newton_raphson_step(target_occupation, D::AbstractMatrix, β; occ_tol=1e-4)
     @assert occ_tol >= zero(occ_tol) "occupation tolerance must be non-negative!"
-    occupation_error = ojbective(D, target_occupation)
-    derivative = ojbective_deriv(D, β)
+    occupation_error = objective(D, target_occupation)
+    derivative = objective_deriv(D, β)
     Δμ = occupation_error / derivative
     converged = abs(occupation_error) <= occ_tol
     return Δμ, converged
@@ -78,18 +78,18 @@ function recover_mu_history(μ′_history, spectral_bounds_history)
 end
 
 function bisection(D::AbstractMatrix, lower, upper; tol=1e-6, max_iter=100)
-    if ojbective(D, lower) * ojbective(D, upper) >= 0
-        throw(DomainError("ojbective(a) and ojbective(b) must have opposite signs"))
+    if objective(D, lower) * objective(D, upper) >= 0
+        throw(DomainError("objective(a) and objective(b) must have opposite signs"))
     end
     left, right = lower, upper
     mid = (left + right) / 2
     for iter in 1:max_iter
         mid = (left + right) / 2
-        g_mid = ojbective(D, mid)
+        g_mid = objective(D, mid)
         if abs(g_mid) < tol || (right - left) / 2.0 < tol
             return mid
         end
-        if ojbective(D, left) * g_mid < 0
+        if objective(D, left) * g_mid < 0
             right = mid
         else
             left = mid
