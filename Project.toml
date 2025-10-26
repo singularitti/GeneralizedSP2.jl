@@ -1,7 +1,7 @@
 name = "GeneralizedSP2"
 uuid = "5310a9d4-a676-4946-a68d-8e46a0f50a7f"
-authors = ["Kipton Barros <kbarros@gmail.com>", "singularitti <singularitti@outlook.com>"]
 version = "0.1.0"
+authors = ["Kipton Barros <kbarros@gmail.com>", "singularitti <singularitti@outlook.com>"]
 
 [deps]
 AffineScaler = "75005516-5893-409d-9e89-87dc6c6330eb"
