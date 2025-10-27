@@ -1,6 +1,7 @@
 module GeneralizedSP2
 
 include("stat_mech.jl")
+include("kernels.jl")
 include("types.jl")
 include("primals.jl")
 include("tangents.jl")
