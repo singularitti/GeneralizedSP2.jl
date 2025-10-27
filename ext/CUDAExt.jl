@@ -27,7 +27,7 @@ using NVTX: @range
 
 using GeneralizedSP2: Model, eachlayer, numlayers
 
-import GeneralizedSP2: diagonalize, diagonalize!, fill_diagonal!, fermi_dirac, fermi_dirac!
+import GeneralizedSP2: diagonalize, diagonalize!, fermi_dirac, fermi_dirac!
 
 struct CUDAError
     at::Symbol
@@ -85,41 +85,6 @@ _eigsolver_buffersize(::Type{Cfloat}) = cusolverDnSsyevd_bufferSize
 
 _eigsolver(::Type{Cdouble}) = cusolverDnDsyevd
 _eigsolver(::Type{Cfloat}) = cusolverDnSsyevd
-
-# Kernel to fill diagonal elements of a square matrix
-function _fill_diagonal!(A::CuDeviceMatrix{T}, D::CuDeviceVector{T}, N) where {T}
-    row = (blockIdx().y - Int32(1)) * blockDim().y + threadIdx().y
-    col = (blockIdx().x - Int32(1)) * blockDim().x + threadIdx().x
-    if row <= N && col <= N
-        if row == col
-            @inbounds A[row, col] = D[row]
-        else
-            @inbounds A[row, col] = zero(T)
-        end
-    end
-    return nothing
-end
-function fill_diagonal!(A::CuMatrix{T}, D::CuVector{T}) where {T}
-    N = size(A, 1)
-    kernel = @cuda launch = false _fill_diagonal!(A, D, N)  # Prepare the kernel without launching it
-    config = launch_configuration(kernel.fun)  # Get optimal launch configuration
-    max_threads_per_block = config.threads  # Maximum number of threads per block
-    # Determine threads per block in x and y dimensions
-    # Aim for square blocks, so take the square root
-    threads_per_block_dim = min(N, floor(Int, sqrt(max_threads_per_block)))
-    blocks_dim = cld(N, threads_per_block_dim)
-    # Launch the kernel with the calculated threads and blocks
-    CUDA.@sync begin
-        kernel(
-            A,
-            D,
-            N;
-            threads=(threads_per_block_dim, threads_per_block_dim),  # Threads per block in x and y dimensions
-            blocks=(blocks_dim, blocks_dim),  # The number of blocks needed in each dimension
-        )
-    end
-    return A
-end
 
 function _fermi_dirac!(result, 𝛆, μ, β)
     index = (blockIdx().x - Int32(1)) * blockDim().x + threadIdx().x  # Linear thread index
