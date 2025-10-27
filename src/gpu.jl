@@ -1,5 +1,3 @@
-using LinearAlgebra: diagind
-
 export diagonalize, diagonalize!
 
 function diagonalize end
