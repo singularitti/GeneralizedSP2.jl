@@ -27,7 +27,7 @@ using NVTX: @range
 
 using GeneralizedSP2: Model, eachlayer, numlayers
 
-import GeneralizedSP2: diagonalize, diagonalize!, fermi_dirac, fermi_dirac!
+import GeneralizedSP2: fermi_dirac, fermi_dirac!
 
 struct CUDAError
     at::Symbol

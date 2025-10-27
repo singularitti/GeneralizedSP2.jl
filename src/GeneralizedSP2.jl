@@ -8,6 +8,5 @@ include("sampling.jl")
 include("sp2.jl")
 include("fitting.jl")
 include("mu.jl")
-include("gpu.jl")
 
 end
