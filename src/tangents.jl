@@ -2,7 +2,6 @@ using DifferentiationInterface: gradient!
 
 export Manual,
     Auto,
-    CustomAutoEnzyme,
     autodiff_model,
     autodiff_model!,
     manualdiff_model,
@@ -14,8 +13,6 @@ struct Manual <: DiffStrategy end
 struct Auto{T} <: DiffStrategy
     backend::T
 end
-
-struct CustomAutoEnzyme end
 
 function autodiff_model(f, model, x, backend)
     grad = similar(parent(model))
