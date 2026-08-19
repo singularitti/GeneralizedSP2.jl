@@ -19,12 +19,14 @@ SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 [weakdeps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 EnzymeCore = "f151be2c-9106-41f4-ab19-57ee4f262869"
+Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
 NVTX = "5da4648a-3479-48b8-97b9-01cb529c0a1f"
 StaticArraysCore = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
 
 [extensions]
 CUDAExt = ["CUDA", "NVTX"]
 EnzymeExt = "EnzymeCore"
+MooncakeExt = "Mooncake"
 StaticArraysExt = "StaticArraysCore"
 
 [compat]
