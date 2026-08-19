@@ -1,11 +1,11 @@
 module EnzymeExt
 
+using DifferentiationInterface: AutoEnzyme
 using EnzymeCore: Reverse, Active, Duplicated, autodiff
-using GeneralizedSP2: AbstractModel, CustomAutoEnzyme
 
 import GeneralizedSP2: autodiff_model!
 
-function autodiff_model!(f, grad, model, x, ::CustomAutoEnzyme)
+function autodiff_model!(f, grad, model, x, ::AutoEnzyme)
     if length(grad) != length(model)
         throw(DimensionMismatch("the length of gradient and the model are not equal!"))
     end
