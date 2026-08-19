@@ -2,7 +2,6 @@ using DifferentiationInterface: gradient!
 
 export Manual,
     Auto,
-    CustomAutoEnzyme,
     autodiff_model,
     autodiff_model!,
     manualdiff_model,
@@ -15,8 +14,6 @@ struct Auto{T} <: DiffStrategy
     backend::T
 end
 
-struct CustomAutoEnzyme end
-
 function autodiff_model(f, model, x, backend)
     grad = similar(parent(model))
     return autodiff_model!(f, grad, model, x, backend)
@@ -25,13 +22,8 @@ function autodiff_model!(f, grad, model, x, backend)
     if length(grad) != length(model)
         throw(DimensionMismatch("the length of gradient and the model are not equal!"))
     end
-    # Enzyme requires the primal and gradient buffers to have the same concrete
-    # array type, so differentiate plain storage and copy the result to `grad`.
-    parameters = collect(model)
-    gradient_buffer = similar(parameters)
-    g(parameters′) = f(FlatModel(parameters′)(x))
-    gradient!(g, gradient_buffer, backend, parameters)
-    return copyto!(grad, gradient_buffer)
+    g(model′) = f(model′(x))
+    return gradient!(g, grad, backend, model)
 end
 
 function manualdiff_model(f′, model, x)
