@@ -25,8 +25,13 @@ function autodiff_model!(f, grad, model, x, backend)
     if length(grad) != length(model)
         throw(DimensionMismatch("the length of gradient and the model are not equal!"))
     end
-    g(model′) = f(model′(x))
-    return gradient!(g, grad, backend, model)
+    # Enzyme requires the primal and gradient buffers to have the same concrete
+    # array type, so differentiate plain storage and copy the result to `grad`.
+    parameters = collect(model)
+    gradient_buffer = similar(parameters)
+    g(parameters′) = f(FlatModel(parameters′)(x))
+    gradient!(g, gradient_buffer, backend, parameters)
+    return copyto!(grad, gradient_buffer)
 end
 
 function manualdiff_model(f′, model, x)
