@@ -1,6 +1,21 @@
-using GeneralizedSP2: LAYER_WIDTH, manualdiff_model!
-using DifferentiationInterface: AutoEnzyme
+using GeneralizedSP2: LAYER_WIDTH, fermi_dirac_jac!, manualdiff_model!
+using DifferentiationInterface: AutoEnzyme, AutoMooncake
 using Enzyme
+using Mooncake
+
+@testset "Test Mooncake with view-backed gradients" begin
+    flat_model = init_model(0.5, 2)
+    𝐱 = collect(range(0.0, 1.0; length=8))
+    for model in (flat_model, Model(flat_model))
+        benchmark = zeros(length(𝐱), length(model))
+        derivatives = zeros(Float32, size(benchmark))
+        fermi_dirac_jac!(benchmark, model, 𝐱, Manual())
+        fermi_dirac_jac!(
+            derivatives, model, 𝐱, Auto(AutoMooncake(; config=nothing))
+        )
+        @test derivatives ≈ benchmark rtol=sqrt(eps(Float32))
+    end
+end
 
 @testset "Test computing the model's gradients" begin
     for backend in
